@@ -6,7 +6,7 @@ import styles from './styles.module.scss';
 interface ModalProps {
   isShowing: boolean;
   toggle: () => void;
-  children: React.ReactChild;
+  children?: React.ReactChild;
 }
 
 const Modal: React.FC<ModalProps> = ({ isShowing, toggle, children }) => { 
