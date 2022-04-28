@@ -14,10 +14,10 @@ export function Header() {
                 <img src="/images/logo.svg" alt="Logo" />
                 <nav>   
                     <ActiveLink activeClassName={styles.active } href='/'>
-                        <a>Home</a>
+                        <a>Início</a>
                     </ActiveLink>
-                    <ActiveLink  activeClassName={styles.active } href='/posts'> 
-                        <a>Posts</a>
+                    <ActiveLink  activeClassName={styles.active } href='/testes'> 
+                        <a>Testes</a>
                     </ActiveLink>
                     <ActiveLink  activeClassName={styles.active } href='/about'> 
                         <a>Sobre</a>

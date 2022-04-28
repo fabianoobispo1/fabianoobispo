@@ -13,8 +13,8 @@ import Document, {Html, Head, Main, NextScript } from  'next/document'
                   <link rel="shortcut icon" href="/favicon.png" type="image/png"/>    
                   </Head>
                   <body>
-                      <Main />
-                      <NextScript/>
+                        <Main/>           
+                        <NextScript/>
                   </body>
               </Html>
           )

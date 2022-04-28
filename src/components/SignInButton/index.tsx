@@ -31,7 +31,7 @@ export function SignInButton() {
             <FiX 
             color="#737380"
             className={styles.closeIncon}
-            onClick={() => signOut()} 
+            onClick={() => signOut({callbackUrl: "/"})} 
             />
            
             
