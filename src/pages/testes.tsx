@@ -32,7 +32,7 @@ export default function Acount() {
       </button>
 
       
-        <Modal {...{isShowing, toggle}}>
+        {/* <Modal {...{isShowing, toggle}}>
         <ModalHeader {...{toggle}}>
           My Title
         </ModalHeader>
@@ -44,7 +44,7 @@ export default function Acount() {
             Cancel
           </button>
         </ModalFooter>        
-      </Modal>
+      </Modal> */}
 
       </main>
 
