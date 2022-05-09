@@ -46,7 +46,7 @@ export const getStaticProps: GetStaticProps  = async () => {
  
   
 
-  var n1 = numerosorteado();
+/*   var n1 = numerosorteado();
   var n2 = numerosorteado();
   var n3 = numerosorteado();
   var n4 = numerosorteado();
@@ -121,7 +121,7 @@ export const getStaticProps: GetStaticProps  = async () => {
     " - " +
     n6;
   console.log(result);
-
+ */
 
   const product = {
     priveId: price.id,
