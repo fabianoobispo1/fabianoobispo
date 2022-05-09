@@ -9,9 +9,12 @@ export function Header() {
  
 
     return (
-        <header className={styles.headerContainer}>
+        <header 
+        //className={styles.headerContainer}
+        className="border-solid border-b" 
+        >
             <div className={styles.headerContent}>
-                <img src="/images/logo.svg" alt="Logo" />
+                <img src="/images/logo1.svg" alt="Logo1" />
                 <nav>   
                     <ActiveLink activeClassName={styles.active } href='/'>
                         <a>Início</a>
