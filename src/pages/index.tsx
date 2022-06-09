@@ -21,18 +21,18 @@ export default function Home({product}: HomePropos) {
       <main className={styles.contentContainer}>
         <section className={styles.hero}>
           <span>👏 Ei, bem vindo</span>
-          <h1>Teste de assinaturas usando o <span>Stripe.</span></h1>
+          <h1>Testes para novas <span>Tecnologias.</span></h1>
           <p>
-            Site criado para fins de estudo  <br />
-            e conehcer a feramenta stripe.<br />
-            <span>Valor assinatura {product.amount} mês</span>
+            Aqui e onde testo nosvas ferramentas <br />
+            e Tecnologias<br />
+            <span>NextJS, NodeJS, mongoDB, auth, sass...</span>
           </p>
 
-          <SubscribeButton priceId={product.priceId}/>
+          {/* <SubscribeButton priceId={product.priceId}/> */}
       
         </section>
 
-        <img src="/images/avatar.svg" alt="Gril coding" />
+        <img src="/images/vortex-of-delight-2.svg" alt="Gril coding" />
       </main>
 
     </>  
