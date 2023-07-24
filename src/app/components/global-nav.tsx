@@ -4,8 +4,9 @@ import { demos, type Item } from '../../lib/demos'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Byline } from './byline'
-import { X, List } from 'phosphor-react'
+import { X, List, User } from 'phosphor-react'
 import clsx from 'clsx'
+
 import { useSelectedLayoutSegment } from 'next/navigation'
 export function GlobalNav() {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,8 +20,8 @@ export function GlobalNav() {
           className="group flex w-full items-center gap-x-2.5"
           onClick={close}
         >
-          <div className="h-7 w-7 rounded-full border border-white/30 group-hover:border-white/50">
-            {/*  <NextLogo /> */}
+          <div className="flex h-7 w-7 items-center  rounded-full border border-white/30 group-hover:border-white/50">
+            <User size={26} className="text-cyan-900" />
           </div>
 
           <h3 className="font-semibold tracking-wide text-gray-400 group-hover:text-gray-50">
