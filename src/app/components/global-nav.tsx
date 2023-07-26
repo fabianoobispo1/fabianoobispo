@@ -8,6 +8,9 @@ import { X, List, User } from 'phosphor-react'
 import clsx from 'clsx'
 
 import { useSelectedLayoutSegment } from 'next/navigation'
+
+import LoginLogoutButton from './buttons/LoginLogoutButton'
+
 export function GlobalNav() {
   const [isOpen, setIsOpen] = useState(false)
   const close = () => setIsOpen(false)

@@ -5,6 +5,8 @@ import { Roboto } from 'next/font/google'
 import { Byline } from './components/byline'
 import { GlobalNav } from './components/global-nav'
 
+import Provider from './components/Provider'
+
 const roboto = Roboto({
   weight: '400',
   subsets: ['latin'],
@@ -28,18 +30,22 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${roboto.variable}`}>
       <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
-        <GlobalNav />
-        <div className="lg:pl-72">
-          <div className="mx-auto max-w-7xl space-y-1 px-2 pt-20 lg:px-8 lg:py-8">
-            <div className="bg-vc-border-gradient rounded-lg p-px shadow-lg shadow-black/20">
-              <div className="rounded-lg bg-black"></div>
+        <Provider>
+          <GlobalNav />
+          <div className="lg:pl-72">
+            <div className="mx-auto max-w-7xl space-y-1 px-2 pt-20 lg:px-8 lg:py-8">
+              <div className="bg-vc-border-gradient rounded-lg p-px shadow-lg shadow-black/20">
+                <div className="rounded-lg bg-black"></div>
+              </div>
+              <div className="bg-vc-border-gradient rounded-lg p-px shadow-lg shadow-black/20">
+                <div className="rounded-lg bg-black p-3.5 lg:p-6">
+                  {children}
+                </div>
+              </div>
+              <Byline className="fixed sm:hidden" />
             </div>
-            <div className="bg-vc-border-gradient rounded-lg p-px shadow-lg shadow-black/20">
-              <div className="rounded-lg bg-black p-3.5 lg:p-6">{children}</div>
-            </div>
-            <Byline className="fixed sm:hidden" />
           </div>
-        </div>
+        </Provider>
       </body>
     </html>
   )
