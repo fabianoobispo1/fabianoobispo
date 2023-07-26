@@ -2,8 +2,6 @@ import { getServerSession } from 'next-auth'
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
 
-import DiscordButton from './components/buttons/DiscordButton'
-import GoogleButton from './components/buttons/GoogleButton'
 import LoginButton from './components/buttons/LoginButton'
 import LogoutButton from './components/buttons/LogoutButton'
 import GithubButton from './components/buttons/GithubButton'
