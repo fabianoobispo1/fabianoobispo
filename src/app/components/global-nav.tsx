@@ -8,7 +8,8 @@ import { X, List, User } from 'phosphor-react'
 import clsx from 'clsx'
 
 import { useSelectedLayoutSegment } from 'next/navigation'
-import MeuButon from './buttons/MeuButon'
+
+import LoginLogoutButton from './buttons/LoginLogoutButton'
 
 export function GlobalNav() {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,7 +20,7 @@ export function GlobalNav() {
       <div className="flex h-14 items-center px-4 py-4 lg:h-auto">
         <Link
           href="/"
-          className="group flex w-full items-center gap-x-2.5"
+          className="group flex w-4/5 items-center gap-x-2.5"
           onClick={close}
         >
           <div className="flex h-7 w-7 items-center  rounded-full border border-white/30 group-hover:border-white/50">
@@ -30,7 +31,10 @@ export function GlobalNav() {
             Fabiano Bispo
           </h3>
         </Link>
+
+        <LoginLogoutButton />
       </div>
+
       <button
         type="button"
         className="group absolute right-0 top-0 flex h-14 items-center gap-x-2 px-4 lg:hidden"
@@ -51,8 +55,6 @@ export function GlobalNav() {
           hidden: !isOpen,
         })}
       >
-        <MeuButon />
-        <button>sair</button>
         <nav className="space-y-6 px-2 py-5">
           {demos.map((section) => {
             return (
