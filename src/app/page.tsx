@@ -9,9 +9,9 @@ import GithubButton from './components/buttons/GithubButton'
 export default async function Home() {
   const session = (await getServerSession()) || {}
 
-  if (Object.keys(session).length !== 0) {
+  /* if (Object.keys(session).length !== 0) {
     redirect('/protected')
-  }
+  } */
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-around p-24">

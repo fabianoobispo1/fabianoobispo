@@ -26,10 +26,17 @@ const handler = NextAuth({
       if (Object.keys(userDetail).length === 0) {
         return false
       }
+
       return true
     },
-    async redirect({ baseUrl }) {
-      return `${baseUrl}/protected`
+    async redirect({ url, baseUrl }) {
+      console.log(url)
+      /* return `${baseUrl}/protected` */
+      // Allows relative callback URLs
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
     },
   },
 })

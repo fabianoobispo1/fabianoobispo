@@ -8,6 +8,7 @@ import { X, List, User } from 'phosphor-react'
 import clsx from 'clsx'
 
 import { useSelectedLayoutSegment } from 'next/navigation'
+import MeuButon from './buttons/MeuButon'
 
 export function GlobalNav() {
   const [isOpen, setIsOpen] = useState(false)
@@ -50,6 +51,8 @@ export function GlobalNav() {
           hidden: !isOpen,
         })}
       >
+        <MeuButon />
+        <button>sair</button>
         <nav className="space-y-6 px-2 py-5">
           {demos.map((section) => {
             return (
