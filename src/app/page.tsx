@@ -1,11 +1,6 @@
 'use client'
-import { getServerSession } from 'next-auth'
-import Image from 'next/image'
-import { redirect } from 'next/navigation'
 
-import { signIn, signOut, useSession } from 'next-auth/react'
-
-import LoginLogoutButton from './components/buttons/LoginLogoutButton'
+import { useSession } from 'next-auth/react'
 
 export default function Home() {
   const { data: session } = useSession()
