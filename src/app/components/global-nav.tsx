@@ -31,8 +31,6 @@ export function GlobalNav() {
             Fabiano Bispo
           </h3>
         </Link>
-
-        <LoginLogoutButton />
       </div>
 
       <button
@@ -55,6 +53,10 @@ export function GlobalNav() {
           hidden: !isOpen,
         })}
       >
+        <div className="flex items-center justify-center">
+          <LoginLogoutButton />
+        </div>
+
         <nav className="space-y-6 px-2 py-5">
           {demos.map((section) => {
             return (

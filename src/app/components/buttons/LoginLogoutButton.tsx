@@ -1,54 +1,49 @@
 'use client'
-
 import { signIn, signOut, useSession } from 'next-auth/react'
-import type { ClientSafeProvider } from 'next-auth/react'
-import styles from './header.module.css'
-export default function LoginLogoutButton({
-  auth,
-}: {
-  auth?: ClientSafeProvider
-}) {
+
+export default function LoginLogoutButton() {
   const { data: session, status } = useSession()
   const loading = status === 'loading'
   return (
-    <div className="flex items-center">
-      {/* <p
-        className={`nojs-show ${
-          !session && loading ? styles.loading : styles.loaded
-        }`}
-      > */}
-      {/*       <button
-        type="button"
-        className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        onClick={() => signIn(auth?.id || '')}
-      >
-        {auth ? `Sign In with ${auth.name}` : 'Login'}
-      </button> */}
-      {!session && (
-        <a
-          href={`/api/auth/signin`}
-          className="relative z-10 float-right   cursor-pointer rounded border-blue-600 bg-blue-600 px-5 py-4 pb-3 pt-3 text-base font-medium leading-6 text-white no-underline hover:bg-blue-500"
+    <>
+      {!session ? (
+        <button
+          className="mt-1 flex w-11/12 items-center 
+            justify-center gap-3 rounded-lg bg-green-600 px-6 py-2 font-semibold 
+            transition-colors hover:bg-green-500 focus:outline-none 
+            focus:ring-2 focus:ring-green-600 focus:ring-offset-2 
+            focus:ring-offset-zinc-900"
           onClick={(e) => {
             e.preventDefault()
             signIn('github')
           }}
         >
-          Entrar
-        </a>
-      )}
-      {session?.user && (
-        <a
-          href={`/`}
-          className="relative z-10 float-right -mr-2 cursor-pointer rounded border-blue-600 bg-blue-600 px-5 py-4 pb-3 pt-3 text-base font-medium leading-6 text-white no-underline hover:bg-blue-500"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            fill="rgb(22 78 99 / var(--tw-text-opacity))"
+            viewBox="0 0 256 256"
+          >
+            <path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"></path>
+          </svg>
+          {loading ? 'Carregando ...' : 'Entrar com GitHub'}
+        </button>
+      ) : (
+        <button
+          className="mt-1 flex w-11/12 items-center 
+            justify-center gap-3 rounded-lg bg-green-600 px-6 py-2 font-semibold 
+            transition-colors hover:bg-green-500 focus:outline-none 
+            focus:ring-2 focus:ring-green-600 focus:ring-offset-2 
+            focus:ring-offset-zinc-900"
           onClick={(e) => {
             e.preventDefault()
             signOut()
           }}
         >
           Sair
-        </a>
+        </button>
       )}
-      {/*  </p> */}
-    </div>
+    </>
   )
 }

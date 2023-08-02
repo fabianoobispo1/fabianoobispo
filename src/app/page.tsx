@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 
 import { signIn, signOut, useSession } from 'next-auth/react'
 
+import LoginLogoutButton from './components/buttons/LoginLogoutButton'
+
 export default function Home() {
   const { data: session } = useSession()
   /* if (Object.keys(session).length !== 0) {
