@@ -4,18 +4,20 @@ export type Item = {
   description?: string
 }
 
-export const demos: { name: string; items: Item[] }[] = [
+export const demos: { key: number; name: string; items: Item[] }[] = [
   {
+    key: 1,
     name: 'itens',
     items: [
       {
-        name: 'Sub Iten 01',
-        slug: 'paginateste01',
+        name: 'Mega Sena',
+        slug: 'megasena',
         description: 'Descricao',
       },
     ],
   },
   {
+    key: 2,
     name: 'itens',
     items: [
       {
