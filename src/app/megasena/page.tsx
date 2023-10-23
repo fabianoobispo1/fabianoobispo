@@ -23,7 +23,6 @@ export default function Megasena() {
       >
         Fetch Data from API
       </button>
-      {apiData && <p>{apiData.message}</p>}
     </div>
     /*    <ul className="my-auto">
       {countries?.map((country) => <li key={country.id}>{country.name}</li>)}
