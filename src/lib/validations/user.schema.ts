@@ -1,5 +1,5 @@
 import { z } from 'zod'
-
+/* 
 export const RegisterUserSchema = z
   .object({
     name: z
@@ -30,7 +30,7 @@ export const RegisterUserSchema = z
   .refine((data) => data.password === data.passwordConfirm, {
     path: ['passwordConfirm'],
     message: 'As senhas não coincidem',
-  })
+  }) */
 
 export const LoginUserSchema = z.object({
   email: z
@@ -46,7 +46,7 @@ export const LoginUserSchema = z.object({
     .min(1, 'Senha obrigatoria.')
     .min(8, 'A senha deve conter pelo menos 8 caracteres'),
 })
-
+/* 
 export const FaTransacoesSchema = z.object({
   titulo: z
     .string({
@@ -105,8 +105,9 @@ export const FaUsuarioSchema = z
     path: ['passwordConfirm'],
     message: 'As senhas não coincidem',
   })
-
+ */
 export type LoginUserInput = z.infer<typeof LoginUserSchema>
-export type RegisterUserInput = z.infer<typeof RegisterUserSchema>
+/* export type RegisterUserInput = z.infer<typeof RegisterUserSchema>
 export type FaTransacoesInput = z.infer<typeof FaTransacoesSchema>
 export type FaUsuarioInput = z.infer<typeof FaUsuarioSchema>
+ */

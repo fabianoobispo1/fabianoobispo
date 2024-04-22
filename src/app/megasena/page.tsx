@@ -9,6 +9,7 @@ export default function Megasena() {
       const response = await fetch('/api/getData')
       const data = await response.json()
       setApiData(data)
+      console.log(apiData)
     } catch (error) {
       console.error('Error fetching data:', error)
     }

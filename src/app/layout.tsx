@@ -2,10 +2,10 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
 import { Roboto } from 'next/font/google'
-import { Byline } from './components/byline'
+/* import { Byline } from './components/byline'
 import { GlobalNav } from './components/global-nav'
 
-import Provider from './components/Provider'
+import Provider from './components/Provider' */
 
 const roboto = Roboto({
   weight: '400',
@@ -55,7 +55,7 @@ export default function RootLayout({
           {/* <HeaderV2 /> */}
           {children}
           {/* <Analytics />
-     <SpeedInsights /> */}
+        <SpeedInsights /> */}
           <Toaster />
         </body>
       </html>
