@@ -1,6 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
-
+import { Toaster } from "react-hot-toast";
 import { Roboto } from 'next/font/google'
 import { Byline } from './components/byline'
 import { GlobalNav } from './components/global-nav'
@@ -16,7 +16,7 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Fabiano o Bispo',
+    default: 'Fabiano Bispo',
     template: 'teste',
   },
   description: 'Meu site pessoal para testes de novas tecnologias.',
@@ -28,7 +28,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${roboto.variable}`}>
+    <>
+    {/* <html lang="en" className={`${roboto.variable}`}>
       <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
         <Provider>
           <GlobalNav />
@@ -47,6 +48,18 @@ export default function RootLayout({
           </div>
         </Provider>
       </body>
-    </html>
+    </html> */}
+
+    <html lang="pt-BR" className={`${roboto.variable}`}>
+      <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
+     {/* <HeaderV2 /> */}
+     {children}
+     {/* <Analytics />
+     <SpeedInsights /> */}
+     <Toaster />
+   </body>
+ </html>
+
+    </>
   )
 }
