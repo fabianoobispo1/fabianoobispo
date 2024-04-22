@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 * {
-  @apply m-0 p-0 box-border;
+  @apply m-0 box-border p-0;
 }
 
 body {
@@ -14,10 +14,10 @@ input,
 textarea,
 select,
 button {
-  @apply text-base font-roboto;
+  @apply font-roboto text-base;
 }
 
 header {
-  @apply border-solid border-b;
+  @apply border-b border-solid;
   border-color: rgb(31 41 55);
 }

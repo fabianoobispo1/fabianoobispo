@@ -1,6 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Toaster } from "react-hot-toast";
+import { Toaster } from 'react-hot-toast'
 import { Roboto } from 'next/font/google'
 import { Byline } from './components/byline'
 import { GlobalNav } from './components/global-nav'
@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <>
-    {/* <html lang="en" className={`${roboto.variable}`}>
+      {/* <html lang="en" className={`${roboto.variable}`}>
       <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
         <Provider>
           <GlobalNav />
@@ -50,16 +50,15 @@ export default function RootLayout({
       </body>
     </html> */}
 
-    <html lang="pt-BR" className={`${roboto.variable}`}>
-      <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
-     {/* <HeaderV2 /> */}
-     {children}
-     {/* <Analytics />
+      <html lang="pt-BR" className={`${roboto.variable}`}>
+        <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
+          {/* <HeaderV2 /> */}
+          {children}
+          {/* <Analytics />
      <SpeedInsights /> */}
-     <Toaster />
-   </body>
- </html>
-
+          <Toaster />
+        </body>
+      </html>
     </>
   )
 }
