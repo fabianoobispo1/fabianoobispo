@@ -10,7 +10,7 @@ export default function NotFound() {
         <div className="rounded-lg bg-black p-3.5 lg:p-6">
           <Boundary labels={['Error']} color="default">
             <div className="text-vercel-pink space-y-4">
-              <h2 className="text-lg font-bold">Página nao encontrada</h2>
+              <h2 className="text-lg font-bold">Página não encontrada</h2>
 
               <p className="text-sm">...</p>
             </div>

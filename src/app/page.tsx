@@ -1,6 +1,6 @@
-'use client'
-
+import { LoadingButton } from '@/components/LoadingButton';
 import { useSession } from 'next-auth/react'
+import Link from "next/link";
 
 export default function Home() {
   /*   const { data: session } = useSession() */
@@ -28,12 +28,12 @@ export default function Home() {
           <LoadingButton  textColor="text-ct-blue-600">
             Registrar
           </LoadingButton>
-          </Link>
+          </Link>*/}
           <Link href={'/login'} className="w-60"  >
           <LoadingButton textColor="text-ct-blue-600">
             Entrar 
           </LoadingButton>
-          </Link> */}
+          </Link> 
         </div>
       </div>
     </section>
