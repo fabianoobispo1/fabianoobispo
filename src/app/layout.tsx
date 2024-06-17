@@ -1,26 +1,16 @@
 import './globals.css'
 import type { Metadata } from 'next'
-
-import { Roboto } from 'next/font/google'
+import { Flowbite, ThemeModeScript } from "flowbite-react";
 import { Byline } from './components/byline'
 import { GlobalNav } from './components/global-nav'
-
+import { flowbiteTheme } from "./theme";
 import Provider from './components/Provider'
 
-const roboto = Roboto({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-roboto',
-})
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Fabiano o Bispo',
-    template: 'teste',
-  },
+export const metadata = {
+  title:'Fabiano o Bispo',
   description: 'Meu site pessoal para testes de novas tecnologias.',
-}
+};
 
 export default function RootLayout({
   children,
@@ -28,8 +18,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${roboto.variable}`}>
+    
+    <html lang="pt-BR" className={``}>
+      <head>
+      <ThemeModeScript />
+      </head>
+      <Flowbite theme={{ theme: flowbiteTheme }}>
       <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
+      <section className="">
+      
         <Provider>
           <GlobalNav />
           <div className="lg:pl-72">
@@ -46,7 +43,9 @@ export default function RootLayout({
             </div>
           </div>
         </Provider>
-      </body>
+     
+        </section>
+      </body>   </Flowbite>
     </html>
   )
 }

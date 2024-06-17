@@ -53,9 +53,9 @@ export function GlobalNav() {
           hidden: !isOpen,
         })}
       >
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
           <LoginLogoutButton />
-        </div>
+        </div> */}
 
         <nav className="space-y-6 px-2 py-5">
           {demos.map((section) => {
