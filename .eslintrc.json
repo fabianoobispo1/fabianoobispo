@@ -1,15 +1,15 @@
 {
   "extends": [
     //"next/core-web-vitals",
-    "@rocketseat/eslint-config/next"
+    "@rocketseat/eslint-config/next",
     /*   "eslint:recommended",
    "plugin:@typescript-eslint/strict",
     "plugin:jsx-a11y/recommended",
     "plugin:prettier/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",*/
-    //"plugin:tailwindcss/recommended",
-    //"plugin:@next/next/recommended"
+    "plugin:tailwindcss/recommended",
+    "plugin:@next/next/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -32,13 +32,13 @@
         "callees": ["classnames"],
         "config": "tailwind.config.ts"
       }
-    ],
+    ],*/
     "tailwindcss/no-custom-classname": [
       "error",
       {
         "config": "tailwind.config.ts"
       }
-    ] */
+    ]
   },
   "settings": {
     "react": {

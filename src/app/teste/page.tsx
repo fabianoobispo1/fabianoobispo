@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   Accordion,
@@ -27,17 +27,17 @@ import {
   Timeline,
   Toast,
   Tooltip,
-} from "flowbite-react";
-import Image from "next/image";
-import type { FC } from "react";
-import React, { useState } from "react";
+} from 'flowbite-react'
+import Image from 'next/image'
+import type { FC } from 'react'
+import React, { useState } from 'react'
 import {
   BsDribbble,
   BsFacebook,
   BsGithub,
   BsInstagram,
   BsTwitter,
-} from "react-icons/bs";
+} from 'react-icons/bs'
 import {
   HiAdjustments,
   HiArrowNarrowRight,
@@ -58,7 +58,7 @@ import {
   HiUserCircle,
   HiViewBoards,
   HiX,
-} from "react-icons/hi";
+} from 'react-icons/hi'
 
 export default function Teste() {
   return (
@@ -271,7 +271,7 @@ export default function Teste() {
         <TooltipsExample />
       </section>
     </div>
-  );
+  )
 }
 
 const AccordionExample: FC = function () {
@@ -360,8 +360,8 @@ const AccordionExample: FC = function () {
         </Accordion.Content>
       </Accordion.Panel>
     </Accordion>
-  );
-};
+  )
+}
 
 const AlertsExample: FC = function () {
   return (
@@ -399,12 +399,12 @@ const AlertsExample: FC = function () {
         This is a info alert
       </h3>
     </Alert>
-  );
-};
+  )
+}
 
 const AvatarExample: FC = function () {
-  return <Avatar bordered img="/profile-picture-5.jpg" rounded />;
-};
+  return <Avatar bordered img="/profile-picture-5.jpg" rounded />
+}
 
 const BadgesExample: FC = function () {
   return (
@@ -434,8 +434,8 @@ const BadgesExample: FC = function () {
         Pink
       </Badge>
     </div>
-  );
-};
+  )
+}
 
 const BreadcrumbExample: FC = function () {
   return (
@@ -446,8 +446,8 @@ const BreadcrumbExample: FC = function () {
       <Breadcrumb.Item href="#">Projects</Breadcrumb.Item>
       <Breadcrumb.Item>Flowbite React</Breadcrumb.Item>
     </Breadcrumb>
-  );
-};
+  )
+}
 
 const ButtonsExample: FC = function () {
   return (
@@ -474,8 +474,8 @@ const ButtonsExample: FC = function () {
         Red to yellow
       </Button>
     </div>
-  );
-};
+  )
+}
 
 /* const ButtonGroupExample: FC = function () {
   return (
@@ -509,8 +509,8 @@ const CardExample: FC = function () {
         </p>
       </Card>
     </div>
-  );
-};
+  )
+}
 
 const CarouselExample: FC = function () {
   return (
@@ -521,8 +521,8 @@ const CarouselExample: FC = function () {
         <Image alt="" src="/carousel-3.svg" width={56} height={56} />
       </Carousel>
     </div>
-  );
-};
+  )
+}
 
 const DropdownExample: FC = function () {
   return (
@@ -539,8 +539,8 @@ const DropdownExample: FC = function () {
       <Dropdown.Divider />
       <Dropdown.Item>Sign out</Dropdown.Item>
     </Dropdown>
-  );
-};
+  )
+}
 
 const FormsExample: FC = function () {
   return (
@@ -568,8 +568,8 @@ const FormsExample: FC = function () {
       </div>
       <Button type="submit">Submit</Button>
     </form>
-  );
-};
+  )
+}
 
 const FooterExample: FC = function () {
   return (
@@ -621,8 +621,8 @@ const FooterExample: FC = function () {
         </div>
       </div>
     </Footer>
-  );
-};
+  )
+}
 
 const ListGroupExample: FC = function () {
   return (
@@ -636,11 +636,11 @@ const ListGroupExample: FC = function () {
         <ListGroup.Item icon={HiCloudDownload}>Download</ListGroup.Item>
       </ListGroup>
     </div>
-  );
-};
+  )
+}
 
 const ModalExample: FC = function () {
-  const [isOpen, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(false)
 
   return (
     <>
@@ -671,8 +671,8 @@ const ModalExample: FC = function () {
         </Modal.Footer>
       </Modal>
     </>
-  );
-};
+  )
+}
 
 const NavbarsExample: FC = function () {
   return (
@@ -714,11 +714,11 @@ const NavbarsExample: FC = function () {
         <Navbar.Link href="/navbars">Contact</Navbar.Link>
       </Navbar.Collapse>
     </Navbar>
-  );
-};
+  )
+}
 
 const PaginationExample: FC = function () {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1)
 
   return (
     <div className="flex items-center justify-center text-center">
@@ -730,8 +730,8 @@ const PaginationExample: FC = function () {
         totalPages={1000}
       />
     </div>
-  );
-};
+  )
+}
 
 const ProgressExample: FC = function () {
   return (
@@ -741,8 +741,8 @@ const ProgressExample: FC = function () {
       textLabel="Flowbite"
       textLabelPosition="outside"
     />
-  );
-};
+  )
+}
 
 const RatingExample: FC = function () {
   return (
@@ -766,14 +766,14 @@ const RatingExample: FC = function () {
       <Rating.Advanced percentFilled={4}>2 star</Rating.Advanced>
       <Rating.Advanced percentFilled={1}>1 star</Rating.Advanced>
     </div>
-  );
-};
+  )
+}
 
 const SidebarExample: FC = function () {
-  const [isOpen, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(false)
 
   function toggle() {
-    setOpen(!isOpen);
+    setOpen(!isOpen)
   }
 
   return (
@@ -816,8 +816,8 @@ const SidebarExample: FC = function () {
         </Sidebar>
       </div>
     </>
-  );
-};
+  )
+}
 
 const SpinnersExample: FC = function () {
   return (
@@ -829,8 +829,8 @@ const SpinnersExample: FC = function () {
       <Spinner color="pink" aria-label="Pink spinner example" />
       <Spinner color="purple" aria-label="Purple spinner example" />
     </div>
-  );
-};
+  )
+}
 
 const TablesExample: FC = function () {
   return (
@@ -927,8 +927,8 @@ const TablesExample: FC = function () {
         </Table.Row>
       </Table.Body>
     </Table>
-  );
-};
+  )
+}
 
 const TabsExample: FC = function () {
   return (
@@ -949,8 +949,8 @@ const TabsExample: FC = function () {
         Disabled content
       </Tabs.Item>
     </Tabs>
-  );
-};
+  )
+}
 
 const TimelineExample: FC = function () {
   return (
@@ -994,8 +994,8 @@ const TimelineExample: FC = function () {
         </Timeline.Content>
       </Timeline.Item>
     </Timeline>
-  );
-};
+  )
+}
 
 const ToastExample: FC = function () {
   return (
@@ -1024,8 +1024,8 @@ const ToastExample: FC = function () {
         <Toast.Toggle />
       </Toast>
     </div>
-  );
-};
+  )
+}
 
 const TooltipsExample: FC = function () {
   return (
@@ -1043,5 +1043,5 @@ const TooltipsExample: FC = function () {
         <Button>Tooltip left</Button>
       </Tooltip>
     </div>
-  );
-};
+  )
+}

@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 export default function Megasena() {
   /*  const [apiData, setApiData] = useState(null) */
@@ -26,5 +26,5 @@ export default function Megasena() {
     /*    <ul className="my-auto">
       {countries?.map((country) => <li key={country.id}>{country.name}</li>)}
     </ul> */
-  );
+  )
 }
