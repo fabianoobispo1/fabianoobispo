@@ -1,8 +1,8 @@
 "use client";
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useRef, useState } from "react";
-import ModalCadastro from "./ModalCadastro";
 import toast from "react-hot-toast";
+import ModalCadastro from "./ModalCadastro";
 
 export default function ModalLogin() {
   const [openModal, setOpenModal] = useState(false);
@@ -13,23 +13,18 @@ export default function ModalLogin() {
     const email = emailInputRef.current?.value;
     const password = passwordInputRef.current?.value;
 
-    
-
-    if (email && password ) {
-
+    if (email && password) {
       const response = await fetch("/api/usuario/autenticacao", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email,  password }),
+        body: JSON.stringify({ email, password }),
       });
-
 
       const data = await response.json();
 
       if (response.ok) {
- 
         toast.success("Usuário logado com sucesso.");
         // Fechar o modal após o cadastro
         setOpenModal(false);
@@ -96,7 +91,12 @@ export default function ModalLogin() {
               <div className="mb-2 block">
                 <Label htmlFor="password" value="Sua senha" />
               </div>
-              <TextInput id="password" type="password" ref={passwordInputRef} required />
+              <TextInput
+                id="password"
+                type="password"
+                ref={passwordInputRef}
+                required
+              />
             </div>
             <div className="flex justify-between">
               {/* <div className="flex items-center gap-2">
@@ -112,7 +112,9 @@ export default function ModalLogin() {
               </button>
             </div>
             <div className="w-full">
-              <Button  onClick={() => loginUsuario()}>Inicie sessão na sua conta</Button>
+              <Button onClick={() => loginUsuario()}>
+                Inicie sessão na sua conta
+              </Button>
             </div>
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               Não é cadastrado?&nbsp;

@@ -6,13 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-<<<<<<< HEAD
-    const { name, email, password} = body;
-=======
-    console.log(body);
-    //logica entra aqui
     const { name, email, password } = body;
->>>>>>> 20d9590b01b8a051c109ae3190b512defd763c6c
 
     const password_hash = await hash(password, 6);
 
@@ -24,13 +18,8 @@ export async function POST(req: NextRequest) {
 
     if (userWithSameEmail) {
       return NextResponse.json(
-<<<<<<< HEAD
-        { message: 'Usuário já existente com esse Email' },
-        { status: 409 }
-=======
         { message: "Usuário já existente com esse Email" },
-        { status: 201 },
->>>>>>> 20d9590b01b8a051c109ae3190b512defd763c6c
+        { status: 409 },
       );
     }
 
