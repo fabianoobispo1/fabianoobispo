@@ -4,7 +4,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const email = searchParams.get("email");
-/*     const name = searchParams.get("name");
+    /*     const name = searchParams.get("name");
     const password = searchParams.get("password");
     const confirmPassword = searchParams.get("confirmPassword"); */
 
