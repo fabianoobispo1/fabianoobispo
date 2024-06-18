@@ -1,10 +1,9 @@
-'use client'
-import { useState } from 'react'
+"use client";
 
 export default function Megasena() {
-  const [apiData, setApiData] = useState(null)
+  /*  const [apiData, setApiData] = useState(null) */
 
-  const fetchData = async () => {
+  /*   const fetchData = async () => {
     try {
       const response = await fetch('/api/getData')
       const data = await response.json()
@@ -12,14 +11,14 @@ export default function Megasena() {
     } catch (error) {
       console.error('Error fetching data:', error)
     }
-  }
+  } */
 
   return (
     <div>
       <h1>Next.js API Communication</h1>
       <button
         className=" rounded-lg bg-green-600 px-6 py-2"
-        onClick={fetchData}
+        /* onClick={fetchData} */
       >
         Fetch Data from API
       </button>
@@ -27,5 +26,5 @@ export default function Megasena() {
     /*    <ul className="my-auto">
       {countries?.map((country) => <li key={country.id}>{country.name}</li>)}
     </ul> */
-  )
+  );
 }

@@ -122,7 +122,7 @@ export default function Teste() {
             Button group
           </h2>
         </header>
-       {/*  <ButtonGroupExample /> */}
+        {/*  <ButtonGroupExample /> */}
       </section>
       <section>
         <header>
@@ -477,7 +477,7 @@ const ButtonsExample: FC = function () {
   );
 };
 
-const ButtonGroupExample: FC = function () {
+/* const ButtonGroupExample: FC = function () {
   return (
     <Button.Group>
       <Button color="gray">
@@ -490,9 +490,9 @@ const ButtonGroupExample: FC = function () {
         <HiCloudDownload className="mr-3 size-4" /> Messages
       </Button>
     </Button.Group>
-  );
-};
-
+  )
+}
+ */
 const CardExample: FC = function () {
   return (
     <div className="max-w-sm">

@@ -1,27 +1,27 @@
 export type Item = {
-  name: string
-  slug: string
-  description?: string
-}
+  name: string;
+  slug: string;
+  description?: string;
+};
 
 export const demos: { key: number; name: string; items: Item[] }[] = [
   {
     key: 1,
-    name: 'itens',
+    name: "itens",
     items: [
       {
-        name: 'Pagina 01',
-        slug: 'megasena',
-        description: 'Descricao',
+        name: "Pagina 01",
+        slug: "megasena",
+        description: "Descricao",
       },
       {
-        name: 'Pagina teste',
-        slug: 'teste',
-        description: 'Descricao',
+        name: "Pagina teste",
+        slug: "teste",
+        description: "Descricao",
       },
     ],
   },
- /*  {
+  /*  {
     key: 2,
     name: 'itens',
     items: [
@@ -37,4 +37,4 @@ export const demos: { key: number; name: string; items: Item[] }[] = [
       },
     ],
   }, */
-]
+];
