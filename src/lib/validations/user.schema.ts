@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 /* 
 export const RegisterUserSchema = z
   .object({
@@ -35,17 +35,17 @@ export const RegisterUserSchema = z
 export const LoginUserSchema = z.object({
   email: z
     .string({
-      required_error: 'Email é obrigatório',
+      required_error: "Email é obrigatório",
     })
-    .min(1, 'Email é obrigatório')
-    .email('Email inválido'),
+    .min(1, "Email é obrigatório")
+    .email("Email inválido"),
   password: z
     .string({
-      required_error: 'Senha obrigatoria.',
+      required_error: "Senha obrigatoria.",
     })
-    .min(1, 'Senha obrigatoria.')
-    .min(8, 'A senha deve conter pelo menos 8 caracteres'),
-})
+    .min(1, "Senha obrigatoria.")
+    .min(8, "A senha deve conter pelo menos 8 caracteres"),
+});
 /* 
 export const FaTransacoesSchema = z.object({
   titulo: z
@@ -106,7 +106,7 @@ export const FaUsuarioSchema = z
     message: 'As senhas não coincidem',
   })
  */
-export type LoginUserInput = z.infer<typeof LoginUserSchema>
+export type LoginUserInput = z.infer<typeof LoginUserSchema>;
 /* export type RegisterUserInput = z.infer<typeof RegisterUserSchema>
 export type FaTransacoesInput = z.infer<typeof FaTransacoesSchema>
 export type FaUsuarioInput = z.infer<typeof FaUsuarioSchema>

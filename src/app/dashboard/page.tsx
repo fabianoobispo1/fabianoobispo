@@ -5,29 +5,31 @@ import ListUsuarios from "./listUsuarios"; */
 import HeaderV2 from "@/components/HeaderV2";
 
 export default async function DashboardPage() {
-/*   const cookieStore = cookies();
+  /*   const cookieStore = cookies();
   const token = cookieStore.get("tokenjfimperadores");
   const user = await apiGetAuthUser(token?.value);  */
 
   return (
     <>
-    <HeaderV2 />
-      <section className="bg-ct-blue-600  min-h-screen pt-20  w-full absolute top-0 right-0 lg:w-5/6 p-1">
-        <div className="max-w-4xl mx-auto bg-ct-dark-100 rounded-md max-sm:h-[20rem] h-[20rem] p-1 flex justify-center items-center">
+      <HeaderV2 />
+      <section className="absolute  right-0 top-0  min-h-screen w-full bg-ct-blue-600 p-1 pt-20 lg:w-5/6">
+        <div className="mx-auto flex h-[20rem] max-w-4xl items-center justify-center rounded-md bg-ct-dark-100 p-1 max-sm:h-[20rem]">
           <div>
-            <p className="mb-3 text-5xl pt-4 text-center font-semibold">
+            <p className="mb-3 pt-4 text-center text-5xl font-semibold">
               Bem vindo D{/* , {user.name} */}
             </p>
-            <div className="mt-8 m-2">
-             {/*  <p className="mb-3">Id: {user.id}</p> */}
-              <p className="mb-3">Aqui pode ficar algumas informações iniciais.</p>
-              
+            <div className="m-2 mt-8">
+              {/*  <p className="mb-3">Id: {user.id}</p> */}
+              <p className="mb-3">
+                Aqui pode ficar algumas informações iniciais.
+              </p>
+
               {/*   <ListUsuarios /> */}
             </div>
           </div>
         </div>
       </section>
-{/*       <AuthPageInvisible /> */}
+      {/*       <AuthPageInvisible /> */}
     </>
   );
 }

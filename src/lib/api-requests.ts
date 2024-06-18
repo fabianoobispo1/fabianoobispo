@@ -1,8 +1,9 @@
-
 import { FilteredUser, UserLoginResponse, UserResponse } from "./types";
 
-const SERVER_ENDPOINT = process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
-const NEXT_PUBLIC_API_MINHA_BASE =  process.env.NEXT_PUBLIC_API_MINHA_BASE || "http://localhost:3331";
+const SERVER_ENDPOINT =
+  process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
+const NEXT_PUBLIC_API_MINHA_BASE =
+  process.env.NEXT_PUBLIC_API_MINHA_BASE || "http://localhost:3331";
 
 async function handleResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get("Content-Type") || "";
@@ -21,7 +22,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export async function apiRegisterUser(
-  credentials: string
+  credentials: string,
 ): Promise<FilteredUser> {
   const response = await fetch(`${SERVER_ENDPOINT}/api/auth/register`, {
     method: "POST",
@@ -55,7 +56,7 @@ export async function apiLogoutUser(): Promise<void> {
     headers: {
       "Content-Type": "application/json",
     },
-    body:''
+    body: "",
   });
 
   return handleResponse<void>(response);
@@ -67,7 +68,6 @@ export async function apiGetAuthUser(token?: string): Promise<FilteredUser> {
   };
   /*   console.log('apiGetAuthUser') */
   if (token) {
-   
     headers["Authorization"] = `Bearer ${token}`;
   }
   /*   console.log(token)
@@ -77,13 +77,16 @@ export async function apiGetAuthUser(token?: string): Promise<FilteredUser> {
     credentials: "include",
     headers,
   });
- 
 
   return handleResponse<UserResponse>(response).then((data) => data.data.user);
 }
 
-
-export async function apiExterna(tipo: string, caminho:string, body: string, token: string ) {
+export async function apiExterna(
+  tipo: string,
+  caminho: string,
+  body: string,
+  token: string,
+) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -91,12 +94,12 @@ export async function apiExterna(tipo: string, caminho:string, body: string, tok
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  
-  const response = await fetch(NEXT_PUBLIC_API_MINHA_BASE+caminho, {
+
+  const response = await fetch(NEXT_PUBLIC_API_MINHA_BASE + caminho, {
     method: tipo,
     credentials: "include",
     headers,
   });
 
-  return  response
+  return response;
 }

@@ -6,8 +6,8 @@ export interface FilteredUser {
   verified: boolean;
   createdAt: string;
   updatedAt: string;
-  administrador :boolean;
-  token?: string | undefined
+  administrador: boolean;
+  token?: string | undefined;
 }
 
 export interface FaUsuario {
@@ -15,9 +15,9 @@ export interface FaUsuario {
   nome: string;
   email: string;
   administrador: boolean;
-  data_nascimento:string
+  data_nascimento: string;
   created_at: string;
-  token?: string | undefined
+  token?: string | undefined;
 }
 
 export interface UserResponse {
@@ -25,7 +25,6 @@ export interface UserResponse {
   data: {
     user: FilteredUser;
   };
-  
 }
 
 export interface UserFaResponse {
@@ -44,7 +43,7 @@ export interface FaTransacoes {
   id: string;
   titulo: string;
   valor: number;
-  tipo:string;
+  tipo: string;
   vencimento: string;
-  faUsuario_id: string   
+  faUsuario_id: string;
 }

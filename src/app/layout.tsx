@@ -1,31 +1,24 @@
-import './globals.css'
-import type { Metadata } from 'next'
-import { Toaster } from 'react-hot-toast'
-import { Roboto } from 'next/font/google'
+import { Flowbite, ThemeModeScript } from "flowbite-react";
+import type { Metadata } from "next";
+import { Toaster } from "react-hot-toast";
+import "./globals.css";
 /* import { Byline } from './components/byline'
 import { GlobalNav } from './components/global-nav'
-
 import Provider from './components/Provider' */
-
-const roboto = Roboto({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-roboto',
-})
+import { flowbiteTheme } from "./theme";
 
 export const metadata: Metadata = {
   title: {
-    default: 'Fabiano Bispo',
-    template: 'teste',
+    default: "Fabiano Bispo",
+    template: "teste",
   },
-  description: 'Meu site pessoal para testes de novas tecnologias.',
-}
+  description: "Meu site pessoal para testes de novas tecnologias.",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <>
@@ -50,15 +43,20 @@ export default function RootLayout({
       </body>
     </html> */}
 
-      <html lang="pt-BR" className={`${roboto.variable}`}>
-        <body className="overflow-y-scroll bg-[url('/grid.svg')] pb-36">
-          {/* <HeaderV2 /> */}
-          {children}
-          {/* <Analytics />
+      <html lang="pt-BR">
+        <head>
+          <ThemeModeScript />
+        </head>
+        <body>
+          <section className="">
+            {/* <HeaderV2 /> */}
+            <Flowbite theme={{ theme: flowbiteTheme }}>{children}</Flowbite>
+            {/* <Analytics />
         <SpeedInsights /> */}
-          <Toaster />
+            <Toaster position="top-left" reverseOrder={false} />
+          </section>
         </body>
       </html>
     </>
-  )
+  );
 }

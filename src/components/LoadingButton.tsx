@@ -19,14 +19,14 @@ export const LoadingButton: React.FC<LoadingButtonProps> = ({
     <button
       type="submit"
       className={twMerge(
-        `w-full py-3 font-semibold rounded-lg outline-none border-none flex justify-center`,
-        `${btnColor} ${loading && "bg-[#ccc]"}`
+        `flex w-full justify-center rounded-lg border-none py-3 font-semibold outline-none`,
+        `${btnColor} ${loading && "bg-[#ccc]"}`,
       )}
     >
       {loading ? (
         <div className="flex items-center gap-3">
           <Spinner />
-          <span className="text-slate-500 inline-block">Carregando...</span>
+          <span className="inline-block text-slate-500">Carregando...</span>
         </div>
       ) : (
         <span className={`${textColor}`}>{children}</span>

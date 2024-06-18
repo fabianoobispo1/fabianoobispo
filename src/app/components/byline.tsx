@@ -38,5 +38,5 @@ export function Byline({ className }: { className: string }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

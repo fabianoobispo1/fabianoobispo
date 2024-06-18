@@ -1,19 +1,19 @@
-'use client'
-import { useState } from 'react'
+"use client";
+import { useState } from "react";
 
 export default function Megasena() {
-  const [apiData, setApiData] = useState(null)
+  const [apiData, setApiData] = useState(null);
 
   const fetchData = async () => {
     try {
-      const response = await fetch('/api/getData')
-      const data = await response.json()
-      setApiData(data)
-      console.log(apiData)
+      const response = await fetch("/api/getData");
+      const data = await response.json();
+      setApiData(data);
+      console.log(apiData);
     } catch (error) {
-      console.error('Error fetching data:', error)
+      console.error("Error fetching data:", error);
     }
-  }
+  };
 
   return (
     <div>
@@ -28,5 +28,5 @@ export default function Megasena() {
     /*    <ul className="my-auto">
       {countries?.map((country) => <li key={country.id}>{country.name}</li>)}
     </ul> */
-  )
+  );
 }

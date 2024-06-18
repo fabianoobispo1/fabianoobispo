@@ -1,17 +1,17 @@
-import Image from 'next/image'
+import Image from "next/image";
 
 type User =
   | {
-      name?: string | null | undefined
-      email?: string | null | undefined
-      image?: string | null | undefined
+      name?: string | null | undefined;
+      email?: string | null | undefined;
+      image?: string | null | undefined;
     }
-  | undefined
+  | undefined;
 
 type Props = {
-  user: User
-  pagetype: string
-}
+  user: User;
+  pagetype: string;
+};
 
 export default function Card({ user, pagetype }: Props) {
   // console.log(user)
@@ -20,7 +20,7 @@ export default function Card({ user, pagetype }: Props) {
     <div className="flex flex-col items-center rounded-lg bg-white p-6 text-5xl font-bold text-black">
       Hello {user?.name}!
     </div>
-  ) : null
+  ) : null;
 
   // const emailDisplay = user?.email ? (
   //     <div className="flex flex-col items-center p-6 bg-white rounded-lg font-bold text-5xl text-black">
@@ -34,10 +34,10 @@ export default function Card({ user, pagetype }: Props) {
       src={user?.image}
       width={200}
       height={200}
-      alt={user?.name ?? 'Profile Pic'}
+      alt={user?.name ?? "Profile Pic"}
       priority={true}
     />
-  ) : null
+  ) : null;
 
   return (
     <section className="flex flex-col gap-4">
@@ -46,5 +46,5 @@ export default function Card({ user, pagetype }: Props) {
       {userImage}
       <p className="text-center text-2xl">{pagetype} Page!</p>
     </section>
-  )
+  );
 }
