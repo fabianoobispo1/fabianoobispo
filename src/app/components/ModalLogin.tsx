@@ -2,10 +2,68 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useRef, useState } from "react";
 import ModalCadastro from "./ModalCadastro";
+import toast from "react-hot-toast";
 
 export default function ModalLogin() {
   const [openModal, setOpenModal] = useState(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+
+  async function loginUsuario() {
+    const email = emailInputRef.current?.value;
+    const password = passwordInputRef.current?.value;
+
+    
+
+    if (email && password ) {
+
+      const response = await fetch("/api/usuario/autenticacao", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email,  password }),
+      });
+
+
+      const data = await response.json();
+
+      if (response.ok) {
+ 
+        toast.success("Usuário logado com sucesso.");
+        // Fechar o modal após o cadastro
+        setOpenModal(false);
+      } else {
+        toast.error(data.message);
+      }
+    } else {
+      toast.error("Por favor, preencha todos os campos.");
+    }
+
+    /* store.setRequestLoading(true); */
+    try {
+      /*  const token = await apiLoginUser(JSON.stringify(credentials));
+  
+        if (token) {
+          store.setToken(token);
+  
+          toast.success("Conectado com sucesso");
+          return router.push("/dashboard");
+        } else {
+          toast.error("Error");
+        } */
+    } catch (error: any) {
+      /*  console.log(error);
+        if (error instanceof Error) {
+          handleApiError(error);
+        } else {
+          toast.error(error.message);
+          console.log("Error message:", error.message);
+        } */
+    } finally {
+      /*         store.setRequestLoading(false); */
+    }
+  }
 
   return (
     <>
@@ -38,7 +96,7 @@ export default function ModalLogin() {
               <div className="mb-2 block">
                 <Label htmlFor="password" value="Sua senha" />
               </div>
-              <TextInput id="password" type="password" required />
+              <TextInput id="password" type="password" ref={passwordInputRef} required />
             </div>
             <div className="flex justify-between">
               {/* <div className="flex items-center gap-2">
@@ -54,7 +112,7 @@ export default function ModalLogin() {
               </button>
             </div>
             <div className="w-full">
-              <Button>Inicie sessão na sua conta</Button>
+              <Button  onClick={() => loginUsuario()}>Inicie sessão na sua conta</Button>
             </div>
             <div className="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-300">
               Não é cadastrado?&nbsp;
