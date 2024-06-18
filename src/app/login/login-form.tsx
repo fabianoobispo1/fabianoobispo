@@ -5,13 +5,15 @@ import { LoadingButton } from "@/components/LoadingButton";
 import { api } from "@/lib/api";
 import { apiLoginUser } from "@/lib/api-requests";
 import { handleApiError } from "@/lib/helpers";
-import { LoginUserInput, LoginUserSchema } from "@/lib/validations/user.schema";
+import type { LoginUserInput } from "@/lib/validations/user.schema";
+import { LoginUserSchema } from "@/lib/validations/user.schema";
 import useStore from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 
 export default function LoginForm() {
@@ -130,11 +132,7 @@ export default function LoginForm() {
           {statusApi == "ON" ? (
             <span className="font-semibold text-green-700">ON</span>
           ) : (
-            <span className="">
-              <span className="animate-flash ml-2 inline-block h-2 w-2 rounded-full bg-red-500"></span>
-              <span className="animate-flash [ :0.2s] ml-2 inline-block h-2 w-2 rounded-full bg-red-500"></span>
-              <span className="animate-flash ml-2 inline-block h-2 w-2 rounded-full bg-red-500 [animation-delay:0.4s]"></span>
-            </span>
+            <p>Carregando....</p>
           )}
         </p>
       </form>

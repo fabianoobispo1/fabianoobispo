@@ -1,6 +1,8 @@
 import { getEnvVariable, getErrorResponse } from "@/lib/helpers";
-import { LoginUserInput, LoginUserSchema } from "@/lib/validations/user.schema";
-import { NextRequest, NextResponse } from "next/server";
+import type { LoginUserInput } from "@/lib/validations/user.schema";
+import { LoginUserSchema } from "@/lib/validations/user.schema";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 export async function POST(req: NextRequest) {

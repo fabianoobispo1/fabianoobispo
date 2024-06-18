@@ -1,12 +1,12 @@
 {
   "extends": [
-    /* "eslint:recommended",
-   "plugin:@typescript-eslint/strict",
+    "eslint:recommended",
+    //"plugin:@typescript-eslint/strict",
     "plugin:jsx-a11y/recommended",
     "plugin:prettier/recommended",
     "plugin:react/recommended",
-    "plugin:react-hooks/recommended",*/
-    //"plugin:tailwindcss/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:tailwindcss/recommended",
     "plugin:@next/next/recommended"
   ],
   "parser": "@typescript-eslint/parser",
@@ -21,10 +21,10 @@
   },
   "root": true,
   "rules": {
-    /*  "@typescript-eslint/consistent-type-imports": "error",
+    //"@typescript-eslint/consistent-type-imports": "error",
     "react/react-in-jsx-scope": "off",
-    "react/no-unescaped-entities": "off", */
-    /*  "tailwindcss/classnames-order": [
+    "react/no-unescaped-entities": "off",
+    "tailwindcss/classnames-order": [
       "error",
       {
         "callees": ["classnames"],
@@ -36,7 +36,7 @@
       {
         "config": "tailwind.config.ts"
       }
-    ] */
+    ]
   },
   "settings": {
     "react": {

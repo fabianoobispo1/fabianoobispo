@@ -1,8 +1,8 @@
 "use client";
 
-import { FilteredUser } from "@/lib/types";
+import type { FilteredUser } from "@/lib/types";
 import { create } from "zustand";
-
+/* eslint-disable no-unused-vars */
 type Store = {
   authUser: FilteredUser | null;
   requestLoading: boolean;

@@ -1,5 +1,6 @@
 import { Flowbite, ThemeModeScript } from "flowbite-react";
 import type { Metadata } from "next";
+import React from "react";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 /* import { Byline } from './components/byline'

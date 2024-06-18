@@ -1,4 +1,4 @@
-import { FilteredUser, UserLoginResponse, UserResponse } from "./types";
+import type { FilteredUser, UserLoginResponse, UserResponse } from "./types";
 
 const SERVER_ENDPOINT =
   process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";

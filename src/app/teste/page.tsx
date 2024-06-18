@@ -477,7 +477,7 @@ const ButtonsExample: FC = function () {
   );
 };
 
-const ButtonGroupExample: FC = function () {
+/* const ButtonGroupExample: FC = function () {
   return (
     <Button.Group>
       <Button color="gray">
@@ -491,7 +491,7 @@ const ButtonGroupExample: FC = function () {
       </Button>
     </Button.Group>
   );
-};
+}; */
 
 const CardExample: FC = function () {
   return (

@@ -6,7 +6,6 @@ import { demos, type Item } from "../lib/demos";
 import useStore from "@/store";
 import { apiLogoutUser } from "@/lib/api-requests"; */
 import clsx from "clsx";
-import { useRouter } from "next/navigation";
 import { GearSix, List, User, X } from "phosphor-react";
 import { useState } from "react";
 
@@ -15,7 +14,7 @@ import { useSelectedLayoutSegment } from "next/navigation";
 const HeaderV2 = () => {
   /*   const store = useStore();
   const user = useSession(); */
-  const router = useRouter();
+  //const router = useRouter();
 
   const [isOpen, setIsOpen] = useState(false);
   const close = () => setIsOpen(false);
@@ -32,15 +31,16 @@ const HeaderV2 = () => {
   };
  */
   //if(store.authUser){
-  if (true) {
+  let test = true;
+  if (test) {
     return (
       <div className="fixed top-0 z-10 flex w-full flex-col border-b border-gray-800 bg-black lg:bottom-0 lg:z-auto lg:w-1/6 lg:border-b-0 lg:border-r lg:border-gray-800">
-        <div className="flex h-14 items-center px-4 py-4 lg:h-auto">
+        <div className="flex h-14 items-center p-4 lg:h-auto">
           <Link
             href="/dashboard"
             className="group flex items-center gap-x-2.5 lg:w-4/5"
           >
-            <div className="flex h-7 w-7 items-center  rounded-full border border-white/30 group-hover:border-white/50">
+            <div className="flex size-7 items-center rounded-full  border border-white/30 group-hover:border-white/50">
               <User size={26} className="text-cyan-900" />
             </div>
 
