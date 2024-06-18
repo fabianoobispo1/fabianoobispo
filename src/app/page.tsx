@@ -2,6 +2,9 @@
 import { useSession } from 'next-auth/react'
 import Link from "next/link";
  */
+
+import ModalLogin from "./components/ModalLogin";
+
 export default function Home() {
   /*   const { data: session } = useSession() */
   /* if (Object.keys(session).length !== 0) {
@@ -18,8 +21,9 @@ export default function Home() {
       )}
     </main>
    */
-    <main className="flex min-h-screen flex-col items-start justify-between p-6">
+    <main className="flex min-h-screen flex-col items-start justify-start p-6">
       <h1>início</h1>
+      <ModalLogin />
     </main>
 
     /*     <section className="bg-ct-blue-600 min-h-screen px-4 pt-32">
