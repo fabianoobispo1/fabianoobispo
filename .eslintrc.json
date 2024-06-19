@@ -24,6 +24,7 @@
     //"@typescript-eslint/consistent-type-imports": "error",
     "react/react-in-jsx-scope": "off",
     "react/no-unescaped-entities": "off",
+      "no-useless-catch": "off",
     "tailwindcss/classnames-order": [
       "error",
       {

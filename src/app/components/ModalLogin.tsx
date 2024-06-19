@@ -1,10 +1,16 @@
 "use client";
+import { apiLoginUser } from "@/lib/api-requests";
+import useStore from "@/store";
 import { Button, Label, Modal, TextInput } from "flowbite-react";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import ModalCadastro from "./ModalCadastro";
 
 export default function ModalLogin() {
+  const store = useStore();
+  const router = useRouter();
+
   const [openModal, setOpenModal] = useState(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
@@ -14,23 +20,48 @@ export default function ModalLogin() {
     const password = passwordInputRef.current?.value;
 
     if (email && password) {
-      const response = await fetch("/api/usuario/autenticacao", {
+      try {
+        const token = await apiLoginUser(
+          JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        );
+
+        if (token) {
+          store.setToken(token);
+
+          toast.success("Conectado com sucesso");
+          return router.push("/dashboard");
+        } else {
+          toast.error("Error");
+        }
+      } catch (error: any) {
+        console.log(error);
+        toast.error(error.message);
+      }
+
+      /*       const response = await fetch("/api/usuario/autenticacao", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      });
+      }); */
 
-      const data = await response.json();
+      /* const data = await response.json();
 
       if (response.ok) {
         toast.success("Usuário logado com sucesso.");
+          document.cookie = `token=${data.token}; path=/`;
+          window.location.href = '/protected-route';
+    
+        console.log(data)
         // Fechar o modal após o cadastro
         setOpenModal(false);
       } else {
         toast.error(data.message);
-      }
+      } */
     } else {
       toast.error("Por favor, preencha todos os campos.");
     }

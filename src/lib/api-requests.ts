@@ -37,7 +37,8 @@ export async function apiRegisterUser(
 }
 
 export async function apiLoginUser(credentials: string): Promise<string> {
-  const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
+  // const response = await fetch(`${SERVER_ENDPOINT}/api/auth/login`, {
+  const response = await fetch("/api/usuario/autenticacao", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -50,7 +51,8 @@ export async function apiLoginUser(credentials: string): Promise<string> {
 }
 
 export async function apiLogoutUser(): Promise<void> {
-  const response = await fetch(`${SERVER_ENDPOINT}/api/auth/logout`, {
+  //nst response = await fetch(`${SERVER_ENDPOINT}/api/auth/logout`, {
+  const response = await fetch("/api/usuario/logout", {
     method: "POST",
     credentials: "include",
     headers: {
