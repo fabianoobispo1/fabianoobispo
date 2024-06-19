@@ -3,9 +3,6 @@ import type { Metadata } from "next";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-/* import { Byline } from './components/byline'
-import { GlobalNav } from './components/global-nav'
-import Provider from './components/Provider' */
 import { flowbiteTheme } from "./theme";
 export const metadata: Metadata = {
   title: {

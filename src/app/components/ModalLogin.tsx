@@ -1,6 +1,4 @@
 "use client";
-import { apiLoginUser } from "@/lib/api-requests";
-import useStore from "@/store";
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -8,7 +6,8 @@ import toast from "react-hot-toast";
 import ModalCadastro from "./ModalCadastro";
 
 export default function ModalLogin() {
-  const store = useStore();
+  /*   const store = useStore();
+  const router = useRouter(); */
   const router = useRouter();
 
   const [openModal, setOpenModal] = useState(false);
@@ -21,21 +20,22 @@ export default function ModalLogin() {
 
     if (email && password) {
       try {
-        const token = await apiLoginUser(
+        router.push("/dashboard");
+        /* const token = await apiLoginUser(
           JSON.stringify({
             email: email,
             password: password,
           }),
-        );
+        ); */
 
-        if (token) {
+        /* if (token) {
           store.setToken(token);
 
           toast.success("Conectado com sucesso");
           return router.push("/dashboard");
         } else {
           toast.error("Error");
-        }
+        } */
       } catch (error: any) {
         console.log(error);
         toast.error(error.message);
