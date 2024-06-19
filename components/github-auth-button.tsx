@@ -19,7 +19,7 @@ export default function GoogleSignInButton() {
       }
     >
       <Icons.gitHub className="mr-2 h-4 w-4" />
-      Continue with Github
+      Continue Com Github
     </Button>
   );
 }

@@ -18,7 +18,7 @@ import * as z from 'zod';
 import GoogleSignInButton from '../github-auth-button';
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Enter a valid email address' })
+  email: z.string().email({ message: 'Digite um email valido.' })
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
@@ -28,7 +28,7 @@ export default function UserAuthForm() {
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
   const defaultValues = {
-    email: 'demo@gmail.com'
+    email: ''
   };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
@@ -58,7 +58,7 @@ export default function UserAuthForm() {
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="Enter your email..."
+                    placeholder="Digite seu e-mail..."
                     disabled={loading}
                     {...field}
                   />
@@ -69,7 +69,7 @@ export default function UserAuthForm() {
           />
 
           <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Continue With Email
+            Continuar com e-mail
           </Button>
         </form>
       </Form>
@@ -79,10 +79,11 @@ export default function UserAuthForm() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
+            ou continue com
           </span>
         </div>
       </div>
+      {/* mudar o nome do componete */}
       <GoogleSignInButton />
     </>
   );

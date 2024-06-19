@@ -9,8 +9,8 @@ import { auth } from '@/auth';
 
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Fabiano sistema',
+  description: 'Site para testar novas tecnologias'
 };
 
 export default async function RootLayout({
