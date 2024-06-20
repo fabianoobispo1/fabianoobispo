@@ -5,7 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
-export default function AuthenticationPage() {
+export default function AuthenticationModal() {
   const [button, setButton] = useState('Cadastrar');
   return (
     <>

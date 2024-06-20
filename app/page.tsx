@@ -1,13 +1,9 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
-import UserAuthForm from '@/components/forms/user-auth-form';
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import AuthenticationPage from './(auth)/(signin)/page';
+import AuthenticationModal from '@/components/signin/authentication-modal';
 
 export const metadata: Metadata = {
   title: 'Principal',
-  description: 'Formulários de autenticação criados usando os componentes.'
+  description: 'Pagina inicial do meu sistema'
 };
 
 export default function HomePage() {
@@ -35,14 +31,14 @@ export default function HomePage() {
             <p className="text-lg">
               {/* &ldquo;Esta biblioteca me poupou incontáveis horas de trabalho e
               me ajudou a entregar designs impressionantes para meus clientes mais rápido do que nunca.&rdquo; */}
-              &ldquo;Um texto....&rdquo;
+              {/* &ldquo;Um texto....&rdquo; */}
             </p>
             <footer className="text-sm">Fabiano Bispo</footer>
           </blockquote>
         </div>
       </div>
 
-      <AuthenticationPage/>
+      <AuthenticationModal/>
   
     </div>
   );
