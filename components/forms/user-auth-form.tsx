@@ -38,12 +38,12 @@ export default function UserAuthForm() {
   });
 
   const onSubmit = async (data: UserFormValue) => {
-    console.log(data)
-   /*  signIn('credentials', {
+    
+    signIn('credentials', {
       email: data.email,
       password: data.password,
       callbackUrl: callbackUrl ?? '/dashboard'
-    }); */
+    });
   };
 
   return (

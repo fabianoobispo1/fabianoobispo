@@ -1,6 +1,7 @@
 import { NextAuthConfig } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
+import prisma from './lib/prisma';
 
 const authConfig = {
   providers: [
@@ -21,6 +22,27 @@ const authConfig = {
       
       async authorize(credentials, req) {
         console.log(credentials)
+
+        let email
+        if (credentials?.email ){
+          email = credentials?.email as string
+        }else{
+          return null;
+        }
+
+        const usuario  = await prisma.user.findUnique({
+          where: {
+            email
+          },
+        });
+    
+        if (!usuario ) {
+          return null;
+        }
+
+        
+
+
         const user = {
           id: '1',
           name: 'fa',
