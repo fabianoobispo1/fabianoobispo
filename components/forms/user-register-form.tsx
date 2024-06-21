@@ -1,5 +1,4 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -10,7 +9,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -33,7 +31,6 @@ type UserFormValue = z.infer<typeof formSchema>;
 
 export default function UserRegisterForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const defaultValues = {
@@ -80,7 +77,6 @@ export default function UserRegisterForm() {
       });
       console.log(response)
     }
-
   };
 
   return (
@@ -108,7 +104,6 @@ export default function UserRegisterForm() {
               </FormItem>              
             )}
           />
-
           <FormField
             control={form.control}
             name="email"
@@ -127,7 +122,6 @@ export default function UserRegisterForm() {
               </FormItem>              
             )}
           />
-
           <FormField
             control={form.control}
             name="password"
@@ -146,7 +140,6 @@ export default function UserRegisterForm() {
               </FormItem>                          
             )}
           />
-
           <FormField
             control={form.control}
             name="confirmPassword"
@@ -165,8 +158,6 @@ export default function UserRegisterForm() {
               </FormItem>                          
             )}
           />
-
-
           <LoadingButton loading={loading} className="ml-auto w-full" type="submit">
             {loading? 'Carregando' : 'Cadastrar' }
           </LoadingButton>          
