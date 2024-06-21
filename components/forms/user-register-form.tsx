@@ -15,7 +15,8 @@ import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import GoogleSignInButton from '../github-auth-button';
+import { useToast } from '../../components/ui/use-toast';
+import { LoadingButton } from '../ui/loading-button';
 
 const formSchema = z.object({
   nome: z.string().min(3,{ message: 'Digite seu nome.' }),
@@ -34,6 +35,7 @@ export default function UserRegisterForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const defaultValues = {
     email: '',
     password: '',
@@ -46,8 +48,7 @@ export default function UserRegisterForm() {
   });
 
   const onSubmit = async (data: UserFormValue) => {
-    console.log(data)
-
+    setLoading(true);
     const response = await fetch('/api/usuario', {
       method: "POST",
       credentials: "include",
@@ -56,14 +57,30 @@ export default function UserRegisterForm() {
       },
       body:  JSON.stringify(data),
     });
-  
-    console.log(response  )
-/*     signIn('credentials', {
-      email: data.email,
-      password: data.password,
-      nome: data.nome,
-      callbackUrl: callbackUrl ?? '/dashboard'
-    }); */
+    setLoading(false);
+
+    if (response.status == 409){
+      toast({
+        title: 'Erro',
+        variant: 'destructive',
+        description: "Email já cadastrado."
+      });
+    }else if (response.status == 201){
+      toast({
+        title: 'ok',
+
+        description: "Cadastro realizado."
+      });
+      window.location.href =  '/'
+    }else{
+      toast({
+        title: 'Erro',
+        variant: 'destructive',
+        description: "Erro interno"
+      });
+      console.log(response)
+    }
+
   };
 
   return (
@@ -149,9 +166,10 @@ export default function UserRegisterForm() {
             )}
           />
 
-          <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Cadastrar
-          </Button>
+
+          <LoadingButton loading={loading} className="ml-auto w-full" type="submit">
+            {loading? 'Carregando' : 'Cadastrar' }
+          </LoadingButton>          
         </form>
       </Form>
     </>

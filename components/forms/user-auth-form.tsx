@@ -53,8 +53,8 @@ export default function UserAuthForm() {
       redirect: false,
       callbackUrl: callbackUrl ?? '/dashboard'
     });
-    setLoading(false);
 
+    
     if (result?.error) {
       setError(result.error);
       console.log(result)
@@ -64,8 +64,10 @@ export default function UserAuthForm() {
         description: result.error
       });
     } else {
+      setLoading(false);
       window.location.href = result?.url ?? '/dashboard';
     }
+    setLoading(false);
   };
 
 

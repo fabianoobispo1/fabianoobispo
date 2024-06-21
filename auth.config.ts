@@ -41,14 +41,11 @@ const authConfig = {
         if (!usuario ) {
           return null;
         }
-
-        
-
-
         const user = {
           id: usuario.id,
           name: usuario.nome,
           email: credentials?.email as string
+
         };
         console.log(user)
         if (user) {
@@ -65,6 +62,21 @@ const authConfig = {
   ],
   pages: {
     signIn: '/' //sigin page
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      // First time JWT callback is run, user object is available
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = String(token.id);
+      }
+      return session;
+    }
   }
 } satisfies NextAuthConfig;
 
