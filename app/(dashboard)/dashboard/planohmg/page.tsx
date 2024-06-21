@@ -10,6 +10,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import EditableTable from '@/components/planohmg/EditableTable';
 import readXlsx from '@/components/planohmg/readXlsx';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import copyToClipboard from '@/components/planohmg/copyToClipboard';
+import downloadCSV from '@/components/planohmg/downloadCSV';
 
 const breadcrumbItems = [{ title: 'PlanoHMG', link: '/dashboard/planohmg' }];
 
@@ -186,6 +188,17 @@ export default function Page() {
     return listadeerros    
   }
 
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = '/modelo_carga_homologacao.xlsx'; // caminho relativo ao arquivo na pasta public
+    link.download = 'modelo_carga_homologacao.xlsx'; // nome sugerido para o arquivo a ser baixado
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
+
   return (
     <>
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -230,7 +243,7 @@ export default function Page() {
 
             <Button
               disabled = {!xlsxJson || textErros !=""}
-              onClick={() =>xlsxJson/*  && downloadCSV(xlsxJson) */}
+              onClick={() =>xlsxJson && downloadCSV(xlsxJson)}
             >
               Gerar aquivo de importação              
             </Button>
@@ -280,7 +293,7 @@ export default function Page() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button                
-                        /*  onClick={() => copyToClipboard(JSON.stringify(xlsxJson))} */
+                         onClick={() => copyToClipboard(JSON.stringify(xlsxJson))}
                       >
                         {/*  Copiar */}
                         <svg
