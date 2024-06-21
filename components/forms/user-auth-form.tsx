@@ -16,6 +16,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import GitHubSignInButton from '../github-auth-button';
+import { useToast } from '../../components/ui/use-toast';
+import { LoadingButton } from '../../components/ui/loading-button';
+import { Spinner } from '../ui/spinner';
+import DbTestComponent from '../DbTestComponent';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Digite um email valido.' }),
@@ -28,6 +32,8 @@ export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   const defaultValues = {
     email: '',
     password: ''
@@ -37,14 +43,32 @@ export default function UserAuthForm() {
     defaultValues
   });
 
+
   const onSubmit = async (data: UserFormValue) => {
-    
-    signIn('credentials', {
+    setLoading(true);
+    setError(null);
+    const result = await signIn('credentials', {
       email: data.email,
       password: data.password,
+      redirect: false,
       callbackUrl: callbackUrl ?? '/dashboard'
     });
+    setLoading(false);
+
+    if (result?.error) {
+      setError(result.error);
+      console.log(result)
+      toast({
+        title: 'Error',
+        variant: 'destructive',
+        description: result.error
+      });
+    } else {
+      window.location.href = result?.url ?? '/dashboard';
+    }
   };
+
+
 
   return (
     <>
@@ -96,9 +120,11 @@ export default function UserAuthForm() {
             )}
           />
 
-          <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Entrar
-          </Button>
+          
+          <LoadingButton loading={loading} className="ml-auto w-full" type="submit">
+          {loading? 'Carregando' : 'Entrar' }
+          </LoadingButton>
+          
         </form>
       </Form>
       <div className="relative">
@@ -113,6 +139,8 @@ export default function UserAuthForm() {
       </div>
       {/* mudar o nome do componete */}
       <GitHubSignInButton />
+      
+      <DbTestComponent />
     </>
   );
 }
