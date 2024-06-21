@@ -140,7 +140,7 @@ export default function UserAuthForm() {
       {/* mudar o nome do componete */}
       <GitHubSignInButton />
       
-      <DbTestComponent />
+    {/*   <DbTestComponent /> */}
     </>
   );
 }

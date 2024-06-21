@@ -48,6 +48,16 @@ export default function UserRegisterForm() {
   const onSubmit = async (data: UserFormValue) => {
     console.log(data)
 
+    const response = await fetch('/api/usuario', {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body:  JSON.stringify(data),
+    });
+  
+    console.log(response  )
 /*     signIn('credentials', {
       email: data.email,
       password: data.password,
