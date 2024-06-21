@@ -16,7 +16,7 @@ const breadcrumbItems = [{ title: 'PlanoHMG', link: '/dashboard/planohmg' }];
 // Defina o tipo para os dados da tabela
 type RetornoXlsxType = (string | number)[][];
 
-export default function page() {
+export default function Page() {
   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
   const [xlsxJson, setXlsxJson] = useState<any[] | null>(null);
   const [xlsxJsonLoading, setXlsxJsonLoading] = useState(false);
