@@ -46,8 +46,8 @@ const authConfig = {
 
 
         const user = {
-          id: '1',
-          name: 'fa',
+          id: usuario.id,
+          name: usuario.nome,
           email: credentials?.email as string
         };
         console.log(user)
