@@ -41,6 +41,7 @@ const authConfig = {
         if (!usuario ) {
           return null;
         }
+        console.log(usuario.id)
         const user = {
           id: usuario.id,
           name: usuario.nome,
@@ -64,9 +65,35 @@ const authConfig = {
     signIn: '/' //sigin page
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'github') {
+        const email = profile?.email;
+        if(email){
+          let usuario = await prisma.user.findUnique({
+            where: { email }
+          });
+  
+          if (!usuario) {
+            usuario = await prisma.user.create({
+              data: {
+                email,
+                nome: String(profile.name),
+                password_hash:''
+              }
+            });
+          }
+  
+          user.id = usuario.id; // Adiciona o ID do banco de dados ao objeto user
+        }
+       
+       
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       // First time JWT callback is run, user object is available
       if (user) {
+        console.log(user.id)
         token.id = user.id;
       }
       return token;
