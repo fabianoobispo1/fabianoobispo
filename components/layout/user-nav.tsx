@@ -16,9 +16,7 @@ import { signOut, useSession,SessionProvider } from 'next-auth/react';
 
 export function UserNav() {
   const { data: session } = useSession();
-console.log(session?.user?.id)
-
-
+  console.log(session)
   if (session) {
     return (
       <DropdownMenu>

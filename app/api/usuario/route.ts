@@ -36,7 +36,6 @@ export async function POST(req: NextRequest) {
       { status: 201 },
     );
   } catch (error: any) {
-    console.error(error);
     return NextResponse.json(
       { message: "Erro ao conectar ao banco de dados." },
       { status: 500 },

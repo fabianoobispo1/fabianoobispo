@@ -2,6 +2,7 @@ import { NextAuthConfig } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
 import prisma from './lib/prisma';
+import { v4 as uuidv4 } from 'uuid';
 
 const authConfig = {
   providers: [
@@ -45,7 +46,8 @@ const authConfig = {
         const user = {
           id: usuario.id,
           name: usuario.nome,
-          email: credentials?.email as string
+          email: credentials?.email as string,
+          tipo: usuario.tipo
 
         };
         console.log(user)
@@ -78,12 +80,15 @@ const authConfig = {
               data: {
                 email,
                 nome: String(profile.name),
-                password_hash:''
+                password_hash:uuidv4(),
+                provider: "Github"
               }
             });
           }
-  
-          user.id = usuario.id; // Adiciona o ID do banco de dados ao objeto user
+          
+          
+          user.id = usuario.id;
+          user.tipo = usuario.tipo
         }
        
        
@@ -93,18 +98,22 @@ const authConfig = {
     async jwt({ token, user }) {
       // First time JWT callback is run, user object is available
       if (user) {
-        console.log(user.id)
         token.id = user.id;
+        token.tipo= user.tipo
       }
       return token;
     },
     async session({ session, token }) {
       if (token?.id) {
         session.user.id = String(token.id);
+        session.user.tipo = String(token.tipo);
       }
       return session;
     }
-  }
+  }/* ,
+  jwt: {
+    maxAge: 60 * 60 * 24, // 1 dias
+  } */
 } satisfies NextAuthConfig;
 
 export default authConfig;
