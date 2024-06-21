@@ -24,8 +24,6 @@ const authConfig = {
 
       
       async authorize(credentials, req) {
-        console.log(credentials)
-
         let email
         if (credentials?.email ){
           email = credentials?.email as string
@@ -42,7 +40,6 @@ const authConfig = {
         if (!usuario ) {
           return null;
         }
-        console.log(usuario.id)
         const user = {
           id: usuario.id,
           name: usuario.nome,
@@ -50,7 +47,6 @@ const authConfig = {
           tipo: usuario.tipo
 
         };
-        console.log(user)
         if (user) {
           // Any object returned will be saved in `user` property of the JWT
           return user;
