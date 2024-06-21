@@ -12,6 +12,8 @@ import readXlsx from '@/components/planohmg/readXlsx';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import copyToClipboard from '@/components/planohmg/copyToClipboard';
 import downloadCSV from '@/components/planohmg/downloadCSV';
+import { Alert } from '@/components/ui/alert';
+import { AlertModal } from '@/components/modal/alert-modal';
 
 const breadcrumbItems = [{ title: 'PlanoHMG', link: '/dashboard/planohmg' }];
 
@@ -23,6 +25,7 @@ export default function Page() {
   const [xlsxJson, setXlsxJson] = useState<any[] | null>(null);
   const [xlsxJsonLoading, setXlsxJsonLoading] = useState(false);
   const [textErros, setTextErros] = useState("")
+  const [showModal, setShowModal] = useState(false); 
   const { toast } = useToast();
 
   useEffect(() => {
@@ -255,13 +258,13 @@ export default function Page() {
               </div>
           
               <Button 
-                /* onClick={() => handleDownload()} */
+                onClick={() => handleDownload()}
               >
                 Download exemplo XLSX                
               </Button>
 
               <Button
-             /*    onClick={() => setShowModal(true)} */
+                onClick={() => setShowModal(true)}
               >
                 Como fazer a importação no Devops
               </Button>
@@ -342,11 +345,20 @@ export default function Page() {
             </div>
             )}
 
+            <AlertModal
+                   isOpen={showModal}
+                   onClose={() => setShowModal(false)}
+                   onConfirm={()=>{}}
+                   loading={true}
+            >
 
+            </AlertModal>
 
         </div>
+        {/* <Modal showModal={showModal} onClose={() => setShowModal(false)} /> */}
         <ScrollBar orientation="horizontal" hidden />
         </ScrollArea>
+
       </div>
     </>
   );
