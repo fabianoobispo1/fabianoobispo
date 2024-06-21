@@ -345,14 +345,14 @@ export default function Page() {
             </div>
             )}
 
-            <AlertModal
+       {/*      <AlertModal
                    isOpen={showModal}
                    onClose={() => setShowModal(false)}
                    onConfirm={()=>{}}
                    loading={true}
             >
 
-            </AlertModal>
+            </AlertModal> */}
 
         </div>
         {/* <Modal showModal={showModal} onClose={() => setShowModal(false)} /> */}
