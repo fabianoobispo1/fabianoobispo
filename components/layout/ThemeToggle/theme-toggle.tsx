@@ -31,12 +31,6 @@ export default function ThemeToggle({}: CompProps) {
         <DropdownMenuItem onClick={() => setTheme('system')}>
           Sistema
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('energisaroot')}>
-          Energisa1
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('energisadark')}>
-          Energisa2
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
