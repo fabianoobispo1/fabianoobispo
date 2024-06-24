@@ -12,8 +12,6 @@ import readXlsx from '@/components/planohmg/readXlsx';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import copyToClipboard from '@/components/planohmg/copyToClipboard';
 import downloadCSV from '@/components/planohmg/downloadCSV';
-import { Alert } from '@/components/ui/alert';
-import { AlertModal } from '@/components/modal/alert-modal';
 
 const breadcrumbItems = [{ title: 'PlanoHMG', link: '/dashboard/planohmg' }];
 
@@ -240,10 +238,6 @@ export default function Page() {
                   }              
                 }}
               />
-
-
-            botao
-
             <Button
               disabled = {!xlsxJson || textErros !=""}
               onClick={() =>xlsxJson && downloadCSV(xlsxJson)}
@@ -253,7 +247,7 @@ export default function Page() {
 
             <div className="relative flex w-full flex-col 
                 gap-2 rounded border border-solid border-gray-500 p-2 pt-4">
-              <div className="absolute -top-2 left-4 rounded-md  bg-slate-400 px-2 text-xs dark:text-white">
+              <div className="absolute -top-2 left-4 rounded-md  bg-slate-400 px-2 text-xs text-white">
                 <p >Ajuda</p>
               </div>
           
