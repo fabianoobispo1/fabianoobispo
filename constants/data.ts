@@ -118,6 +118,12 @@ export const navItems: NavItem[] = [
     icon: 'post',
     label: 'post'
   },
+  {
+    title: 'Perfil',
+    href: '/dashboard/perfil',
+    icon: 'profile',
+    label: 'profile'
+  },
 
  /*  {
     title: 'Dashboard',

@@ -12,11 +12,12 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { signOut, useSession,SessionProvider } from 'next-auth/react';
-
+import { useRouter } from 'next/navigation';
 
 export function UserNav() {
   const { data: session } = useSession();
-  console.log(session)
+  const router = useRouter();
+  
   if (session) {
     return (
       <DropdownMenu>
@@ -43,12 +44,12 @@ export function UserNav() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {/* <DropdownMenuGroup>
-            <DropdownMenuItem>
-              Profile
-              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => router.push('/dashboard/perfil')}>
+              Perfil
+              {/* <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut> */}
             </DropdownMenuItem>
-            <DropdownMenuItem>
+           {/*  <DropdownMenuItem>
               Billing
               <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
             </DropdownMenuItem>
@@ -56,8 +57,8 @@ export function UserNav() {
               Settings
               <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </DropdownMenuItem>
-            <DropdownMenuItem>New Team</DropdownMenuItem>
-          </DropdownMenuGroup> */}
+            <DropdownMenuItem>New Team</DropdownMenuItem>*/}
+          </DropdownMenuGroup> 
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>
             Log out

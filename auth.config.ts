@@ -18,9 +18,7 @@ const authConfig = {
         password: {
           type: 'password'
         }
-      },
-
-      
+      }, 
 
       
       async authorize(credentials, req) {
@@ -44,7 +42,8 @@ const authConfig = {
           id: usuario.id,
           name: usuario.nome,
           email: credentials?.email as string,
-          tipo: usuario.tipo
+          tipo: usuario.tipo,
+          provider: usuario.provider
 
         };
         if (user) {
@@ -85,6 +84,7 @@ const authConfig = {
           
           user.id = usuario.id;
           user.tipo = usuario.tipo
+          user.provider = usuario.provider
         }
        
        
@@ -96,6 +96,7 @@ const authConfig = {
       if (user) {
         token.id = user.id;
         token.tipo= user.tipo
+        token.provider= user.provider
       }
       return token;
     },
@@ -103,6 +104,7 @@ const authConfig = {
       if (token?.id) {
         session.user.id = String(token.id);
         session.user.tipo = String(token.tipo);
+        session.user.provider = String(token.provider)
       }
       return session;
     }

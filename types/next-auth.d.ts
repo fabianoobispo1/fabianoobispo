@@ -5,11 +5,13 @@ declare module 'next-auth' {
   interface Session {
     user: {
       tipo: string;
+      provider: string;
     } & DefaultSession['user'];
   }
 
   interface User {
     tipo: string;
+    provider: string;
   }
 
   interface CredentialsInputs {
@@ -21,5 +23,6 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     tipo: string;
+    provider: string;
   }
 }
