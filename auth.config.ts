@@ -41,7 +41,7 @@ const authConfig = {
           return null;
         }
 
-        const usuario  = await prisma.user.findUnique({
+        const usuario  = await prisma.sFBUser.findUnique({
           where: {
             email
           },
@@ -79,12 +79,12 @@ const authConfig = {
         const provider = account?.provider 
         const email = profile?.email;
         if(email){
-          let usuario = await prisma.user.findUnique({
+          let usuario = await prisma.sFBUser.findUnique({
             where: { email }
           });
   
           if (!usuario) {
-            usuario = await prisma.user.create({
+            usuario = await prisma.sFBUser.create({
               data: {
                 email,
                 nome: String(profile.name),

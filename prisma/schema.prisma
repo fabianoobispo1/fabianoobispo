@@ -15,7 +15,7 @@ datasource db {
 
 
 
-model User {
+model SFBUser {
   id            String    @id @default(uuid())
   nome          String
   email         String    @unique
@@ -24,7 +24,7 @@ model User {
   tipo          Role      @default(MEMBER)
   provider      String    @default("Credentials")
 
-  @@map("users")
+  @@map("sfb_users")
 }
 
 enum Role {
