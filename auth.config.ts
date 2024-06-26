@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import GithubProvider from 'next-auth/providers/github';
 import prisma from './lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
+import { compare } from 'bcryptjs';
 
 const authConfig = {
   providers: [
@@ -35,8 +36,10 @@ const authConfig = {
       
       async authorize(credentials, req) {
         let email
+        let password 
         if (credentials?.email ){
           email = credentials?.email as string
+          password = credentials?.password as string
         }else{
           return null;
         }
@@ -50,6 +53,13 @@ const authConfig = {
         if (!usuario ) {
           return null;
         }
+
+        const doestPasswordMatches = await compare( password, usuario.password_hash);
+
+        if (!doestPasswordMatches) {
+          return null;
+        }    
+
         const user = {
           id: usuario.id,
           name: usuario.nome,
