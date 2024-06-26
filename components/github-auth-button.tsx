@@ -2,7 +2,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Button } from './ui/button';
 import { Icons } from './icons';
 import { LoadingButton } from './ui/loading-button';
 
@@ -15,7 +14,7 @@ export default function GitHubSignInButton(loading: any) {
       className="w-full"
       variant="outline"
       type="button"
-      loading={loading}
+      loading={!loading}
       onClick={() =>
         signIn('github', { callbackUrl: callbackUrl ?? '/dashboard' })
       }

@@ -128,7 +128,7 @@ export default function UserAuthForm() {
       </div>
       {/* mudar o nome do componete */}
       <GitHubSignInButton loading={loading} />     
-      {/* <GoogleSignInButton loading={loading} />   */} 
+      <GoogleSignInButton loading={loading} />   
     {/*   <DbTestComponent /> */}
     </>
   );
