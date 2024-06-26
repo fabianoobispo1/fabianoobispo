@@ -31,3 +31,16 @@ enum Role {
   ADMIN
   MEMBER
 }
+
+model SFAUser {
+  id              String        @id @default(uuid())
+  nome            String
+  email           String        @unique
+  password_hash   String
+  administrador   Boolean       @default(false)
+  data_nascimento DateTime?
+  created_at      DateTime      @default(now())
+  provider        String        @default("Credentials")
+
+  @@map("sfa_users")
+}
