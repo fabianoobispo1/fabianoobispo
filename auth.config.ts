@@ -54,12 +54,6 @@ const authConfig = {
           return null;
         }
 
-        const doestPasswordMatches = await compare( password, usuario.password_hash);
-
-        if (!doestPasswordMatches) {
-          return null;
-        }    
-
         const user = {
           id: usuario.id,
           name: usuario.nome,
@@ -133,7 +127,7 @@ const authConfig = {
     }
   },
   jwt: {
-    maxAge: 1 // 1 dias
+    maxAge: 10 // 10 min
   }
 } satisfies NextAuthConfig;
 

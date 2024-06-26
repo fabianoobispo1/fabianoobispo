@@ -40,7 +40,7 @@ export default function UserAuthForm() {
     defaultValues
   });
 
-  const onSubmit = async (data: UserFormValue) => {
+/*   const onSubmit = async (data: UserFormValue) => {
     setLoading(true);
   
     const result = await signIn('credentials', {
@@ -63,7 +63,56 @@ export default function UserAuthForm() {
       window.location.href = result?.url ?? '/dashboard';
     }
     setLoading(false);
+  }; */
+
+
+
+  const onSubmit = async (data: UserFormValue) => {
+    setLoading(true);
+    const response = await fetch('/api/usuarioverificalogin', {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body:  JSON.stringify(data),
+    });
+    
+
+    const dataresponse = await response.json();
+
+     if (response.status != 201){
+      toast({
+        title: 'Erro',
+        variant: 'destructive',
+        description: dataresponse.message
+      });
+      console.log(response)
+      setLoading(false);
+    }else{
+      
+      const result = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+        callbackUrl: callbackUrl ?? '/dashboard'
+      });
+      
+      if (result?.error) {
+       
+        console.log(result)
+        toast({
+          title: 'Error',
+          variant: 'destructive',
+          description: 'Erro desconhecido'
+        });
+      } else {
+        setLoading(false);
+        window.location.href = result?.url ?? '/dashboard';
+      }
+      setLoading(false);
   };
+}
 
 
   return (
