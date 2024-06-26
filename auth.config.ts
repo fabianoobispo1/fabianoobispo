@@ -131,10 +131,10 @@ const authConfig = {
       }
       return session;
     }
-  }/* ,
+  },
   jwt: {
-    maxAge: 60 * 60 * 24, // 1 dias
-  } */
+    maxAge: 60 * 5, // 1 dias
+  }
 } satisfies NextAuthConfig;
 
 export default authConfig;
