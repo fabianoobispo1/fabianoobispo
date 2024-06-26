@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
 import { compare, hash } from "bcryptjs";
-import { signIn } from "next-auth/react";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

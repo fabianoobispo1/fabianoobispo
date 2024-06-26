@@ -40,33 +40,6 @@ export default function UserAuthForm() {
     defaultValues
   });
 
-/*   const onSubmit = async (data: UserFormValue) => {
-    setLoading(true);
-  
-    const result = await signIn('credentials', {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-      callbackUrl: callbackUrl ?? '/dashboard'
-    });
-    
-    if (result?.error) {
-     
-      console.log(result)
-      toast({
-        title: 'Error',
-        variant: 'destructive',
-        description: result.error
-      });
-    } else {
-      setLoading(false);
-      window.location.href = result?.url ?? '/dashboard';
-    }
-    setLoading(false);
-  }; */
-
-
-
   const onSubmit = async (data: UserFormValue) => {
     setLoading(true);
     const response = await fetch('/api/usuarioverificalogin', {
