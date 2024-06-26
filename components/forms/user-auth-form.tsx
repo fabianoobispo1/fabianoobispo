@@ -17,6 +17,7 @@ import * as z from 'zod';
 import GitHubSignInButton from '../github-auth-button';
 import { useToast } from '../../components/ui/use-toast';
 import { LoadingButton } from '../../components/ui/loading-button';
+import GoogleSignInButton from '../google-auth-button';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Digite um email valido.' }),
@@ -126,7 +127,8 @@ export default function UserAuthForm() {
         </div>
       </div>
       {/* mudar o nome do componete */}
-      <GitHubSignInButton />      
+      <GitHubSignInButton />     
+      <GoogleSignInButton />   
     {/*   <DbTestComponent /> */}
     </>
   );

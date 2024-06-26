@@ -1,5 +1,6 @@
 import { NextAuthConfig } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
+import GoogleProvider from "next-auth/providers/google"
 import GithubProvider from 'next-auth/providers/github';
 import prisma from './lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,6 +10,17 @@ const authConfig = {
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? '',
       clientSecret: process.env.GITHUB_SECRET ?? ''
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? ''/* ,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      } */
     }),
     CredentialProvider({
       credentials: {
@@ -63,7 +75,8 @@ const authConfig = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'github') {
+      if (account?.provider === 'github' || account?.provider === 'google' ) {
+        const provider = account?.provider 
         const email = profile?.email;
         if(email){
           let usuario = await prisma.user.findUnique({
@@ -76,7 +89,7 @@ const authConfig = {
                 email,
                 nome: String(profile.name),
                 password_hash:uuidv4(),
-                provider: "Github"
+                provider
               }
             });
           }

@@ -25,7 +25,7 @@ export const PerfilUser: React.FC = () => {
     useEffect(() => {
     if (umavez) {
         console.log('passou ')
-        if (session?.user.provider == "Github") {
+        if (session?.user.provider != "Credentials") {
             setBloqueioPorvider(true)
         }
         setUmavez(true)
