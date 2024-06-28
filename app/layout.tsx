@@ -21,6 +21,9 @@ export default async function RootLayout({
   const session = await auth();
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+         <head>
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body className={'font-inter overflow-hidden'}>
         <NextTopLoader showSpinner={false} />
         <Providers session={session}>
