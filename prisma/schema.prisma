@@ -13,8 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model SFBUser {
   id            String    @id @default(uuid())
   nome          String
@@ -23,6 +21,7 @@ model SFBUser {
   password_hash String
   tipo          Role      @default(MEMBER)
   provider      String    @default("Credentials")
+  sfbTodo       SFBTodo[]
 
   @@map("sfb_users")
 }
@@ -32,15 +31,42 @@ enum Role {
   MEMBER
 }
 
+model SFBTodo {
+  id          String   @id @default(uuid())
+  text        String
+  isCompleted Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  sfbUser    SFBUser @relation(fields: [sfbUser_id], references: [id])
+  sfbUser_id String
+
+  @@map("sfb_todo")
+}
+
 model SFAUser {
-  id              String        @id @default(uuid())
+  id              String    @id @default(uuid())
   nome            String
-  email           String        @unique
+  email           String    @unique
   password_hash   String
-  administrador   Boolean       @default(false)
+  administrador   Boolean   @default(false)
   data_nascimento DateTime?
-  created_at      DateTime      @default(now())
-  provider        String        @default("Credentials")
+  created_at      DateTime  @default(now())
+  provider        String    @default("Credentials")
+  sfaTodo         SFATodo[]
 
   @@map("sfa_users")
+}
+
+model SFATodo {
+  id          String   @id @default(uuid())
+  text        String
+  isCompleted Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  sfaUser    SFAUser @relation(fields: [sfaUser_id], references: [id])
+  sfaUser_id String
+
+  @@map("sfa_todo")
 }

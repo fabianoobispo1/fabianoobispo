@@ -127,7 +127,7 @@ const authConfig = {
     }
   },
   jwt: {
-    maxAge: 10 // 10 min
+    maxAge: 60 * 60 // 1 h
   }
 } satisfies NextAuthConfig;
 
