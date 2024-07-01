@@ -119,6 +119,12 @@ export const navItems: NavItem[] = [
     label: 'post'
   }, */
   {
+    title: 'Finanças',
+    href: '/dashboard/financas',
+    icon: 'carteira',
+    label: 'Finanças'
+  },
+  {
     title: 'Perfil',
     href: '/dashboard/perfil',
     icon: 'profile',

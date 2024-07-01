@@ -24,14 +24,14 @@ export default function page() {
             <Button>Download</Button>
           </div> */}
         </div>
-        <Tabs defaultValue="overview" className="space-y-4">
-         {/*   <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" disabled>
-              Analytics
-            </TabsTrigger>
-          </TabsList> */}
-          <TabsContent value="overview" className="space-y-4">
+        {/* <Tabs defaultValue="overview" className="space-y-4"> */}
+          {/*   <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="analytics" disabled>
+                Analytics
+              </TabsTrigger>
+            </TabsList> */}
+          {/* <TabsContent value="overview" className="space-y-4"> */}
           {/*  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -156,8 +156,8 @@ export default function page() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent> 
-        </Tabs>
+         {/*  </TabsContent>  */}
+   {/*      </Tabs> */}
       </div>
     </ScrollArea>
   );
