@@ -11,13 +11,13 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { signOut, useSession,SessionProvider } from 'next-auth/react';
+import { signOut, useSession, SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 export function UserNav() {
   const { data: session } = useSession();
   const router = useRouter();
-  
+
   if (session) {
     return (
       <DropdownMenu>
@@ -49,7 +49,7 @@ export function UserNav() {
               Perfil
               {/* <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut> */}
             </DropdownMenuItem>
-           {/*  <DropdownMenuItem>
+            {/*  <DropdownMenuItem>
               Billing
               <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
             </DropdownMenuItem>
@@ -58,7 +58,7 @@ export function UserNav() {
               <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem>New Team</DropdownMenuItem>*/}
-          </DropdownMenuGroup> 
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>
             Log out

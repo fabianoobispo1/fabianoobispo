@@ -6,8 +6,6 @@ import NextTopLoader from 'nextjs-toploader';
 import './globals.css';
 import { auth } from '@/auth';
 
-
-
 export const metadata: Metadata = {
   title: 'Fabiano sistema',
   description: 'Site para testar novas tecnologias'
@@ -21,7 +19,7 @@ export default async function RootLayout({
   const session = await auth();
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-         <head>
+      <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={'font-inter overflow-hidden'}>

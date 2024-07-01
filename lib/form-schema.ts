@@ -37,15 +37,9 @@ export const profileSchema = z.object({
 });
 
 export const perfilSchema = z.object({
-  nome: z
-    .string()
-    .min(3, { message: 'Nome requerido.' }),
-  email: z
-    .string()
-    .email({ message: 'Digite um email valido.' })
-
+  nome: z.string().min(3, { message: 'Nome requerido.' }),
+  email: z.string().email({ message: 'Digite um email valido.' })
 });
-
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 export type PerfilFormValues = z.infer<typeof perfilSchema>;

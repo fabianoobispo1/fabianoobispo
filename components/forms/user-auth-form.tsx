@@ -21,7 +21,7 @@ import GoogleSignInButton from '../google-auth-button';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Digite um email valido.' }),
-  password: z.string().min(8, { message: "Senha obrigatoria, min 8" })
+  password: z.string().min(8, { message: 'Senha obrigatoria, min 8' })
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
@@ -43,37 +43,34 @@ export default function UserAuthForm() {
   const onSubmit = async (data: UserFormValue) => {
     setLoading(true);
     const response = await fetch('/api/usuarioverificalogin', {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
-      body:  JSON.stringify(data),
+      body: JSON.stringify(data)
     });
-    
 
     const dataresponse = await response.json();
 
-     if (response.status != 201){
+    if (response.status != 201) {
       toast({
         title: 'Erro',
         variant: 'destructive',
         description: dataresponse.message
       });
-      console.log(response)
+      console.log(response);
       setLoading(false);
-    }else{
-      
+    } else {
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
         redirect: false,
         callbackUrl: callbackUrl ?? '/dashboard'
       });
-      
+
       if (result?.error) {
-       
-        console.log(result)
+        console.log(result);
         toast({
           title: 'Error',
           variant: 'destructive',
@@ -84,9 +81,8 @@ export default function UserAuthForm() {
         window.location.href = result?.url ?? '/dashboard';
       }
       setLoading(false);
+    }
   };
-}
-
 
   return (
     <>
@@ -110,9 +106,9 @@ export default function UserAuthForm() {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>              
+              </FormItem>
             )}
-          />          
+          />
           <FormField
             control={form.control}
             name="password"
@@ -129,13 +125,15 @@ export default function UserAuthForm() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-
-              
             )}
-          />          
-          <LoadingButton loading={loading} className="ml-auto w-full" type="submit">
-          {loading? 'Carregando' : 'Entrar' }
-          </LoadingButton>          
+          />
+          <LoadingButton
+            loading={loading}
+            className="ml-auto w-full"
+            type="submit"
+          >
+            {loading ? 'Carregando' : 'Entrar'}
+          </LoadingButton>
         </form>
       </Form>
       <div className="relative">
@@ -149,9 +147,9 @@ export default function UserAuthForm() {
         </div>
       </div>
       {/* mudar o nome do componete */}
-      <GitHubSignInButton />     
-      <GoogleSignInButton />   
-    {/*   <DbTestComponent /> */}
+      <GitHubSignInButton />
+      <GoogleSignInButton />
+      {/*   <DbTestComponent /> */}
     </>
   );
 }

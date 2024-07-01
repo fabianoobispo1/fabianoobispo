@@ -1,7 +1,7 @@
-import { read, utils } from "xlsx";
+import { read, utils } from 'xlsx';
 
 export default async function readXlsx<RowType>(
-  excelFile: File,
+  excelFile: File
 ): Promise<RowType[]> {
   const results: RowType[] = [];
   const fileReader = new FileReader();
@@ -13,12 +13,12 @@ export default async function readXlsx<RowType>(
       if (!event.target) return resolve(true);
 
       const fileData = event.target.result;
-      const workbook = read(fileData, { type: "buffer" });
+      const workbook = read(fileData, { type: 'buffer' });
 
       workbook.SheetNames.forEach((sheet) => {
         const result: RowType[] = utils.sheet_to_json(workbook.Sheets[sheet], {
           header: 1,
-          defval: "",
+          defval: ''
         });
 
         results.push(...result);

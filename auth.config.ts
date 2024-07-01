@@ -1,6 +1,6 @@
 import { NextAuthConfig } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
-import GoogleProvider from "next-auth/providers/google"
+import GoogleProvider from 'next-auth/providers/google';
 import GithubProvider from 'next-auth/providers/github';
 import prisma from './lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,7 +14,7 @@ const authConfig = {
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? ''/* ,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '' /* ,
       authorization: {
         params: {
           prompt: "consent",
@@ -31,26 +31,25 @@ const authConfig = {
         password: {
           type: 'password'
         }
-      }, 
+      },
 
-      
       async authorize(credentials, req) {
-        let email
-        let password 
-        if (credentials?.email ){
-          email = credentials?.email as string
-          password = credentials?.password as string
-        }else{
+        let email;
+        let password;
+        if (credentials?.email) {
+          email = credentials?.email as string;
+          password = credentials?.password as string;
+        } else {
           return null;
         }
 
-        const usuario  = await prisma.sFBUser.findUnique({
+        const usuario = await prisma.sFBUser.findUnique({
           where: {
             email
-          },
+          }
         });
-    
-        if (!usuario ) {
+
+        if (!usuario) {
           return null;
         }
 
@@ -60,7 +59,6 @@ const authConfig = {
           email: credentials?.email as string,
           tipo: usuario.tipo,
           provider: usuario.provider
-
         };
         if (user) {
           // Any object returned will be saved in `user` property of the JWT
@@ -79,32 +77,29 @@ const authConfig = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'github' || account?.provider === 'google' ) {
-        const provider = account?.provider 
+      if (account?.provider === 'github' || account?.provider === 'google') {
+        const provider = account?.provider;
         const email = profile?.email;
-        if(email){
+        if (email) {
           let usuario = await prisma.sFBUser.findUnique({
             where: { email }
           });
-  
+
           if (!usuario) {
             usuario = await prisma.sFBUser.create({
               data: {
                 email,
                 nome: String(profile.name),
-                password_hash:uuidv4(),
+                password_hash: uuidv4(),
                 provider
               }
             });
           }
-          
-          
+
           user.id = usuario.id;
-          user.tipo = usuario.tipo
-          user.provider = usuario.provider
+          user.tipo = usuario.tipo;
+          user.provider = usuario.provider;
         }
-       
-       
       }
       return true;
     },
@@ -112,8 +107,8 @@ const authConfig = {
       // First time JWT callback is run, user object is available
       if (user) {
         token.id = user.id;
-        token.tipo= user.tipo
-        token.provider= user.provider
+        token.tipo = user.tipo;
+        token.provider = user.provider;
       }
       return token;
     },
@@ -121,7 +116,7 @@ const authConfig = {
       if (token?.id) {
         session.user.id = String(token.id);
         session.user.tipo = String(token.tipo);
-        session.user.provider = String(token.provider)
+        session.user.provider = String(token.provider);
       }
       return session;
     }

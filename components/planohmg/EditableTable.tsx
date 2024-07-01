@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useState } from 'react';
 
 // Defina o tipo para os dados da tabela
 type TableData = (string | number)[][];
@@ -11,25 +11,25 @@ interface EditableTableProps {
 const columnsWithMinWidth = [0]; // Índices das colunas específicas para largura mínima aplicada
 const dropdownColumnIndex = 1; // Índice da coluna que será transformada em dropdown
 const dropdownOptions = [
-  "",
-  "Feature",
-  "feature",
-  "User Story",
-  "Task",
-  "Change Request",
-  "Issue",
+  '',
+  'Feature',
+  'feature',
+  'User Story',
+  'Task',
+  'Change Request',
+  'Issue'
 ]; // Opções para o dropdown
 
 const EditableTable: React.FC<EditableTableProps> = ({
   initialData,
-  onDataChange,
+  onDataChange
 }) => {
   const [tableData, setTableData] = useState<TableData>(initialData);
 
   const handleCellChange = (
     rowIndex: number,
     cellIndex: number,
-    value: string | number,
+    value: string | number
   ) => {
     const updatedData = [...tableData];
     updatedData[rowIndex][cellIndex] = value;
@@ -42,12 +42,15 @@ const EditableTable: React.FC<EditableTableProps> = ({
       <table className="w-full text-left text-sm text-gray-500 rtl:text-right">
         <thead className="bg-gray-50 text-xs uppercase text-gray-700">
           <tr>
-              <th>               
-              </th>
+            <th></th>
             {tableData[0].map((header, index) => (
               <th
                 scope="col"
-                className={`px-6 py-3 text-center ${columnsWithMinWidth.includes(index) ? "min-w-[100px]" : "min-w-[250px]"} `}
+                className={`px-6 py-3 text-center ${
+                  columnsWithMinWidth.includes(index)
+                    ? 'min-w-[100px]'
+                    : 'min-w-[250px]'
+                } `}
                 key={index}
               >
                 {header}
@@ -61,9 +64,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
               key={rowIndex}
               className="border odd:bg-white even:bg-gray-50 dark:border-gray-700 odd:dark:bg-gray-900 even:dark:bg-gray-800"
             >
-               <td className="px-2 py-2">               
-                  {rowIndex +1}                
-               </td>
+              <td className="px-2 py-2">{rowIndex + 1}</td>
               {row.map((cell, cellIndex) => (
                 <td className="px-1 py-3" key={cellIndex}>
                   {/*     <input
@@ -80,7 +81,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                         handleCellChange(
                           rowIndex + 1,
                           cellIndex,
-                          e.target.value,
+                          e.target.value
                         )
                       }
                       className="w-full border-none bg-transparent outline-none"
@@ -99,11 +100,11 @@ const EditableTable: React.FC<EditableTableProps> = ({
                         handleCellChange(
                           rowIndex + 1,
                           cellIndex,
-                          e.target.value,
+                          e.target.value
                         )
                       }
                       className="w-full border-none bg-transparent outline-none"
-                    />                  
+                    />
                   )}
                 </td>
               ))}

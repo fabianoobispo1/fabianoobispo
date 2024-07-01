@@ -8,15 +8,11 @@ export async function GET(
   try {
     const { id } = params;
 
-   await prisma.sFBTodo.delete({
-      where: { id: String(id) },
-
+    await prisma.sFBTodo.delete({
+      where: { id: String(id) }
     });
 
-    return NextResponse.json(
-      { message: 'Todo atualizado' },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: 'Todo atualizado' }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { message: 'Erro ao atualizar o recurso', error },

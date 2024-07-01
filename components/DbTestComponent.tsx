@@ -26,7 +26,9 @@ const DbTestComponent = () => {
 
   return (
     <div>
-      <button onClick={testDatabaseConnection}>Testar Conexão com o Banco de Dados</button>
+      <button onClick={testDatabaseConnection}>
+        Testar Conexão com o Banco de Dados
+      </button>
       {status && <p>{status}</p>}
       {userCount !== null && <p>Contagem de usuários: {userCount}</p>}
     </div>

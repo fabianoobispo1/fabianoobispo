@@ -1,12 +1,15 @@
 import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { userId: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
   const { userId } = params;
 
   try {
     const todos = await prisma.sFBTodo.findMany({
-      where:{
+      where: {
         sfbUser_id: userId
       },
       include: {

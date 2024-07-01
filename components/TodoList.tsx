@@ -29,7 +29,7 @@ interface Todo {
 }
 
 export function TodoList() {
-  const [id, setId] = useState<string | undefined>('')
+  const [id, setId] = useState<string | undefined>('');
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -42,10 +42,10 @@ export function TodoList() {
   }, []);
 
   const loadTodos = async () => {
-    setLoading(true);   
+    setLoading(true);
     const userId = session?.user.id;
-    const response = await fetch(`/api/todo/listar/${userId}`); 
-    
+    const response = await fetch(`/api/todo/listar/${userId}`);
+
     const { todos } = await response.json();
     setTodos(todos);
     setLoading(false);
@@ -125,7 +125,7 @@ export function TodoList() {
             <TableRow>
               <TableHead className="text-center">Sugestão</TableHead>
               <TableHead className="text-center">Completou</TableHead>
-              <TableHead className="text-center">Criado em</TableHead>            
+              <TableHead className="text-center">Criado em</TableHead>
               <TableHead className="text-center">Opções</TableHead>
             </TableRow>
           </TableHeader>
@@ -142,7 +142,7 @@ export function TodoList() {
                 <TableCell className="text-center">
                   {new Date(todo.created_at).toLocaleDateString()}
                 </TableCell>
-                  <TableCell className="flex gap-2 items-center justify-center">
+                <TableCell className="flex items-center justify-center gap-2">
                   <LoadingButton
                     className="w-32"
                     loading={loadingTodo}
@@ -152,7 +152,7 @@ export function TodoList() {
                   </LoadingButton>
                   <LoadingButton
                     loading={loadingTodo}
-                    variant={"destructive"}
+                    variant={'destructive'}
                     onClick={() => removeTodo(todo.id)}
                   >
                     <Trash className="h-4 w-4" />

@@ -14,14 +14,16 @@ datasource db {
 }
 
 model SFBUser {
-  id            String    @id @default(uuid())
+  id            String      @id @default(uuid())
   nome          String
-  email         String    @unique
-  created_at    DateTime  @default(now())
+  email         String      @unique
+  created_at    DateTime    @default(now())
   password_hash String
-  tipo          Role      @default(MEMBER)
-  provider      String    @default("Credentials")
+  tipo          Role        @default(MEMBER)
+  provider      String      @default("Credentials")
   sfbTodo       SFBTodo[]
+  sfbCartao     SFBCartao[]
+  sfbConta      SFBConta[]
 
   @@map("sfb_users")
 }
@@ -42,6 +44,36 @@ model SFBTodo {
   sfbUser_id String
 
   @@map("sfb_todo")
+}
+
+model SFBCartao {
+  id              String    @id @default(uuid())
+  cartao          String
+  valor           Float
+  data_vencimento DateTime
+  data_pagamento  DateTime?
+  limite          Float
+  limite_usado    Float
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  sfbUser         SFBUser   @relation(fields: [sfbUser_id], references: [id])
+  sfbUser_id      String
+
+  @@map("sfb_cartao")
+}
+
+model SFBConta {
+  id              String    @id @default(uuid())
+  conta           String
+  valor           Float
+  data_vencimento DateTime
+  data_pagamento  DateTime?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  sfbUser         SFBUser   @relation(fields: [sfbUser_id], references: [id])
+  sfbUser_id      String
+
+  @@map("sfb_conta")
 }
 
 model SFAUser {

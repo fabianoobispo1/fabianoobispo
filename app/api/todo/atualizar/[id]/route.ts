@@ -7,17 +7,14 @@ export async function PUT(
 ) {
   try {
     const { id } = params;
-    const { text, isCompleted } =  await req.json();
+    const { text, isCompleted } = await req.json();
 
     const updatedTodo = await prisma.sFBTodo.update({
       where: { id: String(id) },
-      data: { text, isCompleted },
+      data: { text, isCompleted }
     });
 
-    return NextResponse.json(
-      { message: 'Todo atualizado' },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: 'Todo atualizado' }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { message: 'Erro ao atualizar o recurso', error },

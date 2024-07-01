@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
           }
         }
       },
-      data: { text, sfbUser_id },
+      data: { text, sfbUser_id }
     });
 
     return NextResponse.json(

@@ -1,6 +1,6 @@
-import prisma from "@/lib/prisma";
-import { compare, hash } from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import prisma from '@/lib/prisma';
+import { compare, hash } from 'bcryptjs';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,38 +8,32 @@ export async function POST(req: NextRequest) {
 
     const { email, password } = body;
 
-     const user = await prisma.sFBUser.findUnique({
+    const user = await prisma.sFBUser.findUnique({
       where: {
-        email,
-      },
+        email
+      }
     });
-    
-   if (user == null) {
+
+    if (user == null) {
       return NextResponse.json(
-        { message: "Email nao cadastrado" },
-        { status: 409 },
+        { message: 'Email nao cadastrado' },
+        { status: 409 }
       );
     }
-    const doestPasswordMatches = await compare( String(password), user.password_hash);
+    const doestPasswordMatches = await compare(
+      String(password),
+      user.password_hash
+    );
 
     if (!doestPasswordMatches) {
-      return NextResponse.json(
-        { message: "senha Invalida" },
-        { status: 409 },
-      );
+      return NextResponse.json({ message: 'senha Invalida' }, { status: 409 });
     }
 
-
-    return NextResponse.json(
-      { message: "Realizando Login"},
-      { status: 201 },
-    );
-  
-
+    return NextResponse.json({ message: 'Realizando Login' }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
-      { message: "Erro ao conectar ao banco de dados." },
-      { status: 500 },
+      { message: 'Erro ao conectar ao banco de dados.' },
+      { status: 500 }
     );
   }
 }

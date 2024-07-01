@@ -25,14 +25,14 @@ export default function page() {
           </div> */}
         </div>
         {/* <Tabs defaultValue="overview" className="space-y-4"> */}
-          {/*   <TabsList>
+        {/*   <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="analytics" disabled>
                 Analytics
               </TabsTrigger>
             </TabsList> */}
-          {/* <TabsContent value="overview" className="space-y-4"> */}
-          {/*  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* <TabsContent value="overview" className="space-y-4"> */}
+        {/*  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -135,8 +135,8 @@ export default function page() {
                 </CardContent>
               </Card>
             </div> */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
-            {/*   <Card className="col-span-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
+          {/*   <Card className="col-span-4">
                <CardHeader>
                   <CardTitle>Overview</CardTitle>
                 </CardHeader>
@@ -144,20 +144,18 @@ export default function page() {
                   <Overview />
                 </CardContent>
               </Card> */}
-              <Card className="col-span-4 md:col-span-4">
-                <CardHeader>
-                  <CardTitle>Lista de sugestões</CardTitle>
-                  <CardDescription>
-                    Essa e sua lista.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <TodoList />
-                </CardContent>
-              </Card>
-            </div>
-         {/*  </TabsContent>  */}
-   {/*      </Tabs> */}
+          <Card className="col-span-4 md:col-span-4">
+            <CardHeader>
+              <CardTitle>Lista de sugestões</CardTitle>
+              <CardDescription>Essa e sua lista.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TodoList />
+            </CardContent>
+          </Card>
+        </div>
+        {/*  </TabsContent>  */}
+        {/*      </Tabs> */}
       </div>
     </ScrollArea>
   );

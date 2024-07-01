@@ -38,8 +38,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <AuthenticationModal/>
-  
+      <AuthenticationModal />
     </div>
   );
 }

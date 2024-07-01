@@ -16,16 +16,17 @@ import * as z from 'zod';
 import { useToast } from '../../components/ui/use-toast';
 import { LoadingButton } from '../ui/loading-button';
 
-const formSchema = z.object({
-  nome: z.string().min(3,{ message: 'Digite seu nome.' }),
-  email: z.string().email({ message: 'Digite um email valido.' }),
-  password: z.string().min(8, { message: "Senha obrigatoria, min 8" }),
-  confirmPassword: z.string().min(8, { message: "Senha obrigatoria, min 8" })
-
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword']
-});
+const formSchema = z
+  .object({
+    nome: z.string().min(3, { message: 'Digite seu nome.' }),
+    email: z.string().email({ message: 'Digite um email valido.' }),
+    password: z.string().min(8, { message: 'Senha obrigatoria, min 8' }),
+    confirmPassword: z.string().min(8, { message: 'Senha obrigatoria, min 8' })
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword']
+  });
 
 type UserFormValue = z.infer<typeof formSchema>;
 
@@ -36,8 +37,8 @@ export default function UserRegisterForm() {
   const defaultValues = {
     email: '',
     password: '',
-    nome:'',
-    confirmPassword:''
+    nome: '',
+    confirmPassword: ''
   };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
@@ -47,35 +48,35 @@ export default function UserRegisterForm() {
   const onSubmit = async (data: UserFormValue) => {
     setLoading(true);
     const response = await fetch('/api/usuarioregister', {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
-      body:  JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     setLoading(false);
 
-    if (response.status == 409){
+    if (response.status == 409) {
       toast({
         title: 'Erro',
         variant: 'destructive',
-        description: "Email já cadastrado."
+        description: 'Email já cadastrado.'
       });
-    }else if (response.status == 201){
+    } else if (response.status == 201) {
       toast({
         title: 'ok',
 
-        description: "Cadastro realizado."
+        description: 'Cadastro realizado.'
       });
-      window.location.href =  '/'
-    }else{
+      window.location.href = '/';
+    } else {
       toast({
         title: 'Erro',
         variant: 'destructive',
-        description: "Erro interno"
+        description: 'Erro interno'
       });
-      console.log(response)
+      console.log(response);
     }
   };
 
@@ -101,7 +102,7 @@ export default function UserRegisterForm() {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>              
+              </FormItem>
             )}
           />
           <FormField
@@ -119,7 +120,7 @@ export default function UserRegisterForm() {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>              
+              </FormItem>
             )}
           />
           <FormField
@@ -137,7 +138,7 @@ export default function UserRegisterForm() {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>                          
+              </FormItem>
             )}
           />
           <FormField
@@ -155,12 +156,16 @@ export default function UserRegisterForm() {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>                          
+              </FormItem>
             )}
           />
-          <LoadingButton loading={loading} className="ml-auto w-full" type="submit">
-            {loading? 'Carregando' : 'Cadastrar' }
-          </LoadingButton>          
+          <LoadingButton
+            loading={loading}
+            className="ml-auto w-full"
+            type="submit"
+          >
+            {loading ? 'Carregando' : 'Cadastrar'}
+          </LoadingButton>
         </form>
       </Form>
     </>

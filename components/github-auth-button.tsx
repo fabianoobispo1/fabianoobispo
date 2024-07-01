@@ -11,18 +11,18 @@ export default function GitHubSignInButton() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
 
-  async function handleLogin(){
+  async function handleLogin() {
     setLoading(true);
 
-    const result = await signIn('github', { callbackUrl: callbackUrl ?? '/dashboard' })
+    const result = await signIn('github', {
+      callbackUrl: callbackUrl ?? '/dashboard'
+    });
 
     if (result?.error) {
-     
-      console.log(result)
-    
+      console.log(result);
     } else {
       setLoading(false);
-     /*  window.location.href = result?.url ?? '/dashboard'; */
+      /*  window.location.href = result?.url ?? '/dashboard'; */
     }
     setLoading(false);
   }
@@ -33,9 +33,7 @@ export default function GitHubSignInButton() {
       variant="outline"
       type="button"
       loading={loading}
-      onClick={() =>
-        handleLogin()
-      }
+      onClick={() => handleLogin()}
     >
       <Icons.gitHub className="mr-2 h-4 w-4" />
       Continue Com Github

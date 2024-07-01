@@ -14,9 +14,7 @@ Este é um modelo inicial usando as seguintes ferramentas:
 - Forms - [React Hook Form](https://ui.shadcn.com/docs/components/form)
 - Linting - [ESLint](https://eslint.org)
 - Formatting - [Prettier](https://prettier.io)
- -->
-
-
+  -->
 
 ## Contato
 

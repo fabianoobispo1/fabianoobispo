@@ -1,3 +1,4 @@
+'use client';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import {
   Accordion,
@@ -5,10 +6,27 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
 import { CartaoList } from './cartao/CartaoList';
-
+import { useState } from 'react';
+import { format, addMonths, subMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ContaList } from './conta/CartaoList';
 
 export default function TotalizadorFinancas() {
+  // Estado para armazenar a data atual
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Função para incrementar o mês
+  const handleNextMonth = () => {
+    setCurrentDate(addMonths(currentDate, 1));
+  };
+
+  // Função para decrementar o mês
+  const handlePrevMonth = () => {
+    setCurrentDate(subMonths(currentDate, 1));
+  };
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -114,17 +132,67 @@ export default function TotalizadorFinancas() {
                 </CardContent>
               </Card> */}
       </div>
+      <Separator />
 
-      <Accordion type="multiple" >
+      <div className="mt-8 pt-5">
+        <div className="flex justify-between">
+          <button
+            type="button"
+            onClick={handlePrevMonth}
+            className="rounded bg-white px-2 py-1 text-sm font-semibold text-sky-900 shadow-sm ring-1 ring-inset ring-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5L8.25 12l7.5-7.5"
+              />
+            </svg>
+          </button>
+          <span className="text-lg font-semibold">
+            {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+          </span>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            className="rounded bg-white px-2 py-1 text-sm font-semibold text-sky-900 shadow-sm ring-1 ring-inset ring-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 4.5l7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <Accordion type="multiple">
         <AccordionItem value="item-1">
           <AccordionTrigger>Cartões</AccordionTrigger>
-            <AccordionContent>
-              <CartaoList />
-            </AccordionContent>
+          <AccordionContent>
+            <CartaoList currentDate={currentDate} />
+          </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-2">
           <AccordionTrigger>Contas</AccordionTrigger>
-          <AccordionContent>         
+          <AccordionContent>
+            <ContaList currentDate={currentDate} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
