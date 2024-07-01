@@ -8,6 +8,14 @@ export async function GET(
   try {
     const { id } = params;
 
+    const conta = await prisma.sFBConta.findMany({
+      where	:{
+        id: String(id)
+      }
+    })
+    if (!conta) return NextResponse.json({ message: 'conta Removido' }, { status: 200 });
+
+
     await prisma.sFBConta.delete({
       where: { id: String(id) }
     });

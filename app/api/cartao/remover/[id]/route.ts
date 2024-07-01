@@ -8,6 +8,13 @@ export async function GET(
   try {
     const { id } = params;
 
+    const cartao = await prisma.sFBCartao.findMany({
+      where	:{
+        id: String(id)
+      }
+    })
+    if (!cartao) return NextResponse.json({ message: 'Cartao Removido' }, { status: 200 });
+
     await prisma.sFBCartao.delete({
       where: { id: String(id) }
     });

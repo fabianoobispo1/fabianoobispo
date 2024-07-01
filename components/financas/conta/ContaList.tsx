@@ -11,21 +11,19 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { LoadingButton } from '@/components/ui/loading-button';
-import { Trash, Edit, Save } from 'lucide-react';
+import { Edit, Save, Trash } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 import { formatBLR } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 
-interface Cartao {
+interface Conta {
   id: string;
-  cartao: string;
+  conta: string;
   valor: number;
   data_vencimento: string;
   data_pagamento: string;
-  limite: number;
-  limite_usado: number;
   created_at: string;
   updated_at: string;
   sfbUser_id: string;
@@ -34,18 +32,16 @@ interface Cartao {
   };
 }
 
-export function CartaoList({ currentDate }: any) {
-  const [cartoes, setCartoes] = useState<Cartao[]>([]);
+export function ContaList({ currentDate }: any) {
+  const [contas, setContas] = useState<Conta[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingLinha, setLoadingLinha] = useState<boolean>(false);
-  const [newCartao, setNewCartao] = useState<Cartao>({
+  const [newConta, setNewConta] = useState<Conta>({
     id: '',
-    cartao: '',
+    conta: '',
     valor: 0,
     data_vencimento: '',
     data_pagamento: '',
-    limite: 0,
-    limite_usado: 0,
     created_at: '',
     updated_at: '',
     sfbUser_id: ''
@@ -56,57 +52,55 @@ export function CartaoList({ currentDate }: any) {
   const { data: session } = useSession();
 
   useEffect(() => {
-    loadCartoes();
+    loadContas();
   }, [currentDate]);
 
-  const loadCartoes = async () => {
+  const loadContas = async () => {
     setLoading(true);
     const userId = session?.user.id;
     const date = format(new Date(currentDate), 'yyyy-MM-dd');
 
-    const response = await fetch(`/api/cartao/listar/${userId}/${date}`);
+    const response = await fetch(`/api/conta/listar/${userId}/${date}`);
+    console.log(response);
+    const { contas } = await response.json();
 
-    const { cartoes } = await response.json();
-    console.log(cartoes);
-    setCartoes(cartoes);
+    setContas(contas);
     setLoading(false);
   };
 
-  const addCartao = async () => {
+  const addConta = async () => {
     setLoading(true);
 
-    const newCartaoWithId = { ...newCartao, id: String(Date.now()) };
-    setCartoes([...cartoes, newCartaoWithId]);
-    setEditingId(newCartaoWithId.id);
-    setNewCartao({
+    const newContaWithId = { ...newConta, id: String(Date.now()) };
+    setContas([...contas, newContaWithId]);
+    setEditingId(newContaWithId.id);
+    setNewConta({
       id: '',
-      cartao: '',
+      conta: '',
       valor: 0,
       data_vencimento: '',
       data_pagamento: '',
-      limite: 0,
-      limite_usado: 0,
       created_at: '',
       updated_at: '',
       sfbUser_id: ''
     });
     setLoading(false);
   };
-  const removeCartao = async (id: string) => {
+  const removeConta = async (id: string) => {
     setLoadingLinha(true);
 
-    const cartao = cartoes.find((cartao) => cartao.id === id);
-    if (!cartao) {
+    const conta = contas.find((conta) => conta.id === id);
+    if (!conta) {
       setLoadingLinha(false);
       return;
     }
 
-    await fetch(`/api/cartao/remover/${id}`, {
+    await fetch(`/api/conta/remover/${id}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
 
-    loadCartoes();
+    loadContas();
     setLoadingLinha(false);
   };
 
@@ -115,9 +109,9 @@ export function CartaoList({ currentDate }: any) {
     id: string
   ) => {
     const { name, value } = e.target;
-    setCartoes(
-      cartoes.map((cartao) =>
-        cartao.id === id ? { ...cartao, [name]: value } : cartao
+    setContas(
+      contas.map((conta) =>
+        conta.id === id ? { ...conta, [name]: value } : conta
       )
     );
   };
@@ -128,54 +122,38 @@ export function CartaoList({ currentDate }: any) {
     setLoadingLinha(false);
   };
 
-  const totalValores = useMemo(
-    () =>
-      cartoes.reduce(
-        (sum, cartao) => sum + parseFloat(cartao.valor.toString()),
-        0
-      ),
-    [cartoes]
-  );
-  const totalLimiteUsado = useMemo(
-    () =>
-      cartoes.reduce(
-        (sum, cartao) => sum + parseFloat(cartao.limite_usado.toString()),
-        0
-      ),
-    [cartoes]
-  );
-  const totalLimite = useMemo(
-    () =>
-      cartoes.reduce(
-        (sum, cartao) => sum + parseFloat(cartao.limite.toString()),
-        0
-      ),
-    [cartoes]
-  );
-
   const handleSalve = async (id: string) => {
     setLoadingLinha(true);
-    const cartao = cartoes.reduce<Cartao | null>((acc, item) => {
+    const conta = contas.reduce<Conta | null>((acc, item) => {
       if (item.id === id) {
         return item;
       }
+
       return acc;
     }, null);
 
-    const response = await fetch('/api/cartao/registrar', {
+    const response = await fetch('/api/conta/registrar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cartao, sfbUser_id: session?.user.id })
+      body: JSON.stringify({ conta, sfbUser_id: session?.user.id })
     });
-    setEditingId(null);
-
     setLoadingLinha(false);
+    setEditingId(null);
   };
+
+  const totalValores = useMemo(
+    () =>
+      contas.reduce(
+        (sum, conta) => sum + parseFloat(conta.valor.toString()),
+        0
+      ),
+    [contas]
+  );
 
   return (
     <div className="space-y-8">
       <div className="flex justify-end">
-        <LoadingButton loading={loading} onClick={addCartao} className="ml-2">
+        <LoadingButton loading={loading} onClick={addConta} className="ml-2">
           + Adicionar
         </LoadingButton>
       </div>
@@ -189,143 +167,105 @@ export function CartaoList({ currentDate }: any) {
           <Table className="w-full p-2">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-32 text-center">Cartao</TableHead>
+                <TableHead className="w-52 text-center">Conta</TableHead>
                 <TableHead className="w-32 text-center">Valor</TableHead>
                 <TableHead className="w-32 text-center">Vencimento</TableHead>
                 <TableHead className="w-32 text-center">Pagamento</TableHead>
-                <TableHead className="w-32 text-center">Limite Usado</TableHead>
-                <TableHead className="w-32 text-center">
-                  Limite Liberado
-                </TableHead>
-                <TableHead className="w-32 text-center">Limite Total</TableHead>
               </TableRow>
             </TableHeader>
-            {cartoes.length != 0 ? (
+            {contas.length != 0 ? (
               <>
                 <TableBody>
-                  {cartoes.map((cartao) => (
-                    <TableRow key={cartao.id}>
+                  {contas.map((conta) => (
+                    <TableRow key={conta.id}>
                       <TableCell className="text-center">
-                        {editingId === cartao.id ? (
+                        {editingId === conta.id ? (
                           <Input
-                            name="cartao"
-                            className="w-36"
-                            value={cartao.cartao}
-                            onChange={(e) => handleInputChange(e, cartao.id)}
+                            name="conta"
+                            className="w-52"
+                            value={conta.conta}
+                            onChange={(e) => handleInputChange(e, conta.id)}
                           />
                         ) : (
-                          <p className="w-36">{cartao.cartao}</p>
+                          <p className="w-36">{conta.conta}</p>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {editingId === cartao.id ? (
+                        {editingId === conta.id ? (
                           <Input
                             name="valor"
                             type="number"
                             className="w-36"
-                            value={cartao.valor}
-                            onChange={(e) => handleInputChange(e, cartao.id)}
+                            value={conta.valor}
+                            onChange={(e) => handleInputChange(e, conta.id)}
                           />
                         ) : (
-                          <p className="w-36">{cartao.valor}</p>
+                          <p className="w-36">{formatBLR(conta.valor)}</p>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {editingId === cartao.id ? (
+                        {editingId === conta.id ? (
                           <Input
                             name="data_vencimento"
                             type="date"
                             className="w-36"
-                            value={cartao.data_vencimento}
-                            onChange={(e) => handleInputChange(e, cartao.id)}
+                            value={conta.data_vencimento}
+                            onChange={(e) => handleInputChange(e, conta.id)}
                           />
                         ) : (
                           <p className="w-36">
                             {new Date(
-                              cartao.data_vencimento
+                              conta.data_vencimento
                             ).toLocaleDateString()}
                           </p>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {editingId === cartao.id ? (
+                        {editingId === conta.id ? (
                           <Input
                             name="data_pagamento"
                             type="date"
                             className="w-36"
-                            value={cartao.data_pagamento || ''}
-                            onChange={(e) => handleInputChange(e, cartao.id)}
+                            value={conta.data_pagamento || ''}
+                            onChange={(e) => handleInputChange(e, conta.id)}
                           />
                         ) : (
                           <p className="w-36">
-                            {cartao.data_pagamento
+                            {conta.data_pagamento
                               ? new Date(
-                                  cartao.data_pagamento
+                                  conta.data_pagamento
                                 ).toLocaleDateString()
                               : '-'}
                           </p>
                         )}
                       </TableCell>
-                      <TableCell className="text-center">
-                        {editingId === cartao.id ? (
-                          <Input
-                            name="limite_usado"
-                            type="number"
-                            className="w-36"
-                            value={cartao.limite_usado}
-                            onChange={(e) => handleInputChange(e, cartao.id)}
-                          />
-                        ) : (
-                          <p className="w-36">
-                            {formatBLR(cartao.limite_usado)}
-                          </p>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <p className="w-36">
-                          {formatBLR(cartao.limite - cartao.limite_usado)}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {editingId === cartao.id ? (
-                          <Input
-                            name="limite"
-                            type="number"
-                            className="w-36"
-                            value={cartao.limite}
-                            onChange={(e) => handleInputChange(e, cartao.id)}
-                          />
-                        ) : (
-                          <p className="w-36">{formatBLR(cartao.limite)}</p>
-                        )}
-                      </TableCell>
                       <TableCell className="text-end">
                         <div className='flex justify-end gap-4'>
-                            {editingId === cartao.id ? (
+                          {editingId === conta.id ? (
                             <LoadingButton
                               loading={loadingLinha}
-                              onClick={() => handleSalve(cartao.id)}
+                              onClick={() => handleSalve(conta.id)}
                             >
                               <Save className="h-4 w-4" />
                             </LoadingButton>
                           ) : (
                             <LoadingButton
                               loading={loadingLinha}
-                              onClick={() => handleEdit(cartao.id)}
+                              onClick={() => handleEdit(conta.id)}
                             >
                               <Edit className="h-4 w-4" />
                             </LoadingButton>
                           )}
                           <LoadingButton
-                          loading={loadingLinha}
-                          variant={'destructive'}
-                          onClick={() => removeCartao(cartao.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </LoadingButton>
+                            loading={loadingLinha}
+                            variant={'destructive'}
+                            onClick={() => removeConta(conta.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </LoadingButton>
+
                         </div>
                       </TableCell>
-                  
                     </TableRow>
                   ))}
                 </TableBody>
@@ -335,17 +275,7 @@ export function CartaoList({ currentDate }: any) {
                     <TableCell className="text-center">
                       {formatBLR(totalValores)}
                     </TableCell>
-                    <TableCell colSpan={2}></TableCell>
-                    <TableCell className="text-center">
-                      {formatBLR(totalLimiteUsado)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {formatBLR(totalLimite - totalLimiteUsado)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {formatBLR(totalLimite)}
-                    </TableCell>
-                    <TableCell colSpan={2}></TableCell>
+                    <TableCell colSpan={4}></TableCell>
                   </TableRow>
                 </TableFooter>
               </>

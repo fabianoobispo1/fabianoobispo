@@ -11,7 +11,7 @@ import { CartaoList } from './cartao/CartaoList';
 import { useState } from 'react';
 import { format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ContaList } from './conta/CartaoList';
+import { ContaList } from './conta/ContaList';
 
 export default function TotalizadorFinancas() {
   // Estado para armazenar a data atual
@@ -49,16 +49,16 @@ export default function TotalizadorFinancas() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$100,00</div>
+            <div className="text-2xl font-bold">R$100,00</div>
             {/* <p className="text-xs text-muted-foreground">
                     +20.1% from last month
                   </p> */}
           </CardContent>
         </Card>
-        {/*         <Card>
+               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Subscriptions
+                    Total gastos
                   </CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -76,15 +76,15 @@ export default function TotalizadorFinancas() {
                   </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+2350</div>
+                  <div className="text-2xl font-bold">R$235,00</div>
                   <p className="text-xs text-muted-foreground">
-                    +180.1% from last month
+                    já pago: R$100,00
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+               <Card>
                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                  <CardTitle className="text-sm font-medium">Saldo atual</CardTitle>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -100,13 +100,13 @@ export default function TotalizadorFinancas() {
                   </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+12,234</div>
+                  <div className="text-2xl font-bold">R$30,00</div>
                   <p className="text-xs text-muted-foreground">
-                    +19% from last month
+                    
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              {/*  <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Active Now
