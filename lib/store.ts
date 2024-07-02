@@ -9,7 +9,7 @@ export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE';
 const defaultCols = [
   {
     id: 'TODO' as const,
-    title: 'Todo'
+    title: 'Tarefa'
   }
 ] satisfies Column[];
 

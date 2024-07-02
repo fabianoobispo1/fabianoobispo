@@ -34,7 +34,7 @@ interface Cartao {
   };
 }
 
-export function CartaoList({ currentDate }: any) {
+export function CartaoList({ currentDate, onUpdateDados }: any) {
   const [cartoes, setCartoes] = useState<Cartao[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingLinha, setLoadingLinha] = useState<boolean>(false);
@@ -67,6 +67,7 @@ export function CartaoList({ currentDate }: any) {
     const response = await fetch(`/api/cartao/listar/${userId}/${date}`);
 
     const { cartoes } = await response.json();
+
     console.log(cartoes);
     setCartoes(cartoes);
     setLoading(false);
@@ -161,14 +162,13 @@ export function CartaoList({ currentDate }: any) {
       }
       return acc;
     }, null);
-
     const response = await fetch('/api/cartao/registrar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cartao, sfbUser_id: session?.user.id })
     });
     setEditingId(null);
-
+    onUpdateDados('ok');
     setLoadingLinha(false);
   };
 
@@ -227,7 +227,7 @@ export function CartaoList({ currentDate }: any) {
                             onChange={(e) => handleInputChange(e, cartao.id)}
                           />
                         ) : (
-                          <p className="w-36">{cartao.valor}</p>
+                          <p className="w-36">{formatBLR(cartao.valor)}</p>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
@@ -243,7 +243,9 @@ export function CartaoList({ currentDate }: any) {
                           <p className="w-36">
                             {new Date(
                               cartao.data_vencimento
-                            ).toLocaleDateString()}
+                            ).toLocaleDateString('pt-BR', {
+                              timeZone: 'UTC'
+                            })}
                           </p>
                         )}
                       </TableCell>
@@ -261,7 +263,9 @@ export function CartaoList({ currentDate }: any) {
                             {cartao.data_pagamento
                               ? new Date(
                                   cartao.data_pagamento
-                                ).toLocaleDateString()
+                                ).toLocaleDateString('pt-BR', {
+                              timeZone: 'UTC'
+                            })
                               : '-'}
                           </p>
                         )}
@@ -300,8 +304,8 @@ export function CartaoList({ currentDate }: any) {
                         )}
                       </TableCell>
                       <TableCell className="text-end">
-                        <div className='flex justify-end gap-4'>
-                            {editingId === cartao.id ? (
+                        <div className="flex justify-end gap-4">
+                          {editingId === cartao.id ? (
                             <LoadingButton
                               loading={loadingLinha}
                               onClick={() => handleSalve(cartao.id)}
@@ -317,15 +321,14 @@ export function CartaoList({ currentDate }: any) {
                             </LoadingButton>
                           )}
                           <LoadingButton
-                          loading={loadingLinha}
-                          variant={'destructive'}
-                          onClick={() => removeCartao(cartao.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </LoadingButton>
+                            loading={loadingLinha}
+                            variant={'destructive'}
+                            onClick={() => removeCartao(cartao.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </LoadingButton>
                         </div>
                       </TableCell>
-                  
                     </TableRow>
                   ))}
                 </TableBody>

@@ -32,7 +32,7 @@ interface Conta {
   };
 }
 
-export function ContaList({ currentDate }: any) {
+export function ContaList({ currentDate, onUpdateDados }: any) {
   const [contas, setContas] = useState<Conta[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingLinha, setLoadingLinha] = useState<boolean>(false);
@@ -138,6 +138,7 @@ export function ContaList({ currentDate }: any) {
       body: JSON.stringify({ conta, sfbUser_id: session?.user.id })
     });
     setLoadingLinha(false);
+    onUpdateDados('ok')
     setEditingId(null);
   };
 
@@ -216,7 +217,9 @@ export function ContaList({ currentDate }: any) {
                           <p className="w-36">
                             {new Date(
                               conta.data_vencimento
-                            ).toLocaleDateString()}
+                            ).toLocaleDateString('pt-BR', {
+                              timeZone: 'UTC'
+                            })}
                           </p>
                         )}
                       </TableCell>
@@ -234,7 +237,9 @@ export function ContaList({ currentDate }: any) {
                             {conta.data_pagamento
                               ? new Date(
                                   conta.data_pagamento
-                                ).toLocaleDateString()
+                                ).toLocaleDateString('pt-BR', {
+                              timeZone: 'UTC'
+                            })
                               : '-'}
                           </p>
                         )}

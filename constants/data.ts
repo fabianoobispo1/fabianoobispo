@@ -154,13 +154,13 @@ export const navItems: NavItem[] = [
     href: '/dashboard/profile',
     icon: 'profile',
     label: 'profile'
-  },
+  }, */
   {
     title: 'Kanban',
     href: '/dashboard/kanban',
     icon: 'kanban',
     label: 'kanban'
-  }, */
+  },
   {
     title: 'Login',
     href: '/',

@@ -33,14 +33,14 @@ export default function NewTaskDialog() {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="secondary" size="sm">
-          ＋ Add New Todo
+          ＋ Adicionar nova tarefa
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Todo</DialogTitle>
+          <DialogTitle>Adicionar nova tarefa</DialogTitle>
           <DialogDescription>
-            What do you want to get done today?
+            O que você quer fazer hoje?
           </DialogDescription>
         </DialogHeader>
         <form
@@ -52,7 +52,7 @@ export default function NewTaskDialog() {
             <Input
               id="title"
               name="title"
-              placeholder="Todo title..."
+              placeholder="Título da tarefa..."
               className="col-span-4"
             />
           </div>
@@ -60,7 +60,7 @@ export default function NewTaskDialog() {
             <Textarea
               id="description"
               name="description"
-              placeholder="Description..."
+              placeholder="Descrição..."
               className="col-span-4"
             />
           </div>
@@ -68,7 +68,7 @@ export default function NewTaskDialog() {
         <DialogFooter>
           <DialogTrigger asChild>
             <Button type="submit" size="sm" form="todo-form">
-              Add Todo
+              Adicionar tarefa
             </Button>
           </DialogTrigger>
         </DialogFooter>

@@ -32,3 +32,9 @@ export function hasDraggableData<T extends Active | Over>(
 export function formatBLR(value: number){
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
+
+export const adjustToLocalTimezone = (dateString: string) => {
+  const date = new Date(dateString);
+  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() + userTimezoneOffset);
+};
