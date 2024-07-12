@@ -1,3 +1,4 @@
+import { Teste } from '@/components/Teste';
 import { TodoList } from '@/components/TodoList';
 import { CalendarDateRangePicker } from '@/components/date-range-picker';
 import { Overview } from '@/components/overview';
@@ -18,7 +19,7 @@ export default function page() {
     <ScrollArea className="h-full">
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Bem Vindo 👋</h2>
+         {/*  <h2 className="text-3xl font-bold tracking-tight">Bem Vindo 👋</h2> */}
           {/*           <div className="hidden items-center space-x-2 md:flex">
             <CalendarDateRangePicker />
             <Button>Download</Button>
@@ -144,7 +145,9 @@ export default function page() {
                   <Overview />
                 </CardContent>
               </Card> */}
-          <Card className="col-span-4 md:col-span-4">
+
+
+           <Card className="col-span-4 md:col-span-4">
             <CardHeader>
               <CardTitle>Lista de sugestões</CardTitle>
               <CardDescription>Essa e sua lista.</CardDescription>
@@ -153,6 +156,18 @@ export default function page() {
               <TodoList />
             </CardContent>
           </Card>
+
+         {/*  <Card className="col-span-4 md:col-span-4">
+            <CardHeader>
+              <CardTitle>Card teste</CardTitle>
+              <CardDescription>teste.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Teste />
+            </CardContent>
+          </Card>
+ */}
+
         </div>
         {/*  </TabsContent>  */}
         {/*      </Tabs> */}
