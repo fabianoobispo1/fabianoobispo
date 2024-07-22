@@ -22,6 +22,7 @@ import type { Column } from './board-column';
 import { BoardColumn, BoardContainer } from './board-column';
 import NewSectionDialog from './new-section-dialog';
 import { TaskCard } from './task-card';
+import { useSession } from 'next-auth/react';
 // import { coordinateGetter } from "./multipleContainersKeyboardPreset";
 
 const defaultCols = [
@@ -46,7 +47,7 @@ export function KanbanBoard() {
   //const [columns, setColumns] = useState<Column[]>(defaultCols);
   const columns = useTaskStore((state) => state.columns);
   const setColumns = useTaskStore((state) => state.setCols);
-  const pickedUpTaskColumn = useRef<ColumnId | null>(null);
+  const pickedUpTaskColumn = useRef<string | null>(null);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
    //const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -55,7 +56,11 @@ export function KanbanBoard() {
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [isMounted, setIsMounted] = useState<Boolean>(false);
 
+  const [loading, setLoading] = useState(false)
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  const { data: session } = useSession();
 
   const sensors = useSensors(
     useSensor(MouseSensor),
@@ -78,15 +83,16 @@ export function KanbanBoard() {
   }, []);
 
   const loadTodos = async () => {
-  //  setLoading(true);
-
-    const response = await fetch('/api/tasks');
+    setLoading(true);
+   const userId = session?.user.id;
+    const response = await fetch(`/api/tasks/listar/${userId}`);
 
     const { tasks, columns  } = await response.json();
     setColumns(columns)
     setTasks(tasks)    
     //setTodos(todos);
-   // setLoading(false); 
+
+    setLoading(false);   
 
     setIsMounted(true)
   };
@@ -94,7 +100,7 @@ export function KanbanBoard() {
 
   if (!isMounted) return;
 
-  function getDraggingTaskData(taskId: UniqueIdentifier, columnId: ColumnId) {
+  function getDraggingTaskData(taskId: UniqueIdentifier, columnId: string) {
     const tasksInColumn = tasks.filter((task) => task.status === columnId);
     const taskPosition = tasksInColumn.findIndex((task) => task.id === taskId);
     const column = columns.find((col) => col.id === columnId);
@@ -198,6 +204,11 @@ export function KanbanBoard() {
     }
   };
 
+  if (loading) {
+    return(
+      <p>carregando </p>
+    )
+  }
   return (
     <DndContext
       accessibility={{
@@ -243,6 +254,7 @@ export function KanbanBoard() {
         )}
     </DndContext>
   );
+  
 
   function onDragStart(event: DragStartEvent) {
     if (!hasDraggableData(event.active)) return;

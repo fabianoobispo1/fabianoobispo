@@ -24,6 +24,7 @@ model SFBUser {
   sfbTodo       SFBTodo[]
   sfbCartao     SFBCartao[]
   sfbConta      SFBConta[]
+  sfbkanbanColumn SFBkanbanColumn[]
 
   @@map("sfb_users")
 }
@@ -76,6 +77,30 @@ model SFBConta {
   @@map("sfb_conta")
 }
 
+model SFBkanbanColumn {
+  id              String    @id @default(uuid())
+  title           String
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  sfbUser         SFBUser   @relation(fields: [sfbUser_id], references: [id])
+  sfbUser_id      String
+  sfbkanbanTask SFBkanbanTask[]
+
+  @@map("sfb_kanban_column")
+}
+
+model SFBkanbanTask {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  sfbkanbanColumn         SFBkanbanColumn   @relation(fields: [status], references: [id])
+  status      String
+
+  @@map("sfb_kanban_task")
+}
+
 model SFAUser {
   id              String    @id @default(uuid())
   nome            String
@@ -96,7 +121,6 @@ model SFATodo {
   isCompleted Boolean  @default(false)
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
-
   sfaUser    SFAUser @relation(fields: [sfaUser_id], references: [id])
   sfaUser_id String
 

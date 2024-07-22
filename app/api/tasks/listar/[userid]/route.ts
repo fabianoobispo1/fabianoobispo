@@ -3,20 +3,22 @@ import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
-  req: NextRequest
+  req: NextRequest,
+  { params }: { params: { userId: string } }
 ) {
+  const { userId } = params;
   
 try {
 
-    const columns = [
-         {
-          id: '1',
-          title: '1'
-        },
-        
-      ]      
+  const columns = await prisma.sFBkanbanColumn.findMany({
+    where: {
+      sfbUser_id: userId
+    }
+  });
 
-      
+console.log(columns)
+   
+
       const tasks = [
          {
           id: '1',
@@ -25,7 +27,7 @@ try {
         },
         
       ];
-
+      console.log(tasks)
 
     /* const tasks = await prisma.task.findMany();
     const columns = await prisma.column.findMany(); */
