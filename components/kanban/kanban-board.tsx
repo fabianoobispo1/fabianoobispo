@@ -41,26 +41,15 @@ const defaultCols = [
 
 export type ColumnId = (typeof defaultCols)[number]['id'];
 
-const initialTasks: Task[] = [
-  {
-    id: 'task1',
-    status: 'DONE',
-    title: 'Project initiation and planning'
-  },
-  {
-    id: 'task2',
-    status: 'DONE',
-    title: 'Gather requirements from stakeholders'
-  }
-];
+
 export function KanbanBoard() {
-  // const [columns, setColumns] = useState<Column[]>(defaultCols);
+  //const [columns, setColumns] = useState<Column[]>(defaultCols);
   const columns = useTaskStore((state) => state.columns);
   const setColumns = useTaskStore((state) => state.setCols);
   const pickedUpTaskColumn = useRef<ColumnId | null>(null);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
-  // const [tasks, setTasks] = useState<Task[]>(initialTasks);
+   //const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const tasks = useTaskStore((state) => state.tasks);
   const setTasks = useTaskStore((state) => state.setTasks);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
@@ -80,9 +69,29 @@ export function KanbanBoard() {
     setIsMounted(true);
   }, [isMounted]);
 
-  useEffect(() => {
+  useEffect(() => {    
     useTaskStore.persist.rehydrate();
+
+    loadTodos()
+
+
   }, []);
+
+  const loadTodos = async () => {
+  //  setLoading(true);
+
+    const response = await fetch('/api/tasks');
+
+    const { tasks, columns  } = await response.json();
+    setColumns(columns)
+    setTasks(tasks)    
+    //setTodos(todos);
+   // setLoading(false); 
+
+    setIsMounted(true)
+  };
+
+
   if (!isMounted) return;
 
   function getDraggingTaskData(taskId: UniqueIdentifier, columnId: ColumnId) {

@@ -39,6 +39,8 @@ export type Actions = {
   updateCol: (id: UniqueIdentifier, newName: string) => void;
 };
 
+
+
 export const useTaskStore = create<State & Actions>()(
   persist(
     (set) => ({
@@ -75,5 +77,6 @@ export const useTaskStore = create<State & Actions>()(
       setCols: (newCols: Column[]) => set({ columns: newCols })
     }),
     { name: 'task-store', skipHydration: true }
+  
   )
 );
