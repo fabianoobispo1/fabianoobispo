@@ -102,3 +102,60 @@ model SFATodo {
 
   @@map("sfa_todo")
 }
+
+model SFAAtleta {
+  id              String   @id @default(uuid())
+  cpf             String
+  nome            String
+  email           String   @unique
+  ativo           Boolean
+  data_nascimento DateTime
+  data_inicio     DateTime
+  setor           String?
+  posicao         String?
+  numero          Int?
+  altura          Float?
+  pesso           Float?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  @@map("sfa_atleta")
+}
+
+model SFAMovimentacao {
+  id              String    @id @default(uuid())
+  nome            String
+  descricao       String?
+  tipo            String
+  valor           Float?
+  data_vencimento DateTime?
+  data_pagamento  DateTime?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+
+  @@map("sfa_movimentacao")
+}
+
+model SFACaixa {
+  id                  String    @id @default(uuid())
+  valor               Float?
+  data_mes_referencia DateTime?  
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @default(now())
+
+  @@map("sfa_caixa")
+}
+
+
+model CSExpenses {
+  id                    String    @id @default(uuid())
+  title                 String  
+  description           String?
+  date                  DateTime
+  amount                Decimal @db.Decimal(10,2)
+  paymentType           Int
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @default(now())
+
+  @@map("cs_expenses")
+}
