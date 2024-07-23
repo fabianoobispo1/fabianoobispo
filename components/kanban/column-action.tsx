@@ -25,10 +25,12 @@ import { Input } from '../ui/input';
 
 export function ColumnActions({
   title,
-  id
+  id,
+  onSubmit
 }: {
   title: string;
   id: string;
+  onSubmit :() => void;
 }) {
   const [name, setName] = React.useState(title);
   const updateCol = useTaskStore((state) => state.updateCol);
@@ -99,7 +101,7 @@ export function ColumnActions({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onSelect={() => setShowDeleteDialog(false)} >Cancelar</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={() => {
@@ -108,10 +110,12 @@ export function ColumnActions({
 
                 setShowDeleteDialog(false);
                 removeCol(id);
+            
                 toast({
                   description: 'Esta coluna foi excluída.'
                 });
               }}
+              
             >
               Apagar
             </Button>

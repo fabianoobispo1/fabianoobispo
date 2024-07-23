@@ -10,6 +10,13 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '../ui/textarea';
 
@@ -17,12 +24,16 @@ import { useTaskStore } from '@/lib/store';
 
 export default function NewTaskDialog() {
   const addTask = useTaskStore((state) => state.addTask);
-
+  const columns = useTaskStore((state) => state.columns);
+  console.log(columns)
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const form = e.currentTarget;
     const formData = new FormData(form);
+    
+    console.log(Object.fromEntries(formData));
+  
     const { title, description } = Object.fromEntries(formData);
 
     if (typeof title !== 'string' || typeof description !== 'string') return;
@@ -48,6 +59,40 @@ export default function NewTaskDialog() {
           className="grid gap-4 py-4"
           onSubmit={handleSubmit}
         >
+          <div className="grid grid-cols-1 items-center gap-4 w-full">
+            <Select
+            /*   disabled={loading}
+              onValueChange={field.onChange}*/
+              /* value={columns.value}
+              defaultValue={column.id.value}  */
+              name='colun'
+            >
+
+              <SelectTrigger className='w-full'>
+                <SelectValue
+                  defaultValue={'-'}
+                  placeholder="Selecione a coluna"
+                />
+              </SelectTrigger>
+
+              <SelectContent>
+
+
+                <SelectItem key={0} value={'-'}>
+                  -
+                </SelectItem>
+                {columns.map((column) => (
+                  <SelectItem
+                    key={column.index}
+                    value={column.id}
+                  >
+                    {column.title}
+                  </SelectItem>
+                ))}
+
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Input
               id="title"

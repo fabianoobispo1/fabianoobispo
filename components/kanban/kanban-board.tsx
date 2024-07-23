@@ -24,6 +24,7 @@ import NewSectionDialog from './new-section-dialog';
 import { TaskCard } from './task-card';
 import { useSession } from 'next-auth/react';
 import { Spinner } from '../ui/spinner';
+import { ScrollArea } from '../ui/scroll-area';
 // import { coordinateGetter } from "./multipleContainersKeyboardPreset";
 
 const defaultCols = [
@@ -58,7 +59,7 @@ export function KanbanBoard() {
   const [isMounted, setIsMounted] = useState<Boolean>(false);
 
   const [loading, setLoading] = useState(false)
-
+  const [colunaSelecionada, setColunaSelecionada] = useState("")
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const { data: session } = useSession();
@@ -213,49 +214,51 @@ export function KanbanBoard() {
     )
   }
   return (
-    <DndContext
-      accessibility={{
-        announcements
-      }}
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-    >
-      <BoardContainer>
-        <SortableContext items={columnsId}>
-          {columns?.map((col, index) => (
-            <Fragment key={col.id}>
-              <BoardColumn
-                column={col}
-                tasks={tasks.filter((task) => task.status === col.id)}
-              />
-              {index === columns?.length - 1 && (
-                <div className="w-[300px]">
-                  <NewSectionDialog  idUser={userId}  onSubmit={loadTodos}  />
-                </div>
-              )}
-            </Fragment>
-          ))}
-          {!columns.length && <NewSectionDialog idUser={userId}  onSubmit={loadTodos}  />}
-        </SortableContext>
-      </BoardContainer>
 
-      {'document' in window &&
-        createPortal(
-          <DragOverlay>
-            {activeColumn && (
-              <BoardColumn
-                isOverlay
-                column={activeColumn}
-                tasks={tasks.filter((task) => task.status === activeColumn.id)}
-              />
-            )}
-            {activeTask && <TaskCard task={activeTask} isOverlay />}
-          </DragOverlay>,
-          document.body
-        )}
-    </DndContext>
+      <DndContext
+        accessibility={{
+          announcements
+        }}
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
+      >
+        <BoardContainer>
+          <SortableContext items={columnsId}>
+            {columns?.map((col, index) => (
+              <Fragment key={col.id}>
+                <BoardColumn
+                  column={col}
+                  tasks={tasks.filter((task) => task.status === col.id)}
+               />
+                {index === columns?.length - 1 && (
+                  <div className="w-[300px]">
+                    <NewSectionDialog  idUser={userId}  onSubmit={loadTodos}  />
+                  </div>
+                )}
+              </Fragment>
+            ))}
+            {!columns.length && <NewSectionDialog idUser={userId}  onSubmit={loadTodos}  />}
+          </SortableContext>
+        </BoardContainer>
+
+        {'document' in window &&
+          createPortal(
+            <DragOverlay>
+              {activeColumn && (
+                <BoardColumn
+                  isOverlay
+                  column={activeColumn}
+                  tasks={tasks.filter((task) => task.status === activeColumn.id)}
+                           />
+              )}
+              {activeTask && <TaskCard task={activeTask} isOverlay />}
+            </DragOverlay>,
+            document.body
+          )}
+      </DndContext>
+    
   );
   
 
@@ -303,15 +306,17 @@ export function KanbanBoard() {
     columns[activeColumnIndex].index = overDBColumnIndex
     columns[overColumnIndex].index = activeDBColumnIndex
     setColumns(arrayMove(columns, activeColumnIndex, overColumnIndex));
+
   }
 
   function onDragOver(event: DragOverEvent) {
     const { active, over } = event;
     if (!over) return;
-
+  
     const activeId = active.id;
     const overId = over.id;
-
+    setColunaSelecionada(String(activeId));
+  
     if (activeId === overId) return;
 
     if (!hasDraggableData(active) || !hasDraggableData(over)) return;

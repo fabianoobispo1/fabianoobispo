@@ -25,7 +25,7 @@ export interface ColumnDragData {
 interface BoardColumnProps {
   column: Column;
   tasks: Task[];
-  isOverlay?: boolean;
+  isOverlay?: boolean
 }
 
 export function BoardColumn({ column, tasks, isOverlay }: BoardColumnProps) {
@@ -92,7 +92,7 @@ export function BoardColumn({ column, tasks, isOverlay }: BoardColumnProps) {
           defaultValue={column.title}
           className="text-base !mt-0 mr-auto"
         /> */}
-        <ColumnActions id={column.id} title={column.title} />
+        <ColumnActions id={column.id} title={column.title} onSubmit={() => {}} />
       </CardHeader>
       <CardContent className="flex flex-grow flex-col gap-4 overflow-y-auto overflow-x-hidden p-2">
         <SortableContext items={tasksIds}>
