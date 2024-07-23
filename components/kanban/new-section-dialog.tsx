@@ -12,11 +12,15 @@ import {
 import { Input } from '@/components/ui/input';
 
 import { useTaskStore } from '@/lib/store';
-import { useSession } from 'next-auth/react';
 
-export default function NewSectionDialog() {
+interface NewSectionDialogProps {
+  idUser: string| undefined;
+  onSubmit?: () => void;
+}
+
+export default function NewSectionDialog({ idUser, onSubmit}: NewSectionDialogProps) {
   const addCol = useTaskStore((state) => state.addCol);
-  const { data: session } = useSession();
+  const totalColunas = useTaskStore((state) => state.columns.length);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,9 +30,13 @@ export default function NewSectionDialog() {
     const { title } = Object.fromEntries(formData);
 
     if (typeof title !== 'string') return;
-    const userID = session?.user.id;
-    if (typeof userID !== 'string') return;
-    addCol(title, userID);
+    if (typeof idUser !== 'string') return;
+
+    addCol(title, idUser, totalColunas);
+    
+    if (onSubmit) {
+      onSubmit();
+    }
   };
 
   return (

@@ -11,7 +11,7 @@ import { ColumnActions } from './column-action';
 import { TaskCard } from './task-card';
 
 export interface Column {
-  id: UniqueIdentifier;
+  id: string;
   title: string;
 }
 

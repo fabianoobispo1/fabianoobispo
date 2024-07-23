@@ -5,10 +5,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { title, userID } = body;
+    const { title, userID, index } = body;
 
     const newColumn  = await prisma.sFBkanbanColumn.create({      
-      data: { title, sfbUser_id: userID  }
+      data: { title, sfbUser_id: userID, index  }
     }); 
 
     return NextResponse.json(

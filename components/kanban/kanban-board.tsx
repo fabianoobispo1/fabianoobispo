@@ -23,6 +23,7 @@ import { BoardColumn, BoardContainer } from './board-column';
 import NewSectionDialog from './new-section-dialog';
 import { TaskCard } from './task-card';
 import { useSession } from 'next-auth/react';
+import { Spinner } from '../ui/spinner';
 // import { coordinateGetter } from "./multipleContainersKeyboardPreset";
 
 const defaultCols = [
@@ -61,6 +62,8 @@ export function KanbanBoard() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const { data: session } = useSession();
+  let userId = session?.user.id;
+  if (typeof userId !== 'string') userId='';
 
   const sensors = useSensors(
     useSensor(MouseSensor),
@@ -84,7 +87,7 @@ export function KanbanBoard() {
 
   const loadTodos = async () => {
     setLoading(true);
-   const userId = session?.user.id;
+  
     const response = await fetch(`/api/tasks/listar/${userId}`);
 
     const { tasks, columns  } = await response.json();
@@ -206,7 +209,7 @@ export function KanbanBoard() {
 
   if (loading) {
     return(
-      <p>carregando </p>
+      <Spinner/>
     )
   }
   return (
@@ -229,12 +232,12 @@ export function KanbanBoard() {
               />
               {index === columns?.length - 1 && (
                 <div className="w-[300px]">
-                  <NewSectionDialog />
+                  <NewSectionDialog  idUser={userId}  onSubmit={loadTodos}  />
                 </div>
               )}
             </Fragment>
           ))}
-          {!columns.length && <NewSectionDialog />}
+          {!columns.length && <NewSectionDialog idUser={userId}  onSubmit={loadTodos}  />}
         </SortableContext>
       </BoardContainer>
 
@@ -260,6 +263,7 @@ export function KanbanBoard() {
     if (!hasDraggableData(event.active)) return;
     const data = event.active.data.current;
     if (data?.type === 'Column') {
+     
       setActiveColumn(data.column);
       return;
     }
@@ -273,7 +277,7 @@ export function KanbanBoard() {
   function onDragEnd(event: DragEndEvent) {
     setActiveColumn(null);
     setActiveTask(null);
-
+    
     const { active, over } = event;
     if (!over) return;
 
@@ -290,9 +294,14 @@ export function KanbanBoard() {
     if (!isActiveAColumn) return;
 
     const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
-
     const overColumnIndex = columns.findIndex((col) => col.id === overId);
 
+
+    const activeDBColumnIndex =columns[activeColumnIndex].index
+    const overDBColumnIndex = columns[overColumnIndex].index
+
+    columns[activeColumnIndex].index = overDBColumnIndex
+    columns[overColumnIndex].index = activeDBColumnIndex
     setColumns(arrayMove(columns, activeColumnIndex, overColumnIndex));
   }
 

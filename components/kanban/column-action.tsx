@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { useTaskStore } from '@/lib/store';
-import { UniqueIdentifier } from '@dnd-kit/core';
 import { Input } from '../ui/input';
 
 export function ColumnActions({
@@ -29,9 +28,8 @@ export function ColumnActions({
   id
 }: {
   title: string;
-  id: UniqueIdentifier;
+  id: string;
 }) {
-  const [open, setIsOpen] = React.useState(false);
   const [name, setName] = React.useState(title);
   const updateCol = useTaskStore((state) => state.updateCol);
   const removeCol = useTaskStore((state) => state.removeCol);
@@ -48,9 +46,9 @@ export function ColumnActions({
           setIsEditDisable(!editDisable);
           updateCol(id, name);
           toast({
-            title: 'Name Updated',
+            title: 'Nome alterado',
             variant: 'default',
-            description: `${title} updated to ${name}`
+            description: `De ${title} para ${name}`
           });
         }}
       >

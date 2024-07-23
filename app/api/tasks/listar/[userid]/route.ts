@@ -13,12 +13,12 @@ try {
   const columns = await prisma.sFBkanbanColumn.findMany({
     where: {
       sfbUser_id: userId
+    },
+    orderBy: {
+      index: 'asc'
     }
   });
-
-console.log(columns)
-   
-
+  console.log(columns)
       const tasks = [
          {
           id: '1',
@@ -27,7 +27,7 @@ console.log(columns)
         },
         
       ];
-      console.log(tasks)
+     
 
     /* const tasks = await prisma.task.findMany();
     const columns = await prisma.column.findMany(); */
