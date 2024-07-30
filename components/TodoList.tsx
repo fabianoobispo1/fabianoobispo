@@ -207,11 +207,19 @@ export function TodoList() {
         </Table>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-      <Input
+
+      <div className="flex items-center">
+        <Input
           value={numero}
           disabled={true}
-          placeholder="..."
+          placeholder="Adicionar nova sugestão"
         />
+        <LoadingButton  onClick={numerosmega} className="ml-2">
+          Gerar
+        </LoadingButton>
+      </div>
+
+      
     </div>
     
   );
