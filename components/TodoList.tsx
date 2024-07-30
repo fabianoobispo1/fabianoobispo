@@ -34,12 +34,55 @@ export function TodoList() {
   const [newTodo, setNewTodo] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingTodo, setLoadingTodo] = useState<boolean>(false);
+  const [numero, setNumero] = useState<string>('');
 
   const { data: session } = useSession();
 
   useEffect(() => {
     loadTodos();
+    numerosmega();
   }, []);
+
+  const numerosmega = async () => {
+    const d1: () => number = () => {
+      return Math.floor(Math.random() * (6 - 0 + 1)) + 0;
+    }
+    const d2: () => number = () => {
+      return Math.floor(Math.random() * (9 - 0 + 1)) + 0;
+    }
+
+    const montadezena: () => string  = () => {
+      let numero01 = d1()
+      let numero02 = d2();
+      if (numero01 === 6) {
+        numero02 = 0;
+      }
+
+      let dezena = `${numero01}${numero02}`;
+    
+      // Regerar o número se for 00
+      while (dezena === '00') {
+        numero01 = d1();
+        numero02 = d2();
+        if (numero01 === 6) {
+          numero02 = 0;
+        }
+        dezena = `${numero01}${numero02}`;
+      }
+  
+      return dezena;
+    }  
+
+    const uniqueNumbers = new Set<string>();
+    while (uniqueNumbers.size < 6) {
+      uniqueNumbers.add(montadezena());
+    }
+    
+    const sortedNumbers = Array.from(uniqueNumbers).sort((a, b) => parseInt(a) - parseInt(b));
+
+    const result = sortedNumbers.join('-');
+    setNumero(result);
+  };
 
   const loadTodos = async () => {
     setLoading(true);
@@ -107,7 +150,7 @@ export function TodoList() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8">      
       <div className="flex items-center">
         <Input
           value={newTodo}
@@ -164,6 +207,12 @@ export function TodoList() {
         </Table>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+      <Input
+          value={numero}
+          disabled={true}
+          placeholder="..."
+        />
     </div>
+    
   );
 }
