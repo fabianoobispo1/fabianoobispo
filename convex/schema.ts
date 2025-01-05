@@ -28,6 +28,17 @@ export const todoSchema = {
   updated_at: v.number(),
   userId: v.id('user'),
 }
+export const financeiroSchema = {
+  descricao: v.string(),
+  valor: v.number(),
+  dataVencimento: v.number(), // timestamp
+  dataPagamento: v.optional(v.number()), // opcional, para quando for pago
+  categoria: v.string(),
+  status: v.string(), // "PAGO", "PENDENTE", "ATRASADO"
+  created_at: v.number(),
+  updated_at: v.number(),
+  userId: v.id('user'),
+}
 
 // Definição do Schema completo
 export default defineSchema({
@@ -35,6 +46,6 @@ export default defineSchema({
     .index('by_email', ['email'])
     .index('by_username', ['nome']),
   recuperaSenha: defineTable(recuperaSenhaSchema).index('by_email', ['email']),
-
+  financeiro: defineTable(financeiroSchema).index('by_user', ['userId']), //
   todo: defineTable(todoSchema).index('by_user', ['userId']), // Índice para buscar todos de um usuário
 })

@@ -45,6 +45,7 @@ export function DatePickerWithDefaults({
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
+            locale={ptBR}
             mode="single"
             selected={date}
             onSelect={setDate}
