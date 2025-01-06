@@ -27,16 +27,19 @@ const formSchema = z.object({
   data_vencimento: z.preprocess(
     (val) => (val === null ? undefined : val),
     z.date({
-      required_error: 'A data do lançamento precisa ser preenchida.',
+      required_error: 'A data do Cartâo precisa ser preenchida.',
     }),
   ),
   categoria: z.string(),
   status: z.string(),
+  limite: z.string(),
+  limiteUtilizado: z.string(),
+  obs: z.string(),
 })
 
-interface FinancasFormProps {
+interface CartaoFormProps {
   initialData?: {
-    _id: Id<'financeiro'>
+    _id: Id<'cartoes'>
     descricao: string
     valor: number
     dataVencimento: number
@@ -45,19 +48,22 @@ interface FinancasFormProps {
     status: string
     created_at: number
     updated_at: number
+    obs: string
+    limite: number
+    limiteUtilizado: number
     userId: Id<'user'>
   } | null
   onSuccess?: () => void
   userId?: string
 }
 
-export const FinancasForm: React.FC<FinancasFormProps> = ({
+export const CartaoForm: React.FC<CartaoFormProps> = ({
   initialData,
   onSuccess,
   userId,
 }) => {
-  const update = useMutation(api.financeiro.update)
-  const create = useMutation(api.financeiro.create)
+  const update = useMutation(api.cartoes.update)
+  const create = useMutation(api.cartoes.create)
 
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
@@ -74,13 +80,19 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
             : undefined,
           status: initialData.status,
           descricao: initialData.descricao,
+          obs: '',
+          limite: initialData.limite.toString(),
+          limiteUtilizado: initialData.limiteUtilizado.toString(),
         }
       : {
           descricao: '',
           valor: '',
           data_vencimento: undefined,
-          categoria: '',
+          categoria: 'Cartão de Crédito',
           status: '',
+          obs: '',
+          limite: '',
+          limiteUtilizado: '',
         },
   })
 
@@ -91,11 +103,21 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
       const cleanValue = values.valor.replace(/[R$\s.]/g, '').replace(',', '.')
       const numberValue = parseFloat(cleanValue)
 
+      const cleanValueLimite = values.limite
+        .replace(/[R$\s.]/g, '')
+        .replace(',', '.')
+      const numberValueLimite = parseFloat(cleanValueLimite)
+
+      const cleanValueLimiteUtilizado = values.limiteUtilizado
+        .replace(/[R$\s.]/g, '')
+        .replace(',', '.')
+      const numberValueLimiteUtilizado = parseFloat(cleanValueLimiteUtilizado)
+
       if (initialData) {
         console.log(initialData)
         console.log(values)
         /*   await update({
-          financaId: initialData._id,
+          cartaoId: initialData._id,
           categoria: values.categoria,
           descricao: values.descricao,
           valor: parseFloat(values.valor),
@@ -104,18 +126,21 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
           forma_pagamento: values.forma_pagamento,
         }) */
         await update({
-          financaId: initialData._id,
+          cartaoId: initialData._id,
           descricao: values.descricao,
           valor: numberValue,
           dataVencimento: new Date(values.data_vencimento).getTime(),
-          categoria: values.categoria,
+          categoria: 'Cartão de Crédito',
           status: values.status,
           updated_at: new Date().getTime(),
           dataPagamento: initialData.dataPagamento,
+          obs: values.obs,
+          limite: numberValueLimite,
+          limiteUtilizado: numberValueLimiteUtilizado,
         })
 
         toast({
-          title: 'Lançamento atualizado!',
+          title: 'Cartâo atualizado!',
           description: 'Os dados foram alterados com sucesso.',
         })
       } else {
@@ -126,13 +151,16 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
           descricao: values.descricao,
           valor: numberValue,
           dataVencimento: new Date(values.data_vencimento).getTime(),
-          categoria: values.categoria,
+          categoria: 'Cartão de Crédito',
           status: 'pendente',
           created_at: new Date().getTime(),
           updated_at: new Date().getTime(),
+          obs: values.obs,
+          limite: numberValueLimite,
+          limiteUtilizado: numberValueLimiteUtilizado,
         })
         toast({
-          title: 'Lançamento registrado!',
+          title: 'Cartâo registrado!',
           description: 'Os dados foram salvos com sucesso.',
         })
       }
@@ -144,7 +172,7 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
       toast({
         variant: 'destructive',
         title: 'Erro ao salvar',
-        description: 'Ocorreu um erro ao processar o lançamento.',
+        description: 'Ocorreu um erro ao processar o Cartâo.',
       })
     } finally {
       setLoading(false)
@@ -176,7 +204,7 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
               <FormItem>
                 <FormLabel>Descrição</FormLabel>
                 <FormControl>
-                  <Input placeholder="Descrição do lançamento" {...field} />
+                  <Input placeholder="Descrição do Cartâo" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -218,19 +246,61 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
 
           <FormField
             control={form.control}
-            name="categoria"
+            name="obs"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cateegoria</FormLabel>
+                <FormLabel>Obs</FormLabel>
                 <FormControl>
-                  <Input placeholder="Categoria" {...field} />
+                  <Input placeholder="obs" {...field} />
                 </FormControl>
               </FormItem>
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="limite"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Limite</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="R$ 0,00"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '')
+                      field.onChange(value)
+                    }}
+                    value={field.value ? currencyMask(field.value) : ''}
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="limiteUtilizado"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Limite utilizado</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="R$ 0,00"
+                    {...field}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '')
+                      field.onChange(value)
+                    }}
+                    value={field.value ? currencyMask(field.value) : ''}
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           <Button type="submit" disabled={loading}>
-            {initialData ? 'Salvar Alterações' : 'Adicionar Lançamento'}
+            {initialData ? 'Salvar Alterações' : 'Adicionar Cartâo'}
           </Button>
         </form>
       </Form>

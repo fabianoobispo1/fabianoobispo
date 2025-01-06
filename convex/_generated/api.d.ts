@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as cartoes from "../cartoes.js";
 import type * as files from "../files.js";
 import type * as financeiro from "../financeiro.js";
 import type * as recuperaSenha from "../recuperaSenha.js";
@@ -28,6 +29,7 @@ import type * as user from "../user.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  cartoes: typeof cartoes;
   files: typeof files;
   financeiro: typeof financeiro;
   recuperaSenha: typeof recuperaSenha;

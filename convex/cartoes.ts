@@ -1,40 +1,40 @@
 import { v } from 'convex/values'
 
 import { mutation, query } from './_generated/server'
-import { financeiroSchema } from './schema'
+import { cartoesSchema } from './schema'
 
 export const create = mutation({
-  args: financeiroSchema,
+  args: cartoesSchema,
   handler: async ({ db }, args) => {
-    const gasto = await db.insert('financeiro', args)
-    return gasto
+    const cartao = await db.insert('cartoes', args)
+    return cartao
   },
 })
 
-export const getGastosByUser = query({
+export const getcartaoByUser = query({
   args: {
     userId: v.id('user'),
   },
   handler: async ({ db }, { userId }) => {
-    const gastos = await db
-      .query('financeiro')
+    const cartaos = await db
+      .query('cartoes')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect()
-    return gastos
+    return cartaos
   },
 })
 
 export const marcarComoPago = mutation({
   args: {
-    gastoId: v.id('financeiro'),
+    cartaoId: v.id('cartoes'),
   },
-  handler: async ({ db }, { gastoId }) => {
-    const gasto = await db.patch(gastoId, {
+  handler: async ({ db }, { cartaoId }) => {
+    const cartao = await db.patch(cartaoId, {
       status: 'PAGO',
       dataPagamento: Date.now(),
       updated_at: Date.now(),
     })
-    return gasto
+    return cartao
   },
 })
 
@@ -45,8 +45,8 @@ export const getByMonth = query({
     endDate: v.number(),
   },
   handler: async (ctx, args) => {
-    const financeiro = await ctx.db
-      .query('financeiro')
+    const cartoes = await ctx.db
+      .query('cartoes')
       .filter((q) =>
         q.and(
           q.eq(q.field('userId'), args.userId),
@@ -56,31 +56,31 @@ export const getByMonth = query({
       )
       .collect()
 
-    return financeiro
+    return cartoes
   },
 })
 
 export const remove = mutation({
   args: {
-    financeiroId: v.id('financeiro'), // ID do financeiro a ser removido
+    cartoesId: v.id('cartoes'), // ID do cartoes a ser removido
   },
-  handler: async ({ db }, { financeiroId }) => {
-    // Buscar o financeiro para garantir que ele existe antes de remover
-    const financeiro = await db.get(financeiroId)
-    if (!financeiro) {
-      throw new Error('financeiro não encontrado')
+  handler: async ({ db }, { cartoesId }) => {
+    // Buscar o cartoes para garantir que ele existe antes de remover
+    const cartoes = await db.get(cartoesId)
+    if (!cartoes) {
+      throw new Error('cartoes não encontrado')
     }
 
-    // Remover o financeiro do banco de dados
-    await db.delete(financeiroId)
+    // Remover o cartoes do banco de dados
+    await db.delete(cartoesId)
 
-    return { success: true, message: 'financeiro removido com sucesso' } // Resposta de confirmação
+    return { success: true, message: 'cartoes removido com sucesso' } // Resposta de confirmação
   },
 })
 
 export const update = mutation({
   args: {
-    financaId: v.id('financeiro'),
+    cartaoId: v.id('cartoes'),
     descricao: v.string(),
     valor: v.number(),
     dataVencimento: v.number(),
@@ -88,11 +88,14 @@ export const update = mutation({
     status: v.string(),
     updated_at: v.number(),
     dataPagamento: v.optional(v.number()),
+    obs: v.string(),
+    limite: v.number(),
+    limiteUtilizado: v.number(),
   },
   handler: async (
     { db },
     {
-      financaId,
+      cartaoId,
       descricao,
       valor,
       dataVencimento,
@@ -100,15 +103,18 @@ export const update = mutation({
       status,
       updated_at,
       dataPagamento,
+      obs,
+      limite,
+      limiteUtilizado,
     },
   ) => {
-    const financa = await db.get(financaId)
+    const financa = await db.get(cartaoId)
 
     if (!financa) {
       throw new Error('Lançamento não encontrado')
     }
 
-    const updatedFinanca = await db.patch(financaId, {
+    const updatedFinanca = await db.patch(cartaoId, {
       descricao,
       valor,
       dataVencimento,
@@ -116,6 +122,9 @@ export const update = mutation({
       status,
       updated_at,
       dataPagamento,
+      obs,
+      limite,
+      limiteUtilizado,
     })
 
     return updatedFinanca
