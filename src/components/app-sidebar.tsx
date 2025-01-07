@@ -1,5 +1,11 @@
 'use client'
-import { ChevronUp, Home, UserPen, NotebookPenIcon } from 'lucide-react'
+import {
+  ChevronUp,
+  Home,
+  UserPen,
+  NotebookPenIcon,
+  DollarSign,
+} from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { useState } from 'react'
 
@@ -43,6 +49,11 @@ const items = [
     title: 'Lista de tarefas',
     url: '/dashboard/lista',
     icon: NotebookPenIcon,
+  },
+  {
+    title: 'Finanças',
+    url: '/dashboard/financas',
+    icon: DollarSign,
   },
   {
     title: 'Perfil',

@@ -27,7 +27,7 @@ const formSchema = z.object({
   data_vencimento: z.preprocess(
     (val) => (val === null ? undefined : val),
     z.date({
-      required_error: 'A data do Cartâo precisa ser preenchida.',
+      required_error: 'A data do Cartão precisa ser preenchida.',
     }),
   ),
   categoria: z.string(),
@@ -140,7 +140,7 @@ export const CartaoForm: React.FC<CartaoFormProps> = ({
         })
 
         toast({
-          title: 'Cartâo atualizado!',
+          title: 'Cartão atualizado!',
           description: 'Os dados foram alterados com sucesso.',
         })
       } else {
@@ -160,7 +160,7 @@ export const CartaoForm: React.FC<CartaoFormProps> = ({
           limiteUtilizado: numberValueLimiteUtilizado,
         })
         toast({
-          title: 'Cartâo registrado!',
+          title: 'Cartão registrado!',
           description: 'Os dados foram salvos com sucesso.',
         })
       }
@@ -172,7 +172,7 @@ export const CartaoForm: React.FC<CartaoFormProps> = ({
       toast({
         variant: 'destructive',
         title: 'Erro ao salvar',
-        description: 'Ocorreu um erro ao processar o Cartâo.',
+        description: 'Ocorreu um erro ao processar o Cartão.',
       })
     } finally {
       setLoading(false)
@@ -204,7 +204,7 @@ export const CartaoForm: React.FC<CartaoFormProps> = ({
               <FormItem>
                 <FormLabel>Descrição</FormLabel>
                 <FormControl>
-                  <Input placeholder="Descrição do Cartâo" {...field} />
+                  <Input placeholder="Descrição do Cartão" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -300,7 +300,7 @@ export const CartaoForm: React.FC<CartaoFormProps> = ({
             )}
           />
           <Button type="submit" disabled={loading}>
-            {initialData ? 'Salvar Alterações' : 'Adicionar Cartâo'}
+            {initialData ? 'Salvar Alterações' : 'Adicionar Cartão'}
           </Button>
         </form>
       </Form>

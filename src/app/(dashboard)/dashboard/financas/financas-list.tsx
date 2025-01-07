@@ -11,6 +11,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -75,6 +76,21 @@ export const FinancasList = () => {
   const [selectedCartaoItem, setSelectedcartaoItem] = useState<Cartoes | null>(
     null,
   )
+  const totais = cartoes.reduce(
+    (acc, item) => ({
+      valor: acc.valor + item.valor,
+      limiteUtilizado: acc.limiteUtilizado + item.limiteUtilizado,
+      limiteDisponivel:
+        acc.limiteDisponivel + (item.limite - item.limiteUtilizado),
+      limiteTotal: acc.limiteTotal + item.limite,
+    }),
+    {
+      valor: 0,
+      limiteUtilizado: 0,
+      limiteDisponivel: 0,
+      limiteTotal: 0,
+    },
+  )
 
   const { open } = useSidebar()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -89,6 +105,7 @@ export const FinancasList = () => {
   const [paymentDate, setPaymentDate] = useState('')
 
   const update = useMutation(api.financeiro.update)
+  const updateCartao = useMutation(api.cartoes.update)
 
   const fetchFinanceiroByMonth = useCallback(
     async (date: Date) => {
@@ -174,23 +191,44 @@ export const FinancasList = () => {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    if (!selectedItem) return
 
     try {
-      await update({
-        financaId: selectedItem._id,
-        dataPagamento: new Date(paymentDate).getTime(),
-        status: 'Pago',
-        updated_at: new Date().getTime(),
-        // Keep other existing fields unchanged
-        descricao: selectedItem.descricao,
-        valor: selectedItem.valor,
-        dataVencimento: selectedItem.dataVencimento,
-        categoria: selectedItem.categoria,
-      })
+      if (selectedItem) {
+        await update({
+          financaId: selectedItem._id,
+          dataPagamento: new Date(paymentDate).getTime(),
+          status: 'Pago',
+          updated_at: new Date().getTime(),
+          // Keep other existing fields unchanged
+          descricao: selectedItem.descricao,
+          valor: selectedItem.valor,
+          dataVencimento: selectedItem.dataVencimento,
+          categoria: selectedItem.categoria,
+        })
 
-      setIsPaymentModalOpen(false)
-      fetchFinanceiroByMonth(selectedMonth)
+        setIsPaymentModalOpen(false)
+        fetchFinanceiroByMonth(selectedMonth)
+      }
+
+      if (selectedCartaoItem) {
+        await updateCartao({
+          cartaoId: selectedCartaoItem._id,
+          dataPagamento: new Date(paymentDate).getTime(),
+          status: 'Pago',
+          updated_at: new Date().getTime(),
+          // Keep other existing fields unchanged
+          descricao: selectedCartaoItem.descricao,
+          valor: selectedCartaoItem.valor,
+          dataVencimento: selectedCartaoItem.dataVencimento,
+          categoria: selectedCartaoItem.categoria,
+          limite: selectedCartaoItem.limite,
+          limiteUtilizado: selectedCartaoItem.limiteUtilizado,
+          obs: selectedCartaoItem.obs,
+        })
+
+        setIsPaymentModalOpen(false)
+        fetchFinanceiroByMonth(selectedMonth)
+      }
       toast({
         title: 'Pagamento registrado com sucesso!',
       })
@@ -233,7 +271,7 @@ export const FinancasList = () => {
       <div className="w-full overflow-auto">
         <div className="w-full pr-4">
           {/* Largura mínima para garantir que todas as colunas fiquem visíveis */}
-          <ScrollArea className="h-[calc(80vh-220px)] w-full  rounded-md border pr-2">
+          <ScrollArea className=" w-full  rounded-md border pr-2">
             <Table>
               <TableHeader className="sticky top-0 bg-background">
                 <TableRow>
@@ -325,23 +363,21 @@ export const FinancasList = () => {
       <div className="w-full overflow-auto">
         <div className="w-full pr-4">
           {/* Largura mínima para garantir que todas as colunas fiquem visíveis */}
-          <ScrollArea className="h-[calc(80vh-220px)] w-full  rounded-md border pr-2">
+          <ScrollArea className=" w-full  rounded-md border">
             <Table>
               <TableHeader className="sticky top-0 bg-background">
                 <TableRow>
-                  <TableHead className="text-center">Cartão</TableHead>
-                  <TableHead className="text-center">Valor</TableHead>
-                  <TableHead className="text-center">Vencimento</TableHead>
-                  <TableHead className="text-center">Pagamento</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead>Cartão</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Pagamento</TableHead>
+                  <TableHead>Status</TableHead>
 
-                  <TableHead className="text-center">Limite usado</TableHead>
-                  <TableHead className="text-center">
-                    Limite disponivel
-                  </TableHead>
-                  <TableHead className="text-center">Limite</TableHead>
-                  <TableHead className="text-center">Obs</TableHead>
-                  <TableHead className="text-center">Opções</TableHead>
+                  <TableHead>Limite usado</TableHead>
+                  <TableHead>Limite disponivel</TableHead>
+                  <TableHead>Limite</TableHead>
+                  <TableHead>Obs</TableHead>
+                  <TableHead className="text-right pr-2">Opções</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -393,7 +429,7 @@ export const FinancasList = () => {
 
                       <TableCell>
                         <div className="flex flex-col gap-2">
-                          <div className="flex justify-between  gap-1">
+                          <div className="flex justify-end  gap-1">
                             <Button
                               onClick={() => {
                                 setSelectedcartaoItem(item)
@@ -411,25 +447,56 @@ export const FinancasList = () => {
                               <Trash className="h-4 w-4" />
                             </Button>
                           </div>
-                          {/*    <div className="flex justify-center gap-1">
+                          <div className="flex justify-center gap-1">
                             <Button
                               className="w-full"
                               variant="default"
                               disabled={item.status === 'Pago'}
                               onClick={() => {
-                                setSelectedItem(item)
+                                setSelectedcartaoItem(item)
                                 setIsPaymentModalOpen(true) // New state to control payment modal
                               }}
                             >
                               Fazer Pagamento
                             </Button>
-                          </div> */}
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell>Totalizador Cartões:</TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    }).format(totais.valor / 100)}
+                  </TableCell>
+                  <TableCell colSpan={3}></TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    }).format(totais.limiteUtilizado / 100)}
+                  </TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    }).format(totais.limiteDisponivel / 100)}
+                  </TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    }).format(totais.limiteTotal / 100)}
+                  </TableCell>
+                  <TableCell colSpan={2}></TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -493,7 +560,7 @@ export const FinancasList = () => {
       >
         <DialogContent className="max-w-[900px] h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Adicionar novo cartâo</DialogTitle>
+            <DialogTitle>Adicionar novo Cartão</DialogTitle>
           </DialogHeader>
           <CartaoForm
             userId={session?.user?.id}
