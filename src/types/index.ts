@@ -1,6 +1,7 @@
 import { type ClientUploadedFileData } from 'uploadthing/types'
 
 import { Icons } from '@/components/icons'
+import type { Id } from '@/convex/_generated/dataModel'
 
 export type UploadedFile<T = unknown> = ClientUploadedFileData<T>
 
@@ -34,3 +35,17 @@ export interface FooterItem {
 export type MainNavItem = NavItemWithOptionalChildren
 
 export type SidebarNavItem = NavItemWithChildren
+
+// tabelas
+export type Financeiro = {
+  _id: Id<'financeiro'>
+  descricao: string
+  valor: number
+  dataVencimento: number
+  dataPagamento?: number
+  categoria: string
+  status: string
+  created_at: number
+  updated_at: number
+  userId: Id<'user'>
+}

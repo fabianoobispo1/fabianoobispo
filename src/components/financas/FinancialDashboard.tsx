@@ -18,6 +18,7 @@ import { useQuery } from 'convex/react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { moedaMask } from '@/lib/utils'
+import type { Financeiro } from '@/types'
 
 import type { Id } from '../../../convex/_generated/dataModel'
 import { api } from '../../../convex/_generated/api'
@@ -36,18 +37,6 @@ ChartJS.register(
   Legend,
 )
 
-interface FinanceiroItem {
-  _id: Id<'financeiro'>
-  descricao: string
-  valor: number
-  dataVencimento: number
-  dataPagamento?: number
-  categoria: string
-  status: string
-  created_at: number
-  updated_at: number
-  userId: Id<'user'>
-}
 interface CartoesItem {
   _id: Id<'cartoes'>
   descricao: string
@@ -102,10 +91,7 @@ export const FinancialDashboard = () => {
     0,
   )
 
-  const processData = (
-    financeiro: FinanceiroItem[],
-    cartoes: CartoesItem[],
-  ) => {
+  const processData = (financeiro: Financeiro[], cartoes: CartoesItem[]) => {
     // Processar dados mensais
     const monthlyData = [...financeiro, ...cartoes].reduce(
       (acc, item) => {

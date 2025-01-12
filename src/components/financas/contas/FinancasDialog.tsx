@@ -9,25 +9,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import type { Id } from '@/convex/_generated/dataModel'
+import type { Financeiro } from '@/types'
 
 import { FinancasForm } from './financas-form'
 
-interface FinanceiroData {
-  _id: Id<'financeiro'>
-  descricao: string
-  valor: number
-  dataVencimento: number
-  dataPagamento?: number
-  categoria: string
-  status: string
-  created_at: number
-  updated_at: number
-  userId: Id<'user'>
-}
-
 interface DialogProps {
   mode: 'create' | 'edit'
-  initialData?: FinanceiroData
+  initialData?: Financeiro
   onSuccess?: () => void
   userid?: Id<'user'>
 }

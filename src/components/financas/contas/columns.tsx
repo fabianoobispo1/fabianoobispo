@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
 
-import type { Id } from '@/convex/_generated/dataModel'
+import type { Financeiro } from '@/types'
 
 import { FinancasDialog } from './FinancasDialog'
 
@@ -11,20 +11,6 @@ const formatCurrency = (value: number) => {
     style: 'currency',
     currency: 'BRL',
   }).format(value)
-}
-
-// Definição do tipo para os dados
-type Financeiro = {
-  _id: Id<'financeiro'>
-  descricao: string
-  valor: number
-  dataVencimento: number
-  dataPagamento?: number
-  categoria: string
-  status: string
-  created_at: number
-  updated_at: number
-  userId: Id<'user'>
 }
 
 export const columns: ColumnDef<Financeiro>[] = [
