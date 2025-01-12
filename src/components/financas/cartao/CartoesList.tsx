@@ -20,17 +20,13 @@ export function CartoesList() {
     return <></>
   }
 
-  const handleUpdate = () => {
-    // O Convex atualiza automaticamente os dados
-    // Você pode adicionar lógica extra aqui se necessário
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Lançamentos Financeiros</h2>
-        <CartaoDialog mode="create" onSuccess={handleUpdate} />
+        <h2 className="text-xl font-bold"></h2>
+        <CartaoDialog mode="create" userid={session?.user?.id as Id<'user'>} />
       </div>
+
       <DataTable
         columns={columns}
         data={dashboardData.cartoes}

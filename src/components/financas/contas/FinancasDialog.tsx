@@ -29,9 +29,15 @@ interface DialogProps {
   mode: 'create' | 'edit'
   initialData?: FinanceiroData
   onSuccess?: () => void
+  userid?: Id<'user'>
 }
 
-export function FinancasDialog({ mode, initialData, onSuccess }: DialogProps) {
+export function FinancasDialog({
+  mode,
+  initialData,
+  onSuccess,
+  userid,
+}: DialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -49,6 +55,7 @@ export function FinancasDialog({ mode, initialData, onSuccess }: DialogProps) {
             initialData && 'limite' in initialData ? null : initialData
           }
           onSuccess={onSuccess}
+          userId={userid}
         />
       </DialogContent>
     </Dialog>

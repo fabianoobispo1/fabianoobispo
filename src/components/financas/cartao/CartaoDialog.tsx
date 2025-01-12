@@ -32,18 +32,19 @@ interface DialogProps {
   mode: 'create' | 'edit'
   initialData?: CartaoData
   onSuccess?: () => void
+  userid?: Id<'user'>
 }
 
 export function CartaoDialog({ mode, initialData, onSuccess }: DialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>{mode === 'create' ? 'Adicionar' : 'Editar'} Lançamento</Button>
+        <Button>{mode === 'create' ? 'Adicionar' : 'Editar'} Cartão</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'Novo' : 'Editar'} Lançamento
+            {mode === 'create' ? 'Novo' : 'Editar'} Cartão
           </DialogTitle>
         </DialogHeader>
 

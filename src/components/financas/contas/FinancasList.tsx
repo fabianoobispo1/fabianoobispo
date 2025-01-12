@@ -12,6 +12,7 @@ import { columns } from './columns'
 
 export function FinancasList() {
   const { data: session } = useSession()
+
   const dashboardData = useQuery(api.dashboard.getDashboardData, {
     userId: session?.user?.id as Id<'user'>,
   })
@@ -20,16 +21,14 @@ export function FinancasList() {
     return <></>
   }
 
-  const handleUpdate = () => {
-    // O Convex atualiza automaticamente os dados
-    // Você pode adicionar lógica extra aqui se necessário
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Lançamentos Financeiros</h2>
-        <FinancasDialog mode="create" onSuccess={handleUpdate} />
+        <h2 className="text-xl font-bold"></h2>
+        <FinancasDialog
+          mode="create"
+          userid={session?.user?.id as Id<'user'>}
+        />
       </div>
       <DataTable
         columns={columns}

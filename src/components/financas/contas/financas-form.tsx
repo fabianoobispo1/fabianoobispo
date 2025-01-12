@@ -47,7 +47,7 @@ interface FinancasFormProps {
     userId: Id<'user'>
   } | null
   onSuccess?: () => void
-  userId?: string
+  userId?: Id<'user'>
 }
 
 export const FinancasForm: React.FC<FinancasFormProps> = ({
@@ -126,7 +126,7 @@ export const FinancasForm: React.FC<FinancasFormProps> = ({
           valor: numberValue,
           dataVencimento: new Date(values.data_vencimento).getTime(),
           categoria: values.categoria,
-          status: 'pendente',
+          status: 'PENDENTE',
           created_at: new Date().getTime(),
           updated_at: new Date().getTime(),
         })

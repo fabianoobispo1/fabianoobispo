@@ -152,7 +152,7 @@ export const CartaoForm: React.FC<CartaoFormProps> = ({
           valor: numberValue,
           dataVencimento: new Date(values.data_vencimento).getTime(),
           categoria: 'Cartão de Crédito',
-          status: 'pendente',
+          status: 'PENDENTE',
           created_at: new Date().getTime(),
           updated_at: new Date().getTime(),
           obs: values.obs,
