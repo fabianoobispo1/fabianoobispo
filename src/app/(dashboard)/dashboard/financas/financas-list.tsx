@@ -31,8 +31,7 @@ import { DatePickerWithDefaults } from '@/components/calendar/with-default'
 
 import type { Id } from '../../../../../convex/_generated/dataModel'
 import { api } from '../../../../../convex/_generated/api'
-import { FinancasForm } from './financas-form'
-import { CartaoForm } from './cartao-form'
+import { CartaoForm } from '../../../../components/financas/cartao/cartao-form'
 
 interface Financeiro {
   _id: Id<'financeiro'>
@@ -507,13 +506,13 @@ export const FinancasList = () => {
           <DialogHeader>
             <DialogTitle>Editar conta</DialogTitle>
           </DialogHeader>
-          <FinancasForm
+          {/*  <FinancasForm
             initialData={selectedItem}
             onSuccess={() => {
               setIsModalOpen(false)
               fetchFinanceiroByMonth(selectedMonth)
             }}
-          />
+          /> */}
         </DialogContent>
       </Dialog>
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
@@ -521,13 +520,13 @@ export const FinancasList = () => {
           <DialogHeader>
             <DialogTitle>Adicionar nova conta</DialogTitle>
           </DialogHeader>
-          <FinancasForm
+          {/*    <FinancasForm
             userId={session?.user?.id}
             onSuccess={() => {
               setIsAddModalOpen(false)
               fetchFinanceiroByMonth(selectedMonth)
             }}
-          />
+          /> */}
         </DialogContent>
       </Dialog>
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>

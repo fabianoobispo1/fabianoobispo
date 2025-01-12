@@ -121,3 +121,21 @@ export const update = mutation({
     return updatedFinanca
   },
 })
+
+export const list = query({
+  args: {
+    userId: v.id('user'),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
+    categoria: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const query = ctx.db
+      .query('financeiro')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .order('desc')
+
+    const financialData = await query.collect()
+    return financialData
+  },
+})
