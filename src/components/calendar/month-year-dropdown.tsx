@@ -5,7 +5,7 @@ import { DropdownProps } from 'react-day-picker'
 import {
   Select,
   SelectContent,
-  SelectItem,
+  /*   SelectItem, */
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
@@ -14,7 +14,7 @@ export default function MonthAndYearDropdown({
   value,
   onChange,
   name,
-  options,
+  /*   options, */
   'aria-label': ariaLabel,
 }: DropdownProps) {
   const handleChange = (value: string) => {
@@ -32,14 +32,14 @@ export default function MonthAndYearDropdown({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {options?.map((option, childIdx: number) => (
+        {/*  {options?.map((option, childIdx: number) => (
           <SelectItem
             key={`${option.value}-${childIdx}`}
             value={option.value?.toString() ?? ''}
           >
             {option.label}
           </SelectItem>
-        ))}
+        ))} */}
       </SelectContent>
     </Select>
   )

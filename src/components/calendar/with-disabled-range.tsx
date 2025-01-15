@@ -41,11 +41,11 @@ export function DatePickerWithDisabledRange() {
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            hideNavigation={false}
+            /*      hideNavigation={false} */
             selected={date}
             onSelect={setDate}
             showOutsideDays={true}
-            endMonth={new Date(2099, 11)}
+            /*    endMonth={new Date(2099, 11)} */
             disabled={disabled}
           />
         </PopoverContent>

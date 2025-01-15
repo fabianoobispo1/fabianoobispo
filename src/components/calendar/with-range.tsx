@@ -51,7 +51,7 @@ export function DatePickerWithRange() {
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="range"
-            endMonth={new Date(2099, 11)}
+            /*     endMonth={new Date(2099, 11)} */
             defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}

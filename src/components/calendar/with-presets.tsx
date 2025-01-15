@@ -60,7 +60,7 @@ export function DatePickerWithPresets() {
               mode="single"
               selected={date}
               onSelect={setDate}
-              endMonth={new Date(2099, 11)}
+              /*      endMonth={new Date(2099, 11)} */
             />
           </div>
         </PopoverContent>

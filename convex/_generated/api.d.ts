@@ -19,6 +19,7 @@ import type * as files from "../files.js";
 import type * as financeiro from "../financeiro.js";
 import type * as recuperaSenha from "../recuperaSenha.js";
 import type * as todo from "../todo.js";
+import type * as transaction from "../transaction.js";
 import type * as user from "../user.js";
 
 /**
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   financeiro: typeof financeiro;
   recuperaSenha: typeof recuperaSenha;
   todo: typeof todo;
+  transaction: typeof transaction;
   user: typeof user;
 }>;
 export declare const api: FilterApi<

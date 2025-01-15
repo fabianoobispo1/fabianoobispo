@@ -26,3 +26,7 @@ Este é um modelo inicial usando as seguintes ferramentas:
 <!--
 usando como base https://github.com/xipanca/nextjs-ts-nextauth-convex/blob/main/src/components/ui/input.tsx mas agarrei na parte de fazer login
 para regsitrar esta funcionando usnado o convex -->
+
+
+
+https://github.com/GabrielCenteioFreitas/estudos-fullstackclub-fsw6_finance/tree/main
