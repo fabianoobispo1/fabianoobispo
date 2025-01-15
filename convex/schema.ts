@@ -55,6 +55,45 @@ export const cartoesSchema = {
   userId: v.id('user'),
 }
 
+
+
+
+const transactionSchema = {
+  name: v.string(),
+  type: v.union(
+    v.literal('DEPOSIT'),
+    v.literal('EXPENSE'),
+    v.literal('INVESTMENT')
+  ),
+  amount: v.number(), // Convex uses number instead of Decimal
+  category: v.string(),
+  paymentMethod: v.union(
+    v.literal('CREDIT_CARD'),
+    v.literal('DEBIT_CARD'),
+    v.literal('BANK_TRANSFER'),
+    v.literal('BANK_SLIP'),
+    v.literal('CASH'),
+    v.literal('PIX'),
+    v.literal('OTHER')
+  ),
+  date: v.number(), // Store as timestamp
+  created_at: v.number(), // Store as timestamp
+  updated_at: v.number(), // Store as timestamp
+  userId: v.string()
+}
+
+const categorySchema = {
+  name: v.string(),
+  type: v.string(), // DEPOSIT, EXPENSE, INVESTMENT
+  description: v.optional(v.string()),
+  created_at: v.number(),
+  updated_at: v.number(),
+  active: v.boolean()
+}
+
+
+
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -63,5 +102,12 @@ export default defineSchema({
   recuperaSenha: defineTable(recuperaSenhaSchema).index('by_email', ['email']),
   financeiro: defineTable(financeiroSchema).index('by_user', ['userId']),
   cartoes: defineTable(cartoesSchema).index('by_user', ['userId']), //
-  todo: defineTable(todoSchema).index('by_user', ['userId']), // Índice para buscar todos de um usuário
+  todo: defineTable(todoSchema).index('by_user', ['userId']),
+  transactions: defineTable(transactionSchema)
+  .index('by_user', ['userId'])
+  .index('by_date', ['date']),  
+categories: defineTable(categorySchema)
+  .index('by_name', ['name'])
+  .index('by_type', ['type']),  
+
 })
