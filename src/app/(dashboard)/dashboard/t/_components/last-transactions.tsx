@@ -58,6 +58,9 @@ export const LastTransactions = ({
         </CardTitle>
 
         <Button variant="outline" className="rounded-full font-bold" asChild>
+          <Link href="/dashboard/t/categorias">Categorias</Link>
+        </Button>
+        <Button variant="outline" className="rounded-full font-bold" asChild>
           <Link href="/dashboard/t/transactions">Ver mais</Link>
         </Button>
       </CardHeader>

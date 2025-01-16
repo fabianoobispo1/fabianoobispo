@@ -2,7 +2,7 @@
 import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 
-import { Categorias } from '../../categorias/categorias'
+import { Categorias } from './_components/categorias'
 
 export default function Page() {
   const { open } = useSidebar()

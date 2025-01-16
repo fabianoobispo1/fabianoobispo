@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { showErrorToast } from '@/lib/handle-error'
+import type { Category } from '@/types'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
