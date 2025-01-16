@@ -89,3 +89,34 @@ export const create = mutation({
     return transaction
   },
 })
+
+export const remove = mutation({
+  args: {
+    transactionsId: v.id('transactions'), // ID do todo a ser removido
+  },
+  handler: async ({ db }, { transactionsId }) => {
+    // Buscar o todo para garantir que ele existe antes de remover
+    const transacao = await db.get(transactionsId)
+    if (!transacao) {
+      throw new Error('transacao não encontrado')
+    }
+
+    // Remover o transacao do banco de dados
+    await db.delete(transactionsId)
+
+    return { success: true, message: 'transacao removido com sucesso' } // Resposta de confirmação
+  },
+})
+
+export const getAllTransactionsByUser = query({
+  args: { userId: v.id('user') },
+  handler: async (ctx, { userId }) => {
+    const transactions = await ctx.db
+      .query('transactions')
+      .filter((q) => q.eq(q.field('userId'), userId))
+      .order('desc')
+      .collect()
+
+    return transactions
+  },
+})

@@ -30,7 +30,10 @@ export function SummaryCards({
     <div className="space-y-6">
       <SummaryCard
         icon={
-          <div className="flex items-center justify-center rounded-lg bg-black p-2.5">
+          <div
+            className="flex items-center justify-center rounded-lg 
+           p-2.5"
+          >
             <WalletIcon size={16} />
           </div>
         }

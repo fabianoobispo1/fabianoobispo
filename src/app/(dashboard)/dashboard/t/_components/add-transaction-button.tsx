@@ -34,6 +34,7 @@ export const AddTransactionButton = ({
               onClick={() => setIsDialogOpen(true)}
               disabled={!userCanAddTransaction}
               className="rounded-full font-bold"
+              variant="outline"
             >
               Adicionar transação
               <ArrowDownUpIcon />

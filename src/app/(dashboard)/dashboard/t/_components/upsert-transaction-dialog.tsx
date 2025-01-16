@@ -37,7 +37,7 @@ import type { Id } from '@/convex/_generated/dataModel'
 
 import { MoneyInput } from './money-input'
 
-enum TransactionCategory {
+export enum TransactionCategory {
   BILLS = 'BILLS',
   FOOD = 'FOOD',
   HEALTH = 'HEALTH',
@@ -48,12 +48,12 @@ enum TransactionCategory {
   SALARY = 'SALARY',
   TRANSPORT = 'TRANSPORT',
 }
-enum TransactionType {
+export enum TransactionType {
   DEPOSIT = 'DEPOSIT',
   EXPENSE = 'EXPENSE',
   INVESTMENT = 'INVESTMENT',
 }
-enum TransactionPaymentMethod {
+export enum TransactionPaymentMethod {
   CASH = 'CASH',
   CREDIT_CARD = 'CREDIT_CARD',
   DEBIT_CARD = 'DEBIT_CARD',
@@ -141,21 +141,25 @@ export const UpsertTransactionDialog = ({
     if (!userId) {
       return
     }
-    try {
-      console.log('OnSubmit', transactionId)
-      console.log(data)
-      await registerTransaction({
-        ...data,
-        amount: data.amount * 100,
-        date: data.date.getTime(),
-        userId,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      })
-      setIsOpen(false)
-      form.reset()
-    } catch (error) {
-      console.error(error)
+    if (transactionId) {
+      // editar
+    } else {
+      try {
+        console.log('OnSubmit', transactionId)
+        console.log(data)
+        await registerTransaction({
+          ...data,
+          amount: data.amount * 100,
+          date: data.date.getTime(),
+          userId,
+          created_at: Date.now(),
+          updated_at: Date.now(),
+        })
+        setIsOpen(false)
+        form.reset()
+      } catch (error) {
+        console.error(error)
+      }
     }
   }
   const isUpdate = Boolean(transactionId)
