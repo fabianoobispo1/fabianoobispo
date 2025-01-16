@@ -2,8 +2,8 @@ import { ColumnDef } from '@tanstack/react-table'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-import { Category } from '@/types/schema'
 import { Badge } from '@/components/ui/badge'
+import type { Category } from '@/types'
 
 import { CategoriaActions } from './categoria-actions'
 

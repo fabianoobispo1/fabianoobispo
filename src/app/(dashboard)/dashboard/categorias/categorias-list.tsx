@@ -8,5 +8,7 @@ import { columns } from './columns'
 export const CategoriasList = () => {
   const categorias = useQuery(api.categories.list)
 
-  return <DataTable columns={columns} data={categorias || []} />
+  return (
+    <DataTable searchKey="name" columns={columns} data={categorias || []} />
+  )
 }
