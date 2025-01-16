@@ -49,3 +49,66 @@ export type Financeiro = {
   updated_at: number
   userId: Id<'user'>
 }
+
+// financeiro
+export type TransactionType = 'DEPOSIT' | 'EXPENSE' | 'INVESTMENT'
+
+export type PaymentMethod =
+  | 'CREDIT_CARD'
+  | 'DEBIT_CARD'
+  | 'BANK_TRANSFER'
+  | 'BANK_SLIP'
+  | 'CASH'
+  | 'PIX'
+  | 'OTHER'
+
+export const TransactionTypeLabels: Record<TransactionType, string> = {
+  DEPOSIT: 'Entrada',
+  EXPENSE: 'Despesa',
+  INVESTMENT: 'Investimento',
+}
+
+export const PaymentMethodLabels: Record<PaymentMethod, string> = {
+  CREDIT_CARD: 'Cartão de Crédito',
+  DEBIT_CARD: 'Cartão de Débito',
+  BANK_TRANSFER: 'Transferência Bancária',
+  BANK_SLIP: 'Boleto',
+  CASH: 'Dinheiro',
+  PIX: 'Pix',
+  OTHER: 'Outro',
+}
+
+export const getTransactionTypeLabel = (type: TransactionType): string => {
+  return TransactionTypeLabels[type]
+}
+
+export const getPaymentMethodLabel = (method: PaymentMethod): string => {
+  return PaymentMethodLabels[method]
+}
+
+// ezemplo de uso
+// const transactionType = 'DEPOSIT'
+// const label = getTransactionTypeLabel(transactionType) // retorna 'Entrada'
+
+export interface Transaction {
+  _id: Id<'transactions'>
+  name: string
+  type: TransactionType
+  amount: number
+  category: string
+  paymentMethod: PaymentMethod
+  date: number
+  created_at: number
+  updated_at: number
+  userId: Id<'user'>
+}
+
+export interface Category {
+  _id: Id<'categories'>
+  name: string
+  type: string
+  description?: string
+  created_at: number
+  updated_at: number
+  active: boolean
+}
