@@ -51,8 +51,8 @@ export function DashboardT() {
   }, [loadDashboard, session])
 
   return (
-    <div className="grid lg:grid-cols-[2fr,1fr] grid-cols-1 gap-6 overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
+    <div className="flex flex-col space-y-6 overflow-hidden p-6">
+      <div className="flex justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-3">
           {/* <AiReportButton
@@ -65,7 +65,7 @@ export function DashboardT() {
         </div>
       </div>
       <div className="grid grid-cols-[2fr,1fr] gap-6 overflow-hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-6 overflow-hidden">
           {loading ? (
             <div className="flex h-full items-center justify-center">
               <Spinner />
@@ -81,7 +81,7 @@ export function DashboardT() {
             />
           ) : null}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 grid-rows-1 gap-6">
             {dashboard && (
               <TransactionsPieChart
                 investmentsTotal={dashboard.investmentsTotal}
@@ -94,9 +94,8 @@ export function DashboardT() {
             /> */}
           </div>
         </div>
-        <div className="flex flex-col space-y-6 overflow-hidden p-3 sm:p-6">
-          <LastTransactions lastTransactions={dashboard?.lastTransactions} />
-        </div>
+
+        <LastTransactions lastTransactions={dashboard?.lastTransactions} />
       </div>
     </div>
   )
