@@ -43,7 +43,6 @@
     "@vercel/speed-insights": "^1.1.0",
     "@xixixao/uploadstuff": "^0.0.5",
     "axios": "^1.7.9",
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.7",
     "class-variance-authority": "^0.7.1",
