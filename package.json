@@ -66,6 +66,7 @@
     "react-number-format": "^5.4.3",
     "react-virtualized-auto-sizer": "^1.0.25",
     "react-window": "^1.8.11",
+    "recharts": "^2.15.0",
     "resend": "^4.0.1",
     "sonner": "^1.7.0",
     "stripe": "^17.5.0",

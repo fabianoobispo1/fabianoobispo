@@ -13,7 +13,9 @@ import {
   TRANSACTION_PAYMENT_METHOD_LABELS,
 } from '../../_components/_constants/transactions'
 
-export const transactionColumns: ColumnDef<Transaction>[] = [
+export const transactionColumns = (
+  onListUpdate: () => Promise<void>,
+): ColumnDef<Transaction>[] => [
   {
     accessorKey: 'name',
     header: 'Nome',
@@ -60,8 +62,14 @@ export const transactionColumns: ColumnDef<Transaction>[] = [
     header: 'Ações',
     cell: ({ row: { original: transaction } }) => (
       <div className="space-x-1">
-        <EditTransactionButton transaction={transaction} />
-        <DeleteTransactionButton transactionId={transaction._id} />
+        <EditTransactionButton
+          onEdit={onListUpdate}
+          transaction={transaction}
+        />
+        <DeleteTransactionButton
+          transactionId={transaction._id}
+          onDelete={onListUpdate}
+        />
       </div>
     ),
   },

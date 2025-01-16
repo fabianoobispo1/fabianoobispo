@@ -14,11 +14,12 @@ import type { Transaction } from '../_components/last-transactions'
 
 export function TransactionsPage() {
   const { data: session } = useSession()
-
+  const [userId, setUserId] = useState<Id<'user'> | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
 
-  const loadDashboard = useCallback(async () => {
+  const loadList = useCallback(async () => {
     if (session) {
+      setUserId(session.user.id as Id<'user'>)
       fetchQuery(api.transaction.getAllTransactionsByUser, {
         userId: session.user.id as Id<'user'>,
       }).then((result) => {
@@ -30,9 +31,9 @@ export function TransactionsPage() {
 
   useEffect(() => {
     if (session) {
-      loadDashboard()
+      loadList()
     }
-  }, [loadDashboard, session])
+  }, [loadList, session])
 
   return (
     <>
@@ -41,13 +42,17 @@ export function TransactionsPage() {
         <div className="flex w-full items-center justify-between">
           <h1 className="text-2xl font-bold">Transações</h1>
 
-          <AddTransactionButton userCanAddTransaction={true} />
+          <AddTransactionButton
+            onTransactionAdd={loadList}
+            userId={userId}
+            userCanAddTransaction={true}
+          />
         </div>
 
         <ScrollArea className="h-full">
           <DataTable
             searchKey="name"
-            columns={transactionColumns}
+            columns={transactionColumns(loadList)} // Modificar aqui para passar a função
             data={JSON.parse(JSON.stringify(transactions))}
           />
         </ScrollArea>

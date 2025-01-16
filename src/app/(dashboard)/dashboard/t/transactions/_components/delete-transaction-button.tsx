@@ -21,17 +21,19 @@ import type { Id } from '@/convex/_generated/dataModel'
 
 interface DeleteTransactionButtonProps {
   transactionId: string
+  onDelete: () => Promise<void>
 }
 
 export const DeleteTransactionButton = ({
   transactionId,
+  onDelete,
 }: DeleteTransactionButtonProps) => {
   const handleConfirmDeleteClick = async () => {
     try {
       await fetchMutation(api.transaction.remove, {
         transactionsId: transactionId as Id<'transactions'>,
       })
-
+      await onDelete()
       toast.success('Transação deletada com sucesso!')
     } catch (error) {
       console.error(error)

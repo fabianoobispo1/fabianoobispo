@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { TimeSelect } from './time-select'
 import { SummaryCards } from './summary-cards'
 import { LastTransactions, type Transaction } from './last-transactions'
+import { TransactionsPieChart } from './transactions-pie-chart'
 
 export interface Dashboard {
   balance: number
@@ -81,10 +82,16 @@ export function DashboardT() {
           ) : null}
 
           <div className="grid grid-cols-3 grid-rows-1 gap-6">
-            {/*  <TransactionsPieChart {...dashboard} />
-          <ExpensesPerCategory
-            expensesPerCategory={dashboard.totalExpensePerCategory}
-          /> */}
+            {dashboard && (
+              <TransactionsPieChart
+                investmentsTotal={dashboard.investmentsTotal}
+                depositsTotal={dashboard.depositsTotal}
+                expensesTotal={dashboard.expensesTotal}
+              />
+            )}
+            {/*  <ExpensesPerCategory
+              expensesPerCategory={dashboard.totalExpensePerCategory}
+            /> */}
           </div>
         </div>
 

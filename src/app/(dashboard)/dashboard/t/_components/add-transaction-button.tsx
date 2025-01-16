@@ -17,11 +17,13 @@ import { UpsertTransactionDialog } from './upsert-transaction-dialog'
 interface AddTransactionButtonProps {
   userCanAddTransaction: boolean
   userId?: Id<'user'> | null
+  onTransactionAdd?: () => Promise<void>
 }
 
 export const AddTransactionButton = ({
   userCanAddTransaction,
   userId,
+  onTransactionAdd,
 }: AddTransactionButtonProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -34,7 +36,6 @@ export const AddTransactionButton = ({
               onClick={() => setIsDialogOpen(true)}
               disabled={!userCanAddTransaction}
               className="rounded-full font-bold"
-              variant="outline"
             >
               Adicionar transação
               <ArrowDownUpIcon />
@@ -52,6 +53,7 @@ export const AddTransactionButton = ({
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
         userId={userId ?? userId}
+        onTransactionAdd={onTransactionAdd}
       />
     </>
   )
