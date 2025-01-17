@@ -2,37 +2,37 @@ import { CircleIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 
-import type { Transaction } from '../../_components/last-transactions'
+const TRANSACTION_TYPES = {
+  DEPOSIT: {
+    label: 'Depósito',
+    className: 'bg-primary/15 font-bold text-primary hover:bg-primary',
+    iconClassName: 'fill-primary',
+  },
+  EXPENSE: {
+    label: 'Despesa',
+    className: 'font-bold bg-danger bg-opacity-10 text-danger',
+    iconClassName: 'fill-danger',
+  },
+  INVESTMENT: {
+    label: 'Investimento',
+    className: 'font-bold bg-white bg-opacity-10 text-white',
+    iconClassName: 'fill-white',
+  },
+} as const
+
+type TransactionType = keyof typeof TRANSACTION_TYPES
 
 interface TransactionTypeBadgeProps {
-  transaction: Transaction
+  type: TransactionType
 }
 
-export const TransactionTypeBadge = ({
-  transaction,
-}: TransactionTypeBadgeProps) => {
-  if (transaction.type === 'DEPOSIT') {
-    return (
-      <Badge className="bg-primary/15 font-bold text-primary hover:bg-primary">
-        <CircleIcon className="mr-2 fill-primary" size={10} />
-        Depósito
-      </Badge>
-    )
-  }
-
-  if (transaction.type === 'EXPENSE') {
-    return (
-      <Badge className="font bold bg-danger bg-opacity-10 text-danger">
-        <CircleIcon className="mr-2 fill-danger" size={10} />
-        Despesa
-      </Badge>
-    )
-  }
+export const TransactionTypeBadge = ({ type }: TransactionTypeBadgeProps) => {
+  const config = TRANSACTION_TYPES[type]
 
   return (
-    <Badge className="font bold bg-white bg-opacity-10 text-white">
-      <CircleIcon className="mr-2 fill-white" size={10} />
-      Investimento
+    <Badge className={config.className}>
+      <CircleIcon className={`mr-2 ${config.iconClassName}`} size={10} />
+      {config.label}
     </Badge>
   )
 }

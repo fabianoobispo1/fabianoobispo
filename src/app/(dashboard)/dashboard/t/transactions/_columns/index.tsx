@@ -24,7 +24,7 @@ export const transactionColumns = (
     accessorKey: 'type',
     header: 'Tipo',
     cell: ({ row: { original: transaction } }) => (
-      <TransactionTypeBadge transaction={transaction} />
+      <TransactionTypeBadge type={transaction.type} />
     ),
   },
   {

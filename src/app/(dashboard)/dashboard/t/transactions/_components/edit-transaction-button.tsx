@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import type { Transaction } from '../../_components/last-transactions'
 import {
   UpsertTransactionDialog,
-  type TransactionCategory,
   type TransactionPaymentMethod,
   type TransactionType,
 } from '../../_components/upsert-transaction-dialog'
@@ -46,7 +45,7 @@ export const EditTransactionButton = ({
           type: transaction.type as TransactionType,
           amount: Number(transaction.amount),
           date: new Date(transaction.date),
-          category: transaction.category as TransactionCategory,
+          category: transaction.category,
           paymentMethod: transaction.paymentMethod as TransactionPaymentMethod,
         }}
       />

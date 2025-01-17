@@ -64,6 +64,7 @@ export const CategoriaModal = ({
           ...values,
           updated_at: Date.now(),
         })
+        form.reset()
       } else {
         await create({
           ...values,
@@ -71,6 +72,7 @@ export const CategoriaModal = ({
           updated_at: Date.now(),
         })
       }
+      form.reset()
       onClose()
     } catch (error) {
       showErrorToast(error)
@@ -120,6 +122,7 @@ export const CategoriaModal = ({
                   <SelectContent>
                     <SelectItem value="EXPENSE">Despesa</SelectItem>
                     <SelectItem value="DEPOSIT">Receita</SelectItem>
+                    <SelectItem value="INVESTMENT">Investimento</SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>

@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useMutation } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 
 import {
@@ -39,18 +39,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 import { MoneyInput } from './money-input'
+import { TransactionTypeBadge } from '../transactions/_components/transaction-type-badge'
 
-export enum TransactionCategory {
-  BILLS = 'BILLS',
-  FOOD = 'FOOD',
-  HEALTH = 'HEALTH',
-  HOME = 'HOME',
-  INVESTMENT = 'INVESTMENT',
-  LEISURE = 'LEISURE',
-  MISC = 'MISC',
-  SALARY = 'SALARY',
-  TRANSPORT = 'TRANSPORT',
-}
 export enum TransactionType {
   DEPOSIT = 'DEPOSIT',
   EXPENSE = 'EXPENSE',
@@ -76,8 +66,8 @@ const formSchema = z.object({
   type: z.nativeEnum(TransactionType, {
     required_error: 'O tipo é obrigatório.',
   }),
-  category: z.nativeEnum(TransactionCategory, {
-    required_error: 'A categoria é obrigatório.',
+  category: z.string({
+    required_error: 'A categoria é obrigatória.',
   }),
   paymentMethod: z.nativeEnum(TransactionPaymentMethod, {
     required_error: 'O método de pagamento é obrigatório.',
@@ -98,23 +88,6 @@ interface UpsertTransactionDialogProps {
   onTransactionAdd?: () => Promise<void>
 }
 
-export const TRANSACTION_TYPE_OPTIONS = [
-  { value: 'DEPOSIT', label: 'Depósito' },
-  { value: 'EXPENSE', label: 'Despesa' },
-  { value: 'INVESTMENT', label: 'Investimento' },
-]
-
-export const TRANSACTION_CATEGORY_OPTIONS = [
-  { value: 'BILLS', label: 'Contas' },
-  { value: 'FOOD', label: 'Alimentação' },
-  { value: 'HEALTH', label: 'Saúde' },
-  { value: 'HOME', label: 'Casa' },
-  { value: 'INVESTMENT', label: 'Investimentos' },
-  { value: 'LEISURE', label: 'Lazer' },
-  { value: 'MISC', label: 'Outros' },
-  { value: 'SALARY', label: 'Salário' },
-  { value: 'TRANSPORT', label: 'Transporte' },
-]
 export const TRANSACTION_PAYMENT_METHOD_OPTIONS = [
   { value: 'CASH', label: 'Dinheiro' },
   { value: 'CREDIT_CARD', label: 'Cartão de crédito' },
@@ -131,17 +104,21 @@ export const UpsertTransactionDialog = ({
   onTransactionAdd,
 }: UpsertTransactionDialogProps) => {
   const [isLoading, setIsLoading] = useState(false)
+  const categories = useQuery(api.categories.list)
+
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues ?? {
       amount: 0,
-      category: TransactionCategory.MISC,
+      category: '',
       date: new Date(),
       name: '',
       paymentMethod: TransactionPaymentMethod.CASH,
-      type: TransactionType.DEPOSIT,
+      type: TransactionType.EXPENSE,
     },
   })
+  const selectedType = form.watch('type')
+
   const isUpdate = Boolean(transactionId)
 
   const registerTransaction = useMutation(api.transaction.create)
@@ -152,7 +129,7 @@ export const UpsertTransactionDialog = ({
     }
     setIsLoading(true)
     if (isUpdate) {
-      try {
+      /*       try {
         console.log('OnSubmit', transactionId)
         console.log(data)
 
@@ -161,7 +138,7 @@ export const UpsertTransactionDialog = ({
         form.reset()
       } catch (error) {
         console.error(error)
-      }
+      } */
     } else {
       try {
         console.log('OnSubmit', transactionId)
@@ -248,43 +225,25 @@ export const UpsertTransactionDialog = ({
 
               <FormField
                 control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo</FormLabel>
-
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {TRANSACTION_TYPE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value)
+                        // Encontra a categoria selecionada
+                        const selectedCategory = categories?.find(
+                          (category) => category.name === value,
+                        )
+                        // Atualiza o tipo baseado na categoria
+                        if (selectedCategory) {
+                          form.setValue(
+                            'type',
+                            selectedCategory.type as TransactionType,
+                          )
+                        }
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -293,18 +252,19 @@ export const UpsertTransactionDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {TRANSACTION_CATEGORY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                        {categories?.map((category) => (
+                          <SelectItem key={category._id} value={category.name}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <TransactionTypeBadge type={selectedType} />
 
               <FormField
                 control={form.control}
