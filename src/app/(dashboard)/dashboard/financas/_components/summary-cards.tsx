@@ -43,7 +43,7 @@ export function SummaryCards({
         userCanAddTransaction={userCanAddTransaction}
         userId={userId}
       />
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <SummaryCard
           icon={
             <div className="flex items-center justify-center rounded-lg bg-white bg-opacity-10 p-2.5">

@@ -16,7 +16,6 @@ export const getDashboard = query({
     // Último dia do mês (pegando automaticamente o último dia correto)
     const endDate = new Date(year, parseInt(month), 0).getTime()
 
-    console.log(startDate, endDate)
     const transactions = await ctx.db
       .query('transactions')
       .filter((q) =>
@@ -27,7 +26,7 @@ export const getDashboard = query({
         ),
       )
       .collect()
-    console.log(transactions)
+
     const deposits = transactions.filter((t) => t.type === 'DEPOSIT')
     const investments = transactions.filter((t) => t.type === 'INVESTMENT')
     const expenses = transactions.filter((t) => t.type === 'EXPENSE')
@@ -40,9 +39,9 @@ export const getDashboard = query({
     const transactionsTotal = depositsTotal + investmentsTotal + expensesTotal
 
     const typesPercentage = {
-      DEPOSIT: Math.round(depositsTotal / transactionsTotal / 100),
-      EXPENSE: Math.round(expensesTotal / transactionsTotal / 100),
-      INVESTMENT: Math.round(investmentsTotal / transactionsTotal / 100),
+      DEPOSIT: (depositsTotal / transactionsTotal) * 100,
+      EXPENSE: (expensesTotal / transactionsTotal) * 100,
+      INVESTMENT: (investmentsTotal / transactionsTotal) * 100,
     }
 
     // Group expenses by category

@@ -59,10 +59,10 @@ export const LastTransactions = ({
         </CardTitle>
 
         <Button variant="outline" className="rounded-full font-bold" asChild>
-          <Link href="/dashboard/t/categorias">Categorias</Link>
+          <Link href="/dashboard/financas/categorias">Categorias</Link>
         </Button>
         <Button variant="outline" className="rounded-full font-bold" asChild>
-          <Link href="/dashboard/t/transactions">Ver mais</Link>
+          <Link href="/dashboard/financas/transactions">Ver mais</Link>
         </Button>
       </CardHeader>
 

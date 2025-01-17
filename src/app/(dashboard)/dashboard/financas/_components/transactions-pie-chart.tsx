@@ -30,12 +30,18 @@ const chartConfig = {
 } satisfies ChartConfig
 
 interface TransactionsPieChartProps {
+  typesPercentage: {
+    DEPOSIT: number
+    EXPENSE: number
+    INVESTMENT: number
+  }
   investmentsTotal: number
   depositsTotal: number
   expensesTotal: number
 }
 
 export const TransactionsPieChart = ({
+  typesPercentage,
   depositsTotal,
   expensesTotal,
   investmentsTotal,
@@ -75,17 +81,17 @@ export const TransactionsPieChart = ({
           <PercentageItem
             icon={<TrendingUpIcon size={16} className="text-primary" />}
             title={TransactionTypeLabels.DEPOSIT}
-            value={'0'}
+            value={typesPercentage.DEPOSIT}
           />
           <PercentageItem
             icon={<TrendingDownIcon size={16} className="text-red-500" />}
             title={TransactionTypeLabels.EXPENSE}
-            value={'0'}
+            value={typesPercentage.EXPENSE}
           />
           <PercentageItem
             icon={<PiggyBankIcon size={16} />}
             title={TransactionTypeLabels.INVESTMENT}
-            value={'0'}
+            value={typesPercentage.INVESTMENT}
           />
         </div>
       </CardContent>
