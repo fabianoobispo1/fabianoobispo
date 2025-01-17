@@ -10,20 +10,21 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { Card, CardContent } from '@/components/ui/card'
+import { TransactionTypeLabels } from '@/types'
 
 import { PercentageItem } from './percentage-item'
 
 const chartConfig = {
   INVESTMENT: {
-    label: 'Investido',
+    label: TransactionTypeLabels.INVESTMENT,
     color: '#FFFFFF',
   },
   DEPOSIT: {
-    label: 'Receita',
+    label: TransactionTypeLabels.DEPOSIT,
     color: '#55B02E',
   },
   EXPENSE: {
-    label: 'Despesa',
+    label: TransactionTypeLabels.EXPENSE,
     color: '#E93030',
   },
 } satisfies ChartConfig
@@ -73,18 +74,18 @@ export const TransactionsPieChart = ({
         <div className="space-y-4">
           <PercentageItem
             icon={<TrendingUpIcon size={16} className="text-primary" />}
-            title="Receita"
-            value={'DEPOSIT'}
+            title={TransactionTypeLabels.DEPOSIT}
+            value={'0'}
           />
           <PercentageItem
             icon={<TrendingDownIcon size={16} className="text-red-500" />}
-            title="Despesas"
-            value={'EXPENSE'}
+            title={TransactionTypeLabels.EXPENSE}
+            value={'0'}
           />
           <PercentageItem
             icon={<PiggyBankIcon size={16} />}
-            title="Investido"
-            value={'INVESTMENT'}
+            title={TransactionTypeLabels.INVESTMENT}
+            value={'0'}
           />
         </div>
       </CardContent>

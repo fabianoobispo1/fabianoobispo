@@ -51,7 +51,17 @@ export type Financeiro = {
 }
 
 // financeiro
-export type TransactionType = 'DEPOSIT' | 'EXPENSE' | 'INVESTMENT'
+export enum TransactionType {
+  EXPENSE = 'EXPENSE',
+  DEPOSIT = 'DEPOSIT',
+  INVESTMENT = 'INVESTMENT',
+}
+
+export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
+  [TransactionType.EXPENSE]: 'Despesa',
+  [TransactionType.DEPOSIT]: 'Receita',
+  [TransactionType.INVESTMENT]: 'Investimento',
+}
 
 export type PaymentMethod =
   | 'CREDIT_CARD'

@@ -1,33 +1,39 @@
 import { CircleIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
+import { TransactionType } from '@/types'
 
-const TRANSACTION_TYPES = {
-  DEPOSIT: {
+const TRANSACTION_TYPE_STYLES: Record<
+  TransactionType,
+  {
+    label: string
+    className: string
+    iconClassName: string
+  }
+> = {
+  [TransactionType.DEPOSIT]: {
     label: 'Depósito',
     className: 'bg-primary/15 font-bold text-primary hover:bg-primary',
     iconClassName: 'fill-primary',
   },
-  EXPENSE: {
+  [TransactionType.EXPENSE]: {
     label: 'Despesa',
     className: 'font-bold bg-danger bg-opacity-10 text-danger',
     iconClassName: 'fill-danger',
   },
-  INVESTMENT: {
+  [TransactionType.INVESTMENT]: {
     label: 'Investimento',
     className: 'font-bold bg-white bg-opacity-10 text-white',
     iconClassName: 'fill-white',
   },
-} as const
-
-type TransactionType = keyof typeof TRANSACTION_TYPES
+}
 
 interface TransactionTypeBadgeProps {
   type: TransactionType
 }
 
 export const TransactionTypeBadge = ({ type }: TransactionTypeBadgeProps) => {
-  const config = TRANSACTION_TYPES[type]
+  const config = TRANSACTION_TYPE_STYLES[type]
 
   return (
     <Badge className={config.className}>

@@ -48,7 +48,7 @@ export const getDashboard = query({
     // Group expenses by category
     const expensesByCategory = expenses.reduce(
       (acc: CategoryTotals, transaction) => {
-        const category = transaction.category
+        const category = transaction.type
         if (!acc[category]) {
           acc[category] = 0
         }
@@ -62,7 +62,7 @@ export const getDashboard = query({
       .map(([category, amount]) => ({
         category,
         totalAmount: amount,
-        percentageOfTotal: Math.round(amount / expensesTotal / 100),
+        percentageOfTotal: Math.round((amount / expensesTotal) * 100),
       }))
       .sort((a, b) => b.percentageOfTotal - a.percentageOfTotal)
 
@@ -78,6 +78,7 @@ export const getDashboard = query({
       typesPercentage,
       totalExpensePerCategory,
       lastTransactions,
+      expensesByCategory,
     }
   },
 })

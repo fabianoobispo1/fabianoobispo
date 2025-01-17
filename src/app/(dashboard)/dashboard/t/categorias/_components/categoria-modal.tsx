@@ -24,6 +24,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { showErrorToast } from '@/lib/handle-error'
 import type { Category } from '@/types'
+import { TRANSACTION_TYPE_LABELS } from '@/types'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -120,9 +121,13 @@ export const CategoriaModal = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="EXPENSE">Despesa</SelectItem>
-                    <SelectItem value="DEPOSIT">Receita</SelectItem>
-                    <SelectItem value="INVESTMENT">Investimento</SelectItem>
+                    {Object.entries(TRANSACTION_TYPE_LABELS).map(
+                      ([type, label]) => (
+                        <SelectItem key={type} value={type}>
+                          {label}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </FormItem>
