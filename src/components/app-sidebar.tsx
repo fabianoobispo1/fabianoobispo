@@ -5,6 +5,8 @@ import {
   UserPen,
   NotebookPenIcon,
   DollarSign,
+  Settings,
+  ChevronDown,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { useState } from 'react'
@@ -29,11 +31,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
-/* import {
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from './ui/collapsible' */
+} from './ui/collapsible'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 /* import type { Id } from '../../convex/_generated/dataModel' */
 import { Skeleton } from './ui/skeleton'
@@ -71,18 +73,18 @@ const items = [
     icon: User,
   }, */
 ]
-/* const itemsAdm = [
-  {
+const itemsAdm = [
+  /* {
     title: 'Seletiva',
     url: '/dashboard/seletiva',
     icon: Calendar,
-  },
+  }, */
   {
     title: 'Administração',
     url: '/dashboard/admin',
     icon: Settings,
-  }, */
-/* {
+  },
+  /* {
     title: 'Configurar WhatsApp',
     url: '/dashboard/configwhatsapp',
     icon: ChevronsLeftRightEllipsisIcon,
@@ -92,9 +94,9 @@ const items = [
     url: '/dashboard/financas',
     icon: CircleDollarSign,
   }, 
-  ,
+  , */
 ]
-*/
+
 /* interface Usuario {
   _id: Id<'user'>
   _creationTime: number
@@ -116,6 +118,7 @@ export function AppSidebar() {
     /*     console.log(session) */
 
     if (!carregou) {
+      console.log('Carregando sessão', session)
       if (session.user.role === 'admin') {
         setIsAdmin(true)
         console.log(isAdmin)
@@ -174,7 +177,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
 
-              {/*      <Collapsible className="group/collapsible">
+              <Collapsible className="group/collapsible">
                 <SidebarGroup>
                   <SidebarGroupLabel asChild>
                     <CollapsibleTrigger disabled={!isAdmin}>
@@ -199,7 +202,7 @@ export function AppSidebar() {
                     </SidebarGroupContent>
                   </CollapsibleContent>
                 </SidebarGroup>
-              </Collapsible> */}
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

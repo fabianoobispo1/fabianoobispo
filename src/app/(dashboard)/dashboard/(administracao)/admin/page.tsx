@@ -10,8 +10,12 @@ const breadcrumbItems = [{ title: 'Administração', link: '/dashboard/admin' }]
 export default function Page() {
   const router = useRouter()
 
-  const handleNavigation = () => {
+  const handleNavigationAdministradores = () => {
     router.push('/dashboard/admin/administradores')
+  }
+
+  const handleNavigationAdministracaoDontpad = () => {
+    router.push('/dashboard/admin/administracao-dontpad')
   }
 
   return (
@@ -26,7 +30,14 @@ export default function Page() {
         </div>
 
         <div>
-          <Button onClick={handleNavigation}>Administradores</Button>
+          <Button onClick={handleNavigationAdministradores}>
+            Administradores
+          </Button>
+        </div>
+        <div>
+          <Button onClick={handleNavigationAdministracaoDontpad}>
+            Administração Dontpad
+          </Button>
         </div>
       </div>
     </ScrollArea>
