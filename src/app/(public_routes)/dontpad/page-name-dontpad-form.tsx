@@ -10,14 +10,15 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 const formSchema = z.object({
-  name_page: z.string(),
+  name_page: z.string().min(1, {
+    message: 'O nome da página é obrigatório.',
+  }),
 })
 
 type PageNameFormValues = z.infer<typeof formSchema>
@@ -27,8 +28,13 @@ export default function PageNameDontpad() {
 
   const [loading, setLoading] = useState(false)
 
+  const defaultValues = {
+    name_page: '',
+  }
+
   const form = useForm<PageNameFormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues,
   })
 
   const onSubmit = async (data: PageNameFormValues) => {
@@ -52,11 +58,10 @@ export default function PageNameDontpad() {
             name="name_page"
             render={({ field }) => (
               <FormItem className=" flex-col ">
-                <FormLabel>name_page</FormLabel>
                 <FormControl>
                   <Input
                     disabled={loading}
-                    placeholder="name_page"
+                    placeholder="Digite o nome da página"
                     {...field}
                   />
                 </FormControl>
@@ -67,7 +72,7 @@ export default function PageNameDontpad() {
         </div>
 
         <Button disabled={loading} className="ml-auto" type="submit">
-          Salvar
+          Criar
         </Button>
       </form>
     </Form>

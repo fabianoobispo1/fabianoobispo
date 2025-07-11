@@ -8,9 +8,11 @@ import Image from 'next/image' */
 
 import UserAuthForm from '@/components/forms/user-auth-form'
 import UserRegisterForm from '@/components/forms/user-register-form'
-/* import { Button, buttonVariants } from '@/components/ui/button'
+import { /* Button, */ buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
+
+import ThemeToggle from '../layout/ThemeToggle/theme-toggle'
+/* import { useToast } from '@/hooks/use-toast'
 
 import {
   Dialog,
@@ -89,17 +91,18 @@ export default function AuthenticationModal() {
   } */
   return (
     <>
-      {/*  <button
-        onClick={() => {
-          button === 'Cadastrar' ? setButton('Login') : setButton('Cadastrar')
-        }}
-        className={cn(
-          buttonVariants({ variant: 'ghost' }),
-          'absolute right-4 top-4 md:right-8 md:top-8',
-        )}
-      >
-        {button}
-      </button> */}
+      <div className="absolute right-4 top-4 md:right-8 md:top-8 flex gap-4">
+        <button
+          onClick={() => {
+            button === 'Cadastrar' ? setButton('Login') : setButton('Cadastrar')
+          }}
+          className={cn(buttonVariants({ variant: 'ghost' }), '')}
+        >
+          {button}
+        </button>
+
+        <ThemeToggle />
+      </div>
 
       <div className="flex h-full items-center p-4 lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
