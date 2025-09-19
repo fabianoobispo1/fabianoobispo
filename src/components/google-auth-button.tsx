@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
+import type { SignInResponse } from 'next-auth/react'
 
 import { Icons } from './icons'
 import { LoadingButton } from './ui/loading-button'
@@ -15,9 +16,10 @@ export default function GoogleSignInButton() {
   async function handleLogin() {
     setLoading(true)
 
-    const result = await signIn('google', {
+    const result = (await signIn('google', {
       callbackUrl: callbackUrl ?? '/dashboard',
-    })
+    })) as SignInResponse | undefined
+
     if (result?.error) {
       console.log(result)
     } else {

@@ -9,6 +9,7 @@ import ConvexClientProvider from '@/providers/ConvexClientProvider'
 import AuthProvider from '@/providers/AuthProvider'
 import { Toaster } from '@/components/ui/toaster'
 import ThemeProvider from '@/components/layout/ThemeToggle/theme-provider'
+import Chatwoot from '@/components/chatwoot'
 
 export const metadata: Metadata = {
   title: 'Fabiano Bispo',
@@ -33,6 +34,7 @@ export default async function RootLayout({
               <Toaster />
               <main className="">
                 {children}
+                <Chatwoot />
                 <Analytics />
                 <SpeedInsights />
               </main>

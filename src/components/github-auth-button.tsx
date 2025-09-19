@@ -15,16 +15,10 @@ export default function GitHubSignInButton() {
   async function handleLogin() {
     setLoading(true)
 
-    const result = await signIn('github', {
+    await signIn('github', {
       callbackUrl: callbackUrl ?? '/dashboard',
     })
 
-    if (result?.error) {
-      console.log(result)
-    } else {
-      setLoading(false)
-      /*  window.location.href = result?.url ?? '/dashboard'; */
-    }
     setLoading(false)
   }
 
