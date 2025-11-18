@@ -1,6 +1,8 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { api } from '@/../convex/_generated/api'
+import type { Id } from '@/../convex/_generated/dataModel'
+
+import { useQuery, useMutation } from 'convex/react'
 import { Trash } from 'lucide-react'
 
 import {
@@ -12,89 +14,79 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 
 import { ScrollArea, ScrollBar } from './ui/scroll-area'
 import { Spinner } from './ui/spinner'
 
-interface DontPad {
-  id: string
-  page_name: string
-  page_content: string
-  ads: boolean
-  updated_at: Date
-  created_at: Date
-}
-
 export function AdministracaoDontPad() {
-  const [dontPads, setDontPads] = useState<DontPad[]>([])
-  const [carregou, setiscarregou] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+  const dontPads = useQuery(api.dontPad.listAll)
+  const removePage = useMutation(api.dontPad.remove)
 
-  const { data: session } = useSession()
-
-  const loadDontPads = useCallback(async () => {
-    if (session) {
-      try {
-        const resposta: Response = await fetch(
-          `${process.env.NEXT_PUBLIC_MINHA_API_URL}/dontpad/listall`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        )
-        const data = await resposta.json()
-        setDontPads(data.dontpadAll || [])
-      } catch (error) {
-        console.error('Erro ao buscar DontPads:', error)
-      }
+  const handleRemove = async (id: Id<'dontPad'>) => {
+    try {
+      await removePage({ _id: id })
+      toast({
+        title: 'Sucesso',
+        description: 'Página removida com sucesso!',
+      })
+    } catch (error) {
+      console.error('Erro ao remover página:', error)
+      toast({
+        title: 'Erro',
+        description: 'Erro ao remover a página. Tente novamente.',
+        variant: 'destructive',
+      })
     }
-  }, [session])
+  }
 
-  useEffect(() => {
-    setLoading(true)
-    if (session) {
-      if (!carregou) {
-        loadDontPads()
-        setiscarregou(true)
-        setLoading(false)
-      }
-    }
-  }, [session, carregou, setiscarregou, loadDontPads, setLoading])
-
-  function removerTela(id: string) {
-    console.log('teste', id)
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString('pt-BR')
   }
 
   return (
     <div className="space-y-8">
       <ScrollArea className="h-[calc(80vh-220px)] w-full overflow-x-auto rounded-md border">
-        {loading ? (
+        {dontPads === undefined ? (
+          <div className="flex items-center justify-center h-full py-10">
+            <Spinner />
+          </div>
+        ) : (
           <Table className="relative">
             <TableHeader>
               <TableRow>
-                <TableHead className="text-center">Nome</TableHead>
-                <TableHead className="text-center">email</TableHead>
+                <TableHead className="text-center">Nome da Página</TableHead>
+                <TableHead className="text-center">
+                  Conteúdo (Preview)
+                </TableHead>
+                <TableHead className="text-center">Criado em</TableHead>
+                <TableHead className="text-center">Atualizado em</TableHead>
                 <TableHead className="text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {dontPads ? (
+              {dontPads && dontPads.length > 0 ? (
                 dontPads.map((dontPad) => (
-                  <TableRow key={dontPad.id}>
+                  <TableRow key={dontPad._id}>
                     <TableCell className="text-center">
                       {dontPad.page_name}
                     </TableCell>
-                    <TableCell className="text-center">
-                      {dontPad.page_content}
+                    <TableCell className="text-center max-w-[300px] truncate">
+                      {dontPad.page_content.substring(0, 100)}
+                      {dontPad.page_content.length > 100 ? '...' : ''}
                     </TableCell>
-
+                    <TableCell className="text-center">
+                      {formatDate(dontPad.created_at)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {formatDate(dontPad.updated_at)}
+                    </TableCell>
                     <TableCell className="text-center">
                       <Button
                         variant="destructive"
-                        onClick={() => removerTela(dontPad.id)}
+                        onClick={() => handleRemove(dontPad._id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
@@ -102,14 +94,14 @@ export function AdministracaoDontPad() {
                   </TableRow>
                 ))
               ) : (
-                <Spinner />
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-10">
+                    Nenhuma página encontrada
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <Spinner />
-          </div>
         )}
 
         <ScrollBar orientation="horizontal" />

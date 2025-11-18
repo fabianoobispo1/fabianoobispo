@@ -88,6 +88,14 @@ export const categorySchema = {
   active: v.boolean(),
 }
 
+export const dontPadSchema = {
+  page_name: v.string(),
+  page_content: v.string(),
+  ads: v.boolean(),
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -104,4 +112,6 @@ export default defineSchema({
   categories: defineTable(categorySchema)
     .index('by_name', ['name'])
     .index('by_type', ['type']),
+  dontPad: defineTable(dontPadSchema)
+    .index('by_page_name', ['page_name']),
 })

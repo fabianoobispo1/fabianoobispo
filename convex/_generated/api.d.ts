@@ -16,6 +16,7 @@ import type {
 import type * as cartoes from "../cartoes.js";
 import type * as categories from "../categories.js";
 import type * as dashboard from "../dashboard.js";
+import type * as dontPad from "../dontPad.js";
 import type * as files from "../files.js";
 import type * as financeiro from "../financeiro.js";
 import type * as recuperaSenha from "../recuperaSenha.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   cartoes: typeof cartoes;
   categories: typeof categories;
   dashboard: typeof dashboard;
+  dontPad: typeof dontPad;
   files: typeof files;
   financeiro: typeof financeiro;
   recuperaSenha: typeof recuperaSenha;
