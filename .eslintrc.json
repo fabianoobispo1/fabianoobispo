@@ -15,10 +15,7 @@
         "allowTaggedTemplates": true
       }
     ],
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {}
-    ],
+    "@typescript-eslint/no-unused-vars": ["error", {}],
     "import/order": [
       "error",
       {
@@ -28,11 +25,7 @@
           "external",
           "builtin",
           "unknown",
-          [
-            "parent",
-            "sibling",
-            "index"
-          ]
+          ["parent", "sibling", "index"]
         ],
         "pathGroups": [
           {

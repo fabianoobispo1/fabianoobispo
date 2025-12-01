@@ -23,6 +23,7 @@ import type * as recuperaSenha from "../recuperaSenha.js";
 import type * as todo from "../todo.js";
 import type * as transaction from "../transaction.js";
 import type * as user from "../user.js";
+import type * as workout from "../workout.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   todo: typeof todo;
   transaction: typeof transaction;
   user: typeof user;
+  workout: typeof workout;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

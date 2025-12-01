@@ -96,6 +96,38 @@ export const dontPadSchema = {
   updated_at: v.number(),
 }
 
+export const workoutPlanSchema = {
+  name: v.string(),
+  description: v.optional(v.string()),
+  active: v.boolean(),
+  created_at: v.number(),
+  updated_at: v.number(),
+  userId: v.id('user'),
+}
+
+export const workoutDaySchema = {
+  planId: v.id('workoutPlan'),
+  title: v.string(),
+  focus: v.string(),
+  dayOfWeek: v.string(), // 'seg', 'ter', 'qua', etc.
+  order: v.number(),
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
+export const exerciseSchema = {
+  dayId: v.id('workoutDay'),
+  name: v.string(),
+  sets: v.string(),
+  reps: v.string(),
+  note: v.string(),
+  carga: v.optional(v.string()), // Carga utilizada (ex: "20kg", "15kg")
+  videoUrl: v.optional(v.string()), // URL do vídeo explicativo (YouTube, etc)
+  order: v.number(),
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -112,6 +144,8 @@ export default defineSchema({
   categories: defineTable(categorySchema)
     .index('by_name', ['name'])
     .index('by_type', ['type']),
-  dontPad: defineTable(dontPadSchema)
-    .index('by_page_name', ['page_name']),
+  dontPad: defineTable(dontPadSchema).index('by_page_name', ['page_name']),
+  workoutPlan: defineTable(workoutPlanSchema).index('by_user', ['userId']),
+  workoutDay: defineTable(workoutDaySchema).index('by_plan', ['planId']),
+  exercise: defineTable(exerciseSchema).index('by_day', ['dayId']),
 })

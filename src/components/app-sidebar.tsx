@@ -7,6 +7,7 @@ import {
   DollarSign,
   Settings,
   ChevronDown,
+  Dumbbell,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { useState } from 'react'
@@ -61,6 +62,11 @@ const items = [
     title: 'Perfil',
     url: '/dashboard/perfil',
     icon: UserPen,
+  },
+  {
+    title: 'Ficha de Exercícios',
+    url: '/dashboard/fichaexercicios',
+    icon: Dumbbell,
   } /* ,
   {
     title: 'Atletas',
