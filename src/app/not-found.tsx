@@ -15,7 +15,7 @@ export default function NotFound() {
       <h2 className="font-heading my-2 text-2xl font-bold">
         Algo está faltando
       </h2>
-      <p>Desculpe, a página que você procura não existe ou foi movida.</p>
+      <p>Desculpe, a página que você procura não existe ou foi movida..</p>
       <div className="mt-8 flex justify-center gap-2">
         <Button onClick={() => router.back()} variant="default" size="lg">
           Voltar
