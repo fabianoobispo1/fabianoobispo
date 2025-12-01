@@ -194,57 +194,57 @@ export function WorkoutDisplay() {
                             variant="ghost"
                             size="sm"
                             className="h-6 w-6 p-0"
-                          onClick={() => window.open(ex.videoUrl, '_blank')}
-                          title="Ver vídeo explicativo"
-                        >
-                          <Video className="h-4 w-4 text-primary" />
-                        </Button>
-                      )}
+                            onClick={() => window.open(ex.videoUrl, '_blank')}
+                            title="Ver vídeo explicativo"
+                          >
+                            <Video className="h-4 w-4 text-primary" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {ex.note}
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {ex.note}
-                    </p>
-                  </div>
 
-                  <div className="mt-2 flex gap-3 sm:mt-0">
-                    <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
-                      <span className="block text-xs uppercase text-muted-foreground">
-                        Séries
-                      </span>
-                      <span className="font-mono font-bold text-primary">
-                        {ex.sets}
-                      </span>
-                    </div>
-                    <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
-                      <span className="block text-xs uppercase text-muted-foreground">
-                        Reps
-                      </span>
-                      <span className="font-mono font-bold text-primary">
-                        {ex.reps}
-                      </span>
-                    </div>
-                    <div className="min-w-[90px] rounded bg-secondary px-3 py-1">
-                      <span className="block text-xs uppercase text-muted-foreground">
-                        Carga
-                      </span>
-                      <Input
-                        type="text"
-                        placeholder="ex: 20kg"
-                        value={
-                          editingCarga[ex._id] !== undefined
-                            ? editingCarga[ex._id]
-                            : ex.carga || ''
-                        }
-                        onChange={(e) =>
-                          handleCargaChange(ex._id, e.target.value)
-                        }
-                        className="h-7 border-0 bg-transparent p-0 text-center font-mono font-bold text-primary focus-visible:ring-1 focus-visible:ring-primary"
-                      />
+                    <div className="mt-2 flex gap-3 sm:mt-0">
+                      <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
+                        <span className="block text-xs uppercase text-muted-foreground">
+                          Séries
+                        </span>
+                        <span className="font-mono font-bold text-primary">
+                          {ex.sets}
+                        </span>
+                      </div>
+                      <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
+                        <span className="block text-xs uppercase text-muted-foreground">
+                          Reps
+                        </span>
+                        <span className="font-mono font-bold text-primary">
+                          {ex.reps}
+                        </span>
+                      </div>
+                      <div className="min-w-[90px] rounded bg-secondary px-3 py-1">
+                        <span className="block text-xs uppercase text-muted-foreground">
+                          Carga
+                        </span>
+                        <Input
+                          type="text"
+                          placeholder="ex: 20kg"
+                          value={
+                            editingCarga[ex._id] !== undefined
+                              ? editingCarga[ex._id]
+                              : ex.carga || ''
+                          }
+                          onChange={(e) =>
+                            handleCargaChange(ex._id, e.target.value)
+                          }
+                          className="h-7 border-0 bg-transparent p-0 text-center font-mono font-bold text-primary focus-visible:ring-1 focus-visible:ring-primary"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )
+              )
             })}
           </div>
         </div>
