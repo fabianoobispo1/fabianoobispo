@@ -18,6 +18,10 @@ export default function Page() {
     router.push('/dashboard/admin/administracao-dontpad')
   }
 
+  const handleNavigationAdministracaoExercicios = () => {
+    router.push('/dashboard/admin/administracao-exercicios')
+  }
+
   return (
     <ScrollArea className="h-full w-full">
       <div className="flex-1 space-y-4 p-4 pt-6 ">
@@ -37,6 +41,11 @@ export default function Page() {
         <div>
           <Button onClick={handleNavigationAdministracaoDontpad}>
             Administração Dontpad
+          </Button>
+        </div>
+        <div>
+          <Button onClick={handleNavigationAdministracaoExercicios}>
+            Administração de Exercícios
           </Button>
         </div>
       </div>

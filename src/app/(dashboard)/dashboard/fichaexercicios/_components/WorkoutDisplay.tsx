@@ -57,15 +57,6 @@ export function WorkoutDisplay() {
 
   const seedPlan = useMutation(api.workout.seedDefaultPlan)
   const updateCarga = useMutation(api.workout.updateExerciseCarga)
-  const deletePlan = useMutation(api.workout.deletePlan)
-
-  // Função para recriar o plano
-  const recreatePlan = async () => {
-    if (!session?.user?.id || !currentPlanId) return
-    await deletePlan({ planId: currentPlanId })
-    const newPlanId = await seedPlan({ userId: session.user.id as Id<'user'> })
-    setCurrentPlanId(newPlanId)
-  }
 
   // Debounce para salvar carga automaticamente
   const handleCargaChange = useCallback(
@@ -124,11 +115,6 @@ export function WorkoutDisplay() {
   return (
     <ScrollArea className="h-[calc(100vh-220px)] w-full">
       <div className="space-y-6">
-        {/* Debug Button - Remover depois */}
-        <Button onClick={recreatePlan} variant="outline" size="sm">
-          🔄 Recriar Plano (com vídeos)
-        </Button>
-
         {/* Header */}
         <div>
           <div className="mb-4 flex items-center gap-3">
@@ -176,76 +162,73 @@ export function WorkoutDisplay() {
           </div>
 
           <div className="space-y-4">
-            {activeDay.exercises.map((ex) => {
-              console.log('Exercise:', ex.name, 'VideoURL:', ex.videoUrl)
-              return (
-                <div
-                  key={ex._id}
-                  className="group rounded-lg border bg-card/50 p-4 transition-colors hover:border-primary/50"
-                >
-                  <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-lg font-bold transition-colors group-hover:text-primary">
-                          {ex.name}
-                        </h4>
-                        {ex.videoUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => window.open(ex.videoUrl, '_blank')}
-                            title="Ver vídeo explicativo"
-                          >
-                            <Video className="h-4 w-4 text-primary" />
-                          </Button>
-                        )}
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {ex.note}
-                      </p>
+            {activeDay.exercises.map((ex) => (
+              <div
+                key={ex._id}
+                className="group rounded-lg border bg-card/50 p-4 transition-colors hover:border-primary/50"
+              >
+                <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-bold transition-colors group-hover:text-primary">
+                        {ex.name}
+                      </h4>
+                      {ex.videoUrl && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => window.open(ex.videoUrl, '_blank')}
+                          title="Ver vídeo explicativo"
+                        >
+                          <Video className="h-4 w-4 text-primary" />
+                        </Button>
+                      )}
                     </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {ex.note}
+                    </p>
+                  </div>
 
-                    <div className="mt-2 flex gap-3 sm:mt-0">
-                      <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
-                        <span className="block text-xs uppercase text-muted-foreground">
-                          Séries
-                        </span>
-                        <span className="font-mono font-bold text-primary">
-                          {ex.sets}
-                        </span>
-                      </div>
-                      <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
-                        <span className="block text-xs uppercase text-muted-foreground">
-                          Reps
-                        </span>
-                        <span className="font-mono font-bold text-primary">
-                          {ex.reps}
-                        </span>
-                      </div>
-                      <div className="min-w-[90px] rounded bg-secondary px-3 py-1">
-                        <span className="block text-xs uppercase text-muted-foreground">
-                          Carga
-                        </span>
-                        <Input
-                          type="text"
-                          placeholder="ex: 20kg"
-                          value={
-                            editingCarga[ex._id] !== undefined
-                              ? editingCarga[ex._id]
-                              : ex.carga || ''
-                          }
-                          onChange={(e) =>
-                            handleCargaChange(ex._id, e.target.value)
-                          }
-                          className="h-7 border-0 bg-transparent p-0 text-center font-mono font-bold text-primary focus-visible:ring-1 focus-visible:ring-primary"
-                        />
-                      </div>
+                  <div className="mt-2 flex gap-3 sm:mt-0">
+                    <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
+                      <span className="block text-xs uppercase text-muted-foreground">
+                        Séries
+                      </span>
+                      <span className="font-mono font-bold text-primary">
+                        {ex.sets}
+                      </span>
+                    </div>
+                    <div className="min-w-[80px] rounded bg-secondary px-3 py-1 text-center">
+                      <span className="block text-xs uppercase text-muted-foreground">
+                        Reps
+                      </span>
+                      <span className="font-mono font-bold text-primary">
+                        {ex.reps}
+                      </span>
+                    </div>
+                    <div className="min-w-[90px] rounded bg-secondary px-3 py-1">
+                      <span className="block text-xs uppercase text-muted-foreground">
+                        Carga
+                      </span>
+                      <Input
+                        type="text"
+                        placeholder="ex: 20kg"
+                        value={
+                          editingCarga[ex._id] !== undefined
+                            ? editingCarga[ex._id]
+                            : ex.carga || ''
+                        }
+                        onChange={(e) =>
+                          handleCargaChange(ex._id, e.target.value)
+                        }
+                        className="h-7 border-0 bg-transparent p-0 text-center font-mono font-bold text-primary focus-visible:ring-1 focus-visible:ring-primary"
+                      />
                     </div>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
