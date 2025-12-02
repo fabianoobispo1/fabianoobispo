@@ -12,6 +12,12 @@ import { Spinner } from '@/components/ui/spinner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 type Exercise = {
   _id: Id<'exercise'>
@@ -42,6 +48,7 @@ export function WorkoutDisplay() {
   const [editingCarga, setEditingCarga] = useState<{
     [key: string]: string
   }>({})
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
 
   // Buscar planos do usuário
   const plans = useQuery(
@@ -178,7 +185,7 @@ export function WorkoutDisplay() {
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0"
-                          onClick={() => window.open(ex.videoUrl, '_blank')}
+                          onClick={() => setVideoUrl(ex.videoUrl!)}
                           title="Ver vídeo explicativo"
                         >
                           <Video className="h-4 w-4 text-primary" />
@@ -239,6 +246,29 @@ export function WorkoutDisplay() {
           </p>
         </div>
       </div>
+
+      {/* Modal de Vídeo */}
+      <Dialog open={!!videoUrl} onOpenChange={() => setVideoUrl(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Vídeo Explicativo</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full">
+            {videoUrl && (
+              <iframe
+                width="100%"
+                height="100%"
+                src={videoUrl.replace('watch?v=', 'embed/')}
+                title="Vídeo do exercício"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="rounded-lg"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </ScrollArea>
   )
 }

@@ -1,13 +1,13 @@
 import BreadCrumb from '@/components/breadcrumb'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Heading } from '@/components/ui/heading'
-import { AdministracaoExercicios } from '@/components/AdministracaoExercicios'
+import { CatalogoExercicios } from '@/components/CatalogoExercicios'
 
 const breadcrumbItems = [
   { title: 'Administração', link: '/dashboard/admin' },
   {
-    title: 'Administração Exercícios',
-    link: '/dashboard/admin/administracao-exercicios',
+    title: 'Catálogo de Exercícios',
+    link: '/dashboard/admin/catalogo-exercicios',
   },
 ]
 export default function page() {
@@ -17,13 +17,13 @@ export default function page() {
         <BreadCrumb items={breadcrumbItems} />
         <div className=" flex items-start justify-between gap-4">
           <Heading
-            title={'Administração de Exercícios'}
+            title={'Catálogo de Exercícios'}
             description={
-              'Gerenciamento de exercícios e vídeos da ficha de treino'
+              'Gerencie o catálogo global de exercícios disponíveis para todos os usuários'
             }
           />
         </div>
-        <AdministracaoExercicios />
+        <CatalogoExercicios />
       </div>
     </ScrollArea>
   )

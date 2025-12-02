@@ -115,14 +115,29 @@ export const workoutDaySchema = {
   updated_at: v.number(),
 }
 
+// Catálogo global de exercícios (compartilhado entre usuários)
+export const exerciseCatalogSchema = {
+  name: v.string(),
+  description: v.string(),
+  muscleGroup: v.string(), // 'peito', 'costas', 'pernas', 'ombros', 'braços', 'core'
+  equipment: v.optional(v.string()), // 'barra', 'halteres', 'máquina', 'peso corporal'
+  videoUrl: v.optional(v.string()),
+  defaultSets: v.optional(v.string()),
+  defaultReps: v.optional(v.string()),
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
+// Instância do exercício no treino do usuário
 export const exerciseSchema = {
   dayId: v.id('workoutDay'),
-  name: v.string(),
+  catalogId: v.optional(v.id('exerciseCatalog')), // Referência ao catálogo (opcional para exercícios customizados)
+  name: v.string(), // Nome pode ser sobrescrito
   sets: v.string(),
   reps: v.string(),
   note: v.string(),
   carga: v.optional(v.string()), // Carga utilizada (ex: "20kg", "15kg")
-  videoUrl: v.optional(v.string()), // URL do vídeo explicativo (YouTube, etc)
+  videoUrl: v.optional(v.string()), // URL do vídeo (pode sobrescrever do catálogo)
   order: v.number(),
   created_at: v.number(),
   updated_at: v.number(),
@@ -147,5 +162,10 @@ export default defineSchema({
   dontPad: defineTable(dontPadSchema).index('by_page_name', ['page_name']),
   workoutPlan: defineTable(workoutPlanSchema).index('by_user', ['userId']),
   workoutDay: defineTable(workoutDaySchema).index('by_plan', ['planId']),
-  exercise: defineTable(exerciseSchema).index('by_day', ['dayId']),
+  exerciseCatalog: defineTable(exerciseCatalogSchema)
+    .index('by_name', ['name'])
+    .index('by_muscle_group', ['muscleGroup']),
+  exercise: defineTable(exerciseSchema)
+    .index('by_day', ['dayId'])
+    .index('by_catalog', ['catalogId']),
 })
