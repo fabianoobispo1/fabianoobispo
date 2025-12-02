@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 import BreadCrumb from '@/components/breadcrumb'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -9,6 +10,9 @@ import { Button } from '@/components/ui/button'
 const breadcrumbItems = [{ title: 'Administração', link: '/dashboard/admin' }]
 export default function Page() {
   const router = useRouter()
+  const { data: session } = useSession()
+
+  const isAdmin = session?.user?.email === 'fbc623@gmail.com'
 
   const handleNavigationAdministradores = () => {
     router.push('/dashboard/admin/administradores')
@@ -38,7 +42,7 @@ export default function Page() {
         </div>
 
         <div>
-          <Button onClick={handleNavigationAdministradores}>
+          <Button onClick={handleNavigationAdministradores} disabled={!isAdmin}>
             Administradores
           </Button>
         </div>

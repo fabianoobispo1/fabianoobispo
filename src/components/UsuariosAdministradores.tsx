@@ -17,7 +17,6 @@ import { ScrollArea, ScrollBar } from './ui/scroll-area'
 import { Spinner } from './ui/spinner'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import Redirecionador from './redirecionador'
 
 interface User {
   _id: Id<'user'>
@@ -58,10 +57,6 @@ export function UsuariosAdministradores() {
 
     loadUsuarios()
     setLoadingUsuario(false)
-  }
-
-  if (session?.user.role !== 'fbc623@gmail.com') {
-    return <Redirecionador link={'/dashboard'} />
   }
 
   return (
