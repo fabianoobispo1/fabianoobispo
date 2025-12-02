@@ -140,3 +140,5 @@ npm install exceljs
 ---
 
 **Próxima verificação recomendada**: 1 de janeiro de 2026
+
+https://github.com/felipegcoutinho/opensheets-app?tab=readme-ov-file

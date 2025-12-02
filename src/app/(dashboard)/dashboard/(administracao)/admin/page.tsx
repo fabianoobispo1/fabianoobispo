@@ -47,7 +47,10 @@ export default function Page() {
           </Button>
         </div>
         <div>
-          <Button onClick={handleNavigationAdministracaoDontpad} disabled={!isAdmin}>
+          <Button
+            onClick={handleNavigationAdministracaoDontpad}
+            disabled={!isAdmin}
+          >
             Administração Dontpad
           </Button>
         </div>
