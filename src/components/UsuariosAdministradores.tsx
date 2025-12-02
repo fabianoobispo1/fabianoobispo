@@ -60,7 +60,7 @@ export function UsuariosAdministradores() {
     setLoadingUsuario(false)
   }
 
-  if ((session?.user.role !== 'fbc623@gmail.com')) {
+  if (session?.user.role !== 'fbc623@gmail.com') {
     return <Redirecionador link={'/dashboard'} />
   }
 
