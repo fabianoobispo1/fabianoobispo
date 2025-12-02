@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 import { ScrollArea, ScrollBar } from './ui/scroll-area'
 import { Spinner } from './ui/spinner'
+import Redirecionador from './redirecionador'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 
@@ -29,7 +30,19 @@ export function UsuariosAdministradores() {
   const [usuarios, setusuarios] = useState<User[]>([])
   const [carregou, setiscarregou] = useState(false)
   const [loadingUsuario, setLoadingUsuario] = useState<boolean>(false)
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const { data: session } = useSession()
+
+  // Verifica no servidor se o usuário é admin
+  const checkAdminAccess = useCallback(async () => {
+    try {
+      const adminStatus = await fetchQuery(api.user.isAdminUser)
+      setIsAdmin(adminStatus)
+    } catch (error) {
+      console.error('Erro ao verificar acesso admin:', error)
+      setIsAdmin(false)
+    }
+  }, [])
 
   const loadUsuarios = useCallback(async () => {
     if (session) {
@@ -41,22 +54,38 @@ export function UsuariosAdministradores() {
 
   useEffect(() => {
     if (session) {
+      checkAdminAccess()
       if (!carregou) {
         loadUsuarios()
         setiscarregou(true)
       }
     }
-  }, [loadUsuarios, session, carregou, setiscarregou])
+  }, [loadUsuarios, session, carregou, checkAdminAccess])
 
   const toggleAdmin = async (id: Id<'user'>) => {
+    // Validação adicional no cliente antes de enviar
+    if (!isAdmin) {
+      console.error('Acesso negado: usuário não é admin')
+      return
+    }
+
     setLoadingUsuario(true)
 
-    await fetchMutation(api.user.toggleUserRole, {
-      userId: id,
-    })
+    try {
+      await fetchMutation(api.user.toggleUserRole, {
+        userId: id,
+      })
+      loadUsuarios()
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error)
+    } finally {
+      setLoadingUsuario(false)
+    }
+  }
 
-    loadUsuarios()
-    setLoadingUsuario(false)
+  // Se não é admin, redireciona
+  if (isAdmin === false) {
+    return <Redirecionador link={'/dashboard'} />
   }
 
   return (

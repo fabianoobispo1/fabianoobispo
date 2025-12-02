@@ -1,7 +1,9 @@
 'use client'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { fetchQuery } from 'convex/nextjs'
 
+import { api } from '@/../convex/_generated/api'
 import BreadCrumb from '@/components/breadcrumb'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Heading } from '@/components/ui/heading'
@@ -10,12 +12,26 @@ import { Button } from '@/components/ui/button'
 const breadcrumbItems = [{ title: 'Administração', link: '/dashboard/admin' }]
 export default function Page() {
   const router = useRouter()
-  const { data: session } = useSession()
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
 
-  const isAdmin = session?.user?.email === 'fbc623@gmail.com'
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const adminStatus = await fetchQuery(api.user.isAdminUser)
+        setIsAdmin(adminStatus)
+      } catch (error) {
+        console.error('Erro ao verificar acesso admin:', error)
+        setIsAdmin(false)
+      }
+    }
+
+    checkAdmin()
+  }, [])
 
   const handleNavigationAdministradores = () => {
-    router.push('/dashboard/admin/administradores')
+    if (isAdmin) {
+      router.push('/dashboard/admin/administradores')
+    }
   }
 
   const handleNavigationAdministracaoDontpad = () => {
@@ -42,12 +58,16 @@ export default function Page() {
         </div>
 
         <div>
-          <Button onClick={handleNavigationAdministradores} disabled={!isAdmin}>
+          <Button
+            onClick={handleNavigationAdministradores}
+            disabled={isAdmin === false}
+            title={isAdmin === false ? 'Acesso restrito a administradores' : ''}
+          >
             Administradores
           </Button>
         </div>
         <div>
-          <Button onClick={handleNavigationAdministracaoDontpad} disabled={!isAdmin}>
+          <Button onClick={handleNavigationAdministracaoDontpad}>
             Administração Dontpad
           </Button>
         </div>
