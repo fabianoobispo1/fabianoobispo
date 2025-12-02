@@ -22,6 +22,10 @@ export default function Page() {
     router.push('/dashboard/admin/administracao-exercicios')
   }
 
+  const handleNavigationCatalogoExercicios = () => {
+    router.push('/dashboard/admin/catalogo-exercicios')
+  }
+
   return (
     <ScrollArea className="h-full w-full">
       <div className="flex-1 space-y-4 p-4 pt-6 ">
@@ -44,8 +48,13 @@ export default function Page() {
           </Button>
         </div>
         <div>
+          <Button onClick={handleNavigationCatalogoExercicios}>
+            Catálogo de Exercícios
+          </Button>
+        </div>
+        <div>
           <Button onClick={handleNavigationAdministracaoExercicios}>
-            Administração de Exercícios
+            Gerenciar Fichas de Treino
           </Button>
         </div>
       </div>

@@ -150,6 +150,37 @@ export const deleteDay = mutation({
 
 // ==================== EXERCISE ====================
 
+// Criar exercício a partir do catálogo
+export const createExerciseFromCatalog = mutation({
+  args: {
+    dayId: v.id('workoutDay'),
+    catalogId: v.id('exerciseCatalog'),
+    order: v.number(),
+    carga: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Buscar dados do catálogo
+    const catalog = await ctx.db.get(args.catalogId)
+    if (!catalog) throw new Error('Exercício não encontrado no catálogo')
+
+    const exerciseId = await ctx.db.insert('exercise', {
+      dayId: args.dayId,
+      catalogId: args.catalogId,
+      name: catalog.name,
+      sets: catalog.defaultSets || '3',
+      reps: catalog.defaultReps || '10',
+      note: catalog.description,
+      videoUrl: catalog.videoUrl,
+      carga: args.carga,
+      order: args.order,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    })
+    return exerciseId
+  },
+})
+
+// Criar exercício customizado (sem catálogo)
 export const createExercise = mutation({
   args: {
     dayId: v.id('workoutDay'),
@@ -158,6 +189,8 @@ export const createExercise = mutation({
     reps: v.string(),
     note: v.string(),
     order: v.number(),
+    carga: v.optional(v.string()),
+    videoUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const exerciseId = await ctx.db.insert('exercise', {

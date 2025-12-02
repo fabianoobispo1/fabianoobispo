@@ -4,13 +4,13 @@
 
 ### 📊 Resultados
 
-| Métrica | Antes | Depois | Status |
-|---------|-------|--------|--------|
-| **Vulnerabilidades Totais** | 11 | 0 | ✅ 100% eliminadas |
-| **Alta Severidade** | 5 | 0 | ✅ 100% resolvidas |
-| **Moderada Severidade** | 6 | 0 | ✅ 100% resolvidas |
-| **Build** | ❓ | ✅ | ✅ Compila |
-| **Lint** | ⚠️ Deprecated | ✅ | ✅ 0 erros |
+| Métrica                     | Antes         | Depois | Status             |
+| --------------------------- | ------------- | ------ | ------------------ |
+| **Vulnerabilidades Totais** | 11            | 0      | ✅ 100% eliminadas |
+| **Alta Severidade**         | 5             | 0      | ✅ 100% resolvidas |
+| **Moderada Severidade**     | 6             | 0      | ✅ 100% resolvidas |
+| **Build**                   | ❓            | ✅     | ✅ Compila         |
+| **Lint**                    | ⚠️ Deprecated | ✅     | ✅ 0 erros         |
 
 ---
 
@@ -18,12 +18,12 @@
 
 ### **Críticas (Security)**
 
-| Pacote | Antes | Depois | Motivo |
-|--------|-------|--------|--------|
-| **eslint** | 8.57.1 | 9.39.1 | Versão descontinuada, vulnerabilidades |
-| **jspdf** | 2.5.2 | 3.0.4 | XSS em DOMPurify (GHSA-vhxf-7vqr-mrjg) |
-| **jspdf-autotable** | 3.8.4 | 5.0.2 | Depende de jspdf seguro |
-| **@react-email/components** | 0.0.31 | 1.0.1 | PrismJS DOM Clobbering (GHSA-x7hr-w5r2-h6wg) |
+| Pacote                      | Antes  | Depois | Motivo                                       |
+| --------------------------- | ------ | ------ | -------------------------------------------- |
+| **eslint**                  | 8.57.1 | 9.39.1 | Versão descontinuada, vulnerabilidades       |
+| **jspdf**                   | 2.5.2  | 3.0.4  | XSS em DOMPurify (GHSA-vhxf-7vqr-mrjg)       |
+| **jspdf-autotable**         | 3.8.4  | 5.0.2  | Depende de jspdf seguro                      |
+| **@react-email/components** | 0.0.31 | 1.0.1  | PrismJS DOM Clobbering (GHSA-x7hr-w5r2-h6wg) |
 
 ### **Recomendadas (Maintenance)**
 
@@ -46,6 +46,7 @@ npx convex dev
 ```
 
 Acesse `http://localhost:3000` e teste:
+
 - [ ] Login/Autenticação
 - [ ] Geração de PDFs (se usar)
 - [ ] Envio de emails (se usar)
@@ -61,6 +62,7 @@ npm uninstall xlsx
 ```
 
 **Por que foi removida**:
+
 - Não havia imports em nenhum arquivo
 - Vulnerabilidades sem correção disponível
 - Reduz tamanho do bundle em ~200KB
@@ -70,14 +72,14 @@ npm uninstall xlsx
 
 ## 📈 Melhorias Incluídas
 
-| Melhoria | Antes | Depois |
-|----------|-------|--------|
-| **ESLint Config** | 8.x (legado) | 9.x (moderno) |
-| **PDF Security** | Vulnerável a XSS | ✅ Seguro |
-| **Email Templates** | Vulnerável a XSS | ✅ Seguro |
-| **XLSX Dependency** | 2 vulnerabilidades | ✅ Removido |
-| **Build Performance** | OK | ✅ Otimizado |
-| **Bundle Size** | +200KB (xlsx) | ✅ Reduzido |
+| Melhoria              | Antes              | Depois        |
+| --------------------- | ------------------ | ------------- |
+| **ESLint Config**     | 8.x (legado)       | 9.x (moderno) |
+| **PDF Security**      | Vulnerável a XSS   | ✅ Seguro     |
+| **Email Templates**   | Vulnerável a XSS   | ✅ Seguro     |
+| **XLSX Dependency**   | 2 vulnerabilidades | ✅ Removido   |
+| **Build Performance** | OK                 | ✅ Otimizado  |
+| **Bundle Size**       | +200KB (xlsx)      | ✅ Reduzido   |
 
 ---
 
