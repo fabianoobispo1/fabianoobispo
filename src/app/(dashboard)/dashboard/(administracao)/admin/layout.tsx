@@ -10,6 +10,6 @@ export default async function DashboardLayout({
   const session = await auth()
 
   if (!session?.user) redirect('/')
-  if (session?.user.role !== 'admin') redirect('/dashboard')
+  //if (session?.user.role !== 'admin') redirect('/dashboard')
   return <>{children}</>
 }
