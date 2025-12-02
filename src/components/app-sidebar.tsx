@@ -118,7 +118,7 @@ const itemsAdm = [
 export function AppSidebar() {
   const { data: session } = useSession()
   const { open } = useSidebar()
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(true)//hardcoded true para testes
   const [carregou, setiscarregou] = useState(false)
   if (session) {
     /*     console.log(session) */
@@ -126,9 +126,11 @@ export function AppSidebar() {
     if (!carregou) {
       console.log('Carregando sessão', session)
       if (session.user.role === 'admin') {
+        
         setIsAdmin(true)
         console.log(isAdmin)
       }
+      
       setiscarregou(true)
     }
   }
