@@ -167,14 +167,3 @@ export const toggleUserRole = mutation({
     return updateUser
   },
 })
-
-export const isAdminUser = query({
-  args: {},
-  handler: async ({ auth }) => {
-    const identity = await auth.getUserIdentity()
-    if (!identity) {
-      throw new Error('Não autenticado')
-    }
-    return identity.email === 'fbc623@gmail.com'
-  },
-})
