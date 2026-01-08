@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-
-// Esta rota deve ser chamada periodicamente (ex: a cada hora) por um cron job
-// Para configurar um cron job no Vercel, use Vercel Cron Jobs
-// https://vercel.com/docs/cron-jobs
-
 export async function GET(request: NextRequest) {
   try {
     // Verificar token de autenticação (para segurança)
@@ -22,8 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-
- 
+    // TODO: Implementar lógica de auto-cancelamento aqui
+    return NextResponse.json({ message: 'Cron job executado com sucesso' })
   } catch (error) {
     console.error('Erro no cron job de auto-cancelamento:', error)
 
