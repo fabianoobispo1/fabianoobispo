@@ -7,6 +7,7 @@ import type { SignInResponse } from 'next-auth/react'
 
 import { Icons } from './icons'
 import { LoadingButton } from './ui/loading-button'
+import { tr } from 'date-fns/locale'
 
 export default function GoogleSignInButton() {
   const [loading, setLoading] = useState(false)
@@ -35,6 +36,7 @@ export default function GoogleSignInButton() {
       type="button"
       loading={loading}
       onClick={() => handleLogin()}
+      disabled={true}
     >
       <Icons.google className="mr-2 h-4 w-4" />
       Continue Com Google
