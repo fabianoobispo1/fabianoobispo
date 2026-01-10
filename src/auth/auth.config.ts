@@ -18,6 +18,8 @@ async function getUser(identifier: { key: string; value: string }) {
 }
 
 const authConfig = {
+  trustHost: true,
+  basePath: '/api/auth',
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? '',

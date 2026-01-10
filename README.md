@@ -150,8 +150,20 @@ npm run format       # Formata código com Prettier
 
 1. Faça push do código para o GitHub
 2. Conecte o repositório no [Vercel](https://vercel.com)
-3. Configure as variáveis de ambiente
+3. Configure as variáveis de ambiente (veja seção abaixo)
 4. Deploy automático!
+
+**Importante**: Configure todas as variáveis de ambiente na Vercel:
+
+- `NEXT_PUBLIC_CONVEX_URL` - URL do deployment Convex
+- `CONVEX_DEPLOYMENT` - Nome do deployment Convex
+- `NEXTAUTH_URL` - URL da aplicação em produção (ex: `https://seudominio.vercel.app`)
+- `NEXTAUTH_SECRET` - Secret key para NextAuth (use: `openssl rand -base64 32`)
+- `GITHUB_ID` e `GITHUB_SECRET` - Credenciais OAuth GitHub
+- `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` - Credenciais OAuth Google
+- Outras variáveis opcionais: `RESEND_API_KEY`, `UPLOADTHING_SECRET`, etc.
+
+⚠️ **Atenção**: Certifique-se de que `NEXTAUTH_URL` está configurada corretamente com a URL de produção da sua aplicação!
 
 ### Convex Deploy
 
