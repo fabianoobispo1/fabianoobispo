@@ -6,7 +6,7 @@ import {
   Dumbbell,
   FileText,
   Users,
-  Shield,
+  Medal,
   ExternalLink,
 } from 'lucide-react'
 
@@ -67,7 +67,7 @@ export function ProjectsSection() {
       title: 'JF Imperadores',
       description:
         'Site para divulgação e gerenciamento do time de futebol americano JF Imperadores, com informações da equipe, jogadores e eventos.',
-      icon: Shield,
+      icon: Medal,
       tags: ['React', 'Next.js', 'TypeScript', 'Gestão Esportiva'],
       link: 'https://www.jfimperadores.com.br/imperadores',
       color: 'text-red-500',
