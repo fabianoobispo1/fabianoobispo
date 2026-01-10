@@ -36,21 +36,7 @@ export type MainNavItem = NavItemWithOptionalChildren
 
 export type SidebarNavItem = NavItemWithChildren
 
-// tabelas
-export type Financeiro = {
-  _id: Id<'financeiro'>
-  descricao: string
-  valor: number
-  dataVencimento: number
-  dataPagamento?: number
-  categoria: string
-  status: string
-  created_at: number
-  updated_at: number
-  userId: Id<'user'>
-}
-
-// financeiro
+// Transactions
 export enum TransactionType {
   EXPENSE = 'EXPENSE',
   DEPOSIT = 'DEPOSIT',

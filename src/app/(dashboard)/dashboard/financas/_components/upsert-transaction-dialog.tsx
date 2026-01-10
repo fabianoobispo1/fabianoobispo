@@ -39,7 +39,6 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 import { MoneyInput } from './money-input'
-import { TransactionTypeBadge } from '../transactions/_components/transaction-type-badge'
 
 export enum TransactionType {
   DEPOSIT = 'DEPOSIT',
@@ -60,14 +59,15 @@ const formSchema = z.object({
   }),
   amount: z
     .number({
-      message: 'O valor é obrigatório.',
+      required_error: 'O valor é obrigatório.',
+      invalid_type_error: 'Digite um valor válido.',
     })
-    .positive(),
+    .positive({ message: 'O valor deve ser maior que zero.' }),
   type: z.nativeEnum(TransactionType, {
     required_error: 'O tipo é obrigatório.',
   }),
-  category: z.string({
-    required_error: 'A categoria é obrigatória.',
+  category: z.string().min(1, {
+    message: 'A categoria é obrigatória.',
   }),
   paymentMethod: z.nativeEnum(TransactionPaymentMethod, {
     required_error: 'O método de pagamento é obrigatório.',
@@ -85,14 +85,16 @@ interface UpsertTransactionDialogProps {
   transactionId?: string
   defaultValues?: FormSchema
   userId?: Id<'user'> | null
-  onTransactionAdd?: () => Promise<void>
 }
 
 export const TRANSACTION_PAYMENT_METHOD_OPTIONS = [
-  { value: 'CASH', label: 'Dinheiro' },
   { value: 'CREDIT_CARD', label: 'Cartão de crédito' },
   { value: 'DEBIT_CARD', label: 'Cartão de débito' },
   { value: 'PIX', label: 'Pix' },
+  { value: 'CASH', label: 'Dinheiro' },
+  { value: 'BANK_TRANSFER', label: 'Transferência bancária' },
+  { value: 'BANK_SLIP', label: 'Boleto' },
+  { value: 'OTHER', label: 'Outro' },
 ]
 
 export const UpsertTransactionDialog = ({
@@ -101,7 +103,6 @@ export const UpsertTransactionDialog = ({
   transactionId,
   defaultValues,
   userId,
-  onTransactionAdd,
 }: UpsertTransactionDialogProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const categories = useQuery(api.categories.list)
@@ -113,11 +114,16 @@ export const UpsertTransactionDialog = ({
       category: '',
       date: new Date(),
       name: '',
-      paymentMethod: TransactionPaymentMethod.CASH,
+      paymentMethod: TransactionPaymentMethod.PIX,
       type: TransactionType.EXPENSE,
     },
   })
   const selectedType = form.watch('type')
+
+  // Filtrar categorias pelo tipo selecionado
+  const filteredCategories = categories?.filter(
+    (cat) => cat.type === selectedType,
+  )
 
   const isUpdate = Boolean(transactionId)
 
@@ -125,40 +131,33 @@ export const UpsertTransactionDialog = ({
 
   const onSubmit = async (data: FormSchema) => {
     if (!userId) {
+      console.error('UserId não encontrado')
       return
     }
-    setIsLoading(true)
-    if (isUpdate) {
-      /*       try {
-        console.log('OnSubmit', transactionId)
-        console.log(data)
 
-        await onTransactionAdd?.()
-        setIsOpen(false)
-        form.reset()
-      } catch (error) {
-        console.error(error)
-      } */
-    } else {
-      try {
-        console.log('OnSubmit', transactionId)
-        console.log(data)
-        await registerTransaction({
-          ...data,
-          amount: data.amount,
-          date: data.date.getTime(),
-          userId,
-          created_at: Date.now(),
-          updated_at: Date.now(),
-        })
-        await onTransactionAdd?.()
-        setIsOpen(false)
-        form.reset()
-      } catch (error) {
-        console.error(error)
-      }
+    try {
+      setIsLoading(true)
+
+      await registerTransaction({
+        name: data.name,
+        amount: data.amount,
+        type: data.type,
+        category: data.category,
+        paymentMethod: data.paymentMethod,
+        date: data.date.getTime(),
+        userId,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      })
+
+      setIsOpen(false)
+      form.reset()
+    } catch (error) {
+      console.error('Erro ao salvar transação:', error)
+      alert('Erro ao salvar transação. Tente novamente.')
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   return (
@@ -225,38 +224,39 @@ export const UpsertTransactionDialog = ({
 
               <FormField
                 control={form.control}
-                name="category"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Categoria</FormLabel>
+                    <FormLabel>Tipo</FormLabel>
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value)
-                        // Encontra a categoria selecionada
-                        const selectedCategory = categories?.find(
-                          (category) => category.name === value,
-                        )
-                        // Atualiza o tipo baseado na categoria
-                        if (selectedCategory) {
-                          form.setValue(
-                            'type',
-                            selectedCategory.type as TransactionType,
-                          )
-                        }
+                        // Limpa a categoria ao mudar o tipo
+                        form.setValue('category', '')
                       }}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
+                          <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories?.map((category) => (
-                          <SelectItem key={category._id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="EXPENSE">
+                          <span className="flex items-center gap-2">
+                            💸 Despesa
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="DEPOSIT">
+                          <span className="flex items-center gap-2">
+                            💰 Receita
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="INVESTMENT">
+                          <span className="flex items-center gap-2">
+                            📈 Investimento
+                          </span>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -264,7 +264,46 @@ export const UpsertTransactionDialog = ({
                 )}
               />
 
-              <TransactionTypeBadge type={selectedType} />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {!filteredCategories ||
+                        filteredCategories.length === 0 ? (
+                          <SelectItem value="sem-categoria" disabled>
+                            Nenhuma categoria para este tipo
+                          </SelectItem>
+                        ) : (
+                          filteredCategories.map((category) => (
+                            <SelectItem
+                              key={category._id}
+                              value={category.name}
+                            >
+                              {category.name}
+                              {category.description && (
+                                <span className="text-xs text-muted-foreground">
+                                  {' - '}
+                                  {category.description}
+                                </span>
+                              )}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

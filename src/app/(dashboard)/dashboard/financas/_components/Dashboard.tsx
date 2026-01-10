@@ -1,7 +1,7 @@
 'use client'
 import { useSession } from 'next-auth/react'
-import { useCallback, useEffect, useState } from 'react'
-import { fetchQuery } from 'convex/nextjs'
+import { useState } from 'react'
+import { useQuery } from 'convex/react'
 
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
@@ -28,33 +28,18 @@ export interface Dashboard {
 
 export function DashboardT() {
   const { data: session } = useSession()
-  const [userId, setUserId] = useState<Id<'user'> | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null)
+  const userId = session?.user?.id as Id<'user'>
   const [selectedTime, setSelectedTime] = useState(
     (new Date().getMonth() + 1).toString().padStart(2, '0'),
   )
 
-  const loadDashboard = useCallback(async () => {
-    setLoading(true)
-    if (session) {
-      setUserId(session.user.id as Id<'user'>)
-      fetchQuery(api.transaction.getDashboard, {
-        month: selectedTime,
-        userId: session.user.id as Id<'user'>,
-      }).then((result) => {
-        setDashboard(result as Dashboard)
-        console.log(result)
-      })
-    }
-    setLoading(false)
-  }, [session, selectedTime])
+  // useQuery atualiza automaticamente quando há mudanças
+  const dashboard = useQuery(
+    api.transaction.getDashboard,
+    userId ? { month: selectedTime, userId } : 'skip',
+  )
 
-  useEffect(() => {
-    if (session) {
-      loadDashboard()
-    }
-  }, [loadDashboard, session])
+  const isLoading = !dashboard
 
   return (
     <ScrollArea className="   h-[calc(100vh-180px)] pr-2 ">
@@ -67,7 +52,7 @@ export function DashboardT() {
 
       <div className="grid grid-cols-1 gap-6 overflow-hidden lg:grid-cols-1 pr-2">
         <div className="space-y-6 overflow-hidden">
-          {loading ? (
+          {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <Spinner />
             </div>

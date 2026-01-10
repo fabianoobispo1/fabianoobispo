@@ -1,27 +1,26 @@
 import { CircleIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
-import { TransactionType } from '@/types'
 
 const TRANSACTION_TYPE_STYLES: Record<
-  TransactionType,
+  'DEPOSIT' | 'EXPENSE' | 'INVESTMENT',
   {
     label: string
     className: string
     iconClassName: string
   }
 > = {
-  [TransactionType.DEPOSIT]: {
+  DEPOSIT: {
     label: 'Depósito',
     className: 'bg-primary/15 font-bold text-primary hover:bg-primary',
     iconClassName: 'fill-primary',
   },
-  [TransactionType.EXPENSE]: {
+  EXPENSE: {
     label: 'Despesa',
     className: 'font-bold bg-danger bg-opacity-10 text-danger',
     iconClassName: 'fill-danger',
   },
-  [TransactionType.INVESTMENT]: {
+  INVESTMENT: {
     label: 'Investimento',
     className: 'font-bold bg-white bg-opacity-10 text-white',
     iconClassName: 'fill-white',
@@ -29,7 +28,7 @@ const TRANSACTION_TYPE_STYLES: Record<
 }
 
 interface TransactionTypeBadgeProps {
-  type: TransactionType
+  type: 'DEPOSIT' | 'EXPENSE' | 'INVESTMENT'
 }
 
 export const TransactionTypeBadge = ({ type }: TransactionTypeBadgeProps) => {

@@ -77,11 +77,14 @@ export const create = mutation({
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/../convex/_generated/api'
 
-const data = useQuery(api.financeiro.getByUser, { userId: user.id })
-const create = useMutation(api.financeiro.create)
+const data = useQuery(api.transaction.getDashboard, {
+  month: '01',
+  userId: user.id,
+})
+const create = useMutation(api.transaction.create)
 
 // Mutations retornam promises
-await create({ descricao: 'test', valor: 100, userId: user.id })
+await create({ name: 'Teste', amount: 100, type: 'EXPENSE', userId: user.id })
 ```
 
 **Padrão Alternativo com fetchQuery/fetchMutation**:
@@ -196,12 +199,14 @@ Componentes são instalados em `src/components/ui/` com alias `@/components/ui`
 
 ## Padrões Específicos dos Módulos
 
-### Dashboard Financeiro (`src/components/financas/`)
+### Dashboard Financeiro (`/dashboard/financas`)
 
-- Usa `api.dashboard.getDashboardData` para buscar `financeiro` + `cartoes`
-- Tipos de status: `"PAGO" | "PENDENTE" | "ATRASADO"`
+- Usa `api.transaction.getDashboard` para buscar dados mensais
+- Tipos de transação: `DEPOSIT` (receitas), `EXPENSE` (despesas), `INVESTMENT` (investimentos)
+- Métodos de pagamento: `CREDIT_CARD`, `DEBIT_CARD`, `PIX`, `CASH`, `BANK_TRANSFER`, etc.
 - Datas armazenadas como timestamps Unix (number)
-- Métodos de pagamento: `CREDIT_CARD`, `PIX`, `CASH`, etc. (veja `convex/schema.ts`)
+- Sistema com categorias dinâmicas via `categories`
+- Componentes principais em `src/app/(dashboard)/dashboard/financas/_components/`
 
 ### DontPad - Editor de Texto Colaborativo (`src/app/(public_routes)/dontpad/`)
 

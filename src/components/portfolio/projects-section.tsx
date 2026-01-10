@@ -7,6 +7,7 @@ import {
   FileText,
   Users,
   Medal,
+  Activity,
   ExternalLink,
 } from 'lucide-react'
 
@@ -71,6 +72,16 @@ export function ProjectsSection() {
       tags: ['React', 'Next.js', 'TypeScript', 'Gestão Esportiva'],
       link: 'https://www.jfimperadores.com.br/imperadores',
       color: 'text-red-500',
+      external: true,
+    },
+    {
+      title: 'Sistema Fisiosport',
+      description:
+        'Sistema completo de gestão para clínicas de fisioterapia e pilates, com controle de pacientes, agendamentos, prontuários e relatórios.',
+      icon: Activity,
+      tags: ['React', 'Node.js', 'PostgreSQL', 'Material-UI'],
+      link: 'https://sistema.fisiosport.com.br/',
+      color: 'text-cyan-500',
       external: true,
     },
   ]

@@ -4,7 +4,25 @@ import { mutation, query } from './_generated/server'
 
 export const list = query({
   handler: async (ctx) => {
-    const categories = await ctx.db.query('categories').collect()
+    const categories = await ctx.db
+      .query('categories')
+      .filter((q) => q.eq(q.field('active'), true))
+      .order('asc')
+      .collect()
+    return categories
+  },
+})
+
+export const listByType = query({
+  args: {
+    type: v.string(),
+  },
+  handler: async (ctx, { type }) => {
+    const categories = await ctx.db
+      .query('categories')
+      .withIndex('by_type', (q) => q.eq('type', type))
+      .filter((q) => q.eq(q.field('active'), true))
+      .collect()
     return categories
   },
 })

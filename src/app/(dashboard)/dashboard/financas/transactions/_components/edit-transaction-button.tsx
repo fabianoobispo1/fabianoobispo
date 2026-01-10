@@ -14,12 +14,10 @@ import {
 
 interface EditTransactionButtonProps {
   transaction: Transaction
-  onEdit: () => Promise<void>
 }
 
 export const EditTransactionButton = ({
   transaction,
-  onEdit,
 }: EditTransactionButtonProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -35,7 +33,6 @@ export const EditTransactionButton = ({
       </Button>
 
       <UpsertTransactionDialog
-        onTransactionAdd={onEdit}
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
         transactionId={transaction._id}

@@ -6,14 +6,13 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { Id } from '@/convex/_generated/dataModel'
-import type { TransactionType } from '@/types'
 
 import { TRANSACTION_PAYMENT_METHOD_ICONS } from './_constants/transactions'
 
 export interface Transaction {
   _id: Id<'transactions'>
   name: string
-  type: TransactionType
+  type: 'DEPOSIT' | 'EXPENSE' | 'INVESTMENT'
   amount: number
   category: string
   paymentMethod:
