@@ -12,8 +12,24 @@ import ThemeProvider from '@/components/layout/ThemeToggle/theme-provider'
 import Chatwoot from '@/components/chatwoot'
 
 export const metadata: Metadata = {
-  title: 'Fabiano Bispo',
-  description: 'Página Pagina inicial do meu site',
+  title: 'Fabiano Bispo | Desenvolvedor Full Stack',
+  description:
+    'Portfólio de Fabiano Bispo - Desenvolvedor Full Stack especializado em React, Next.js, TypeScript e soluções modernas e escaláveis.',
+  keywords: [
+    'desenvolvedor',
+    'full stack',
+    'react',
+    'next.js',
+    'typescript',
+    'portfolio',
+  ],
+  authors: [{ name: 'Fabiano Bispo' }],
+  openGraph: {
+    title: 'Fabiano Bispo | Desenvolvedor Full Stack',
+    description:
+      'Desenvolvedor Full Stack especializado em criar soluções modernas e escaláveis',
+    type: 'website',
+  },
 }
 
 export default async function RootLayout({
@@ -26,7 +42,7 @@ export default async function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className={'font-inter overflow-hidden'}>
+      <body className="font-inter">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextTopLoader showSpinner={false} />
           <ConvexClientProvider>

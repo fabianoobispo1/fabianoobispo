@@ -134,7 +134,9 @@ export const getAllUserRole = query({
       throw new Error('Não autenticado')
     }
     if (identity.email !== 'fbc623@gmail.com') {
-      throw new Error('Acesso negado: apenas administradores podem listar usuários')
+      throw new Error(
+        'Acesso negado: apenas administradores podem listar usuários',
+      )
     }
 
     const user = await db.query('user').collect()
@@ -152,7 +154,9 @@ export const toggleUserRole = mutation({
       throw new Error('Não autenticado')
     }
     if (identity.email !== 'fbc623@gmail.com') {
-      throw new Error('Acesso negado: apenas administradores podem alterar roles de usuários')
+      throw new Error(
+        'Acesso negado: apenas administradores podem alterar roles de usuários',
+      )
     }
 
     const user = await db.get(userId)
