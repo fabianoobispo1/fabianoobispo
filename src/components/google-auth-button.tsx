@@ -36,7 +36,6 @@ export default function GoogleSignInButton() {
       type="button"
       loading={loading}
       onClick={() => handleLogin()}
-      disabled={true}
     >
       <Icons.google className="mr-2 h-4 w-4" />
       Continue Com Google
