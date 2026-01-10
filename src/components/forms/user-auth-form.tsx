@@ -18,8 +18,8 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 
 import { LoadingButton } from '../../components/ui/loading-button'
-/* import GoogleSignInButton from '../google-auth-button'
- */
+import GoogleSignInButton from '../google-auth-button'
+
 const formSchema = z.object({
   email: z.string().email({ message: 'Digite um email valido.' }),
   password: z.string().min(8, { message: 'Senha obrigatoria, min 8' }),
@@ -122,7 +122,7 @@ export default function UserAuthForm() {
           </LoadingButton>
         </form>
       </Form>
-      {/* <div className="relative">
+      <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
@@ -131,9 +131,9 @@ export default function UserAuthForm() {
             ou continue com
           </span>
         </div>
-      </div> */}
+      </div>
       {/* mudar o nome do componete */}
-      {/*       <GoogleSignInButton /> */}
+      <GoogleSignInButton />
       {/*     <GitHubSignInButton /> */}
     </>
   )
