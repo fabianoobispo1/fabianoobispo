@@ -7,7 +7,6 @@ import type { SignInResponse } from 'next-auth/react'
 
 import { Icons } from './icons'
 import { LoadingButton } from './ui/loading-button'
-import { tr } from 'date-fns/locale'
 
 export default function GoogleSignInButton() {
   const [loading, setLoading] = useState(false)
