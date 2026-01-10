@@ -6,6 +6,7 @@ import {
   Dumbbell,
   FileText,
   Users,
+  Shield,
   ExternalLink,
 } from 'lucide-react'
 
@@ -60,6 +61,16 @@ export function ProjectsSection() {
       tags: ['React', 'Node.js', 'MySQL', 'Email'],
       link: 'https://www.adicacerta.com',
       color: 'text-orange-500',
+      external: true,
+    },
+    {
+      title: 'JF Imperadores',
+      description:
+        'Site para divulgação e gerenciamento do time de futebol americano JF Imperadores, com informações da equipe, jogadores e eventos.',
+      icon: Shield,
+      tags: ['React', 'Next.js', 'TypeScript', 'Gestão Esportiva'],
+      link: 'https://www.jfimperadores.com.br/imperadores',
+      color: 'text-red-500',
       external: true,
     },
   ]

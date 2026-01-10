@@ -86,6 +86,16 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="https://www.jfimperadores.com.br/imperadores"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  JF Imperadores
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/dontpad/exemplo"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                 >
