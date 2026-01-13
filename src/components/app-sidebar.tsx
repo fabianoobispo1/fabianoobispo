@@ -8,6 +8,7 @@ import {
   Settings,
   ChevronDown,
   Dumbbell,
+  MessageSquare,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { useState } from 'react'
@@ -57,6 +58,11 @@ const items = [
     title: 'Finanças',
     url: '/dashboard/financas',
     icon: DollarSign,
+  },
+  {
+    title: 'WhatsApp Business',
+    url: '/dashboard/whatsapp',
+    icon: MessageSquare,
   },
   {
     title: 'Perfil',

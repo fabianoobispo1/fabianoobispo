@@ -117,6 +117,110 @@ export const exerciseSchema = {
   updated_at: v.number(),
 }
 
+// Schema para Templates de Mensagens WhatsApp
+export const whatsAppTemplateSchema = {
+  name: v.string(), // Nome do template
+  category: v.string(), // 'MARKETING', 'TRANSACIONAL', 'OTP', 'NOTIFICACAO'
+  content: v.string(), // Conteúdo da mensagem
+  variables: v.array(
+    v.object({
+      name: v.string(), // Ex: {{1}}, {{2}}
+      placeholder: v.string(), // Ex: "nome", "email"
+      type: v.union(
+        v.literal('text'),
+        v.literal('number'),
+        v.literal('date'),
+        v.literal('url'),
+      ),
+      required: v.boolean(),
+    }),
+  ),
+  status: v.union(
+    v.literal('draft'),
+    v.literal('approved'),
+    v.literal('rejected'),
+  ),
+  metaApprovalId: v.optional(v.string()), // ID da aprovação Meta
+  rejectionReason: v.optional(v.string()),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+  userId: v.id('user'),
+}
+
+// Schema para Campanhas de Envio
+export const campaignSchema = {
+  name: v.string(),
+  description: v.optional(v.string()),
+  templateId: v.id('whatsAppTemplate'),
+  status: v.union(
+    v.literal('draft'),
+    v.literal('scheduled'),
+    v.literal('sending'),
+    v.literal('sent'),
+    v.literal('paused'),
+    v.literal('cancelled'),
+  ),
+  recipientList: v.array(
+    v.object({
+      phone: v.string(), // Número WhatsApp com código de país
+      variables: v.array(v.string()), // Valores para cada placeholder
+    }),
+  ),
+  scheduledFor: v.optional(v.number()), // Timestamp para agendamento
+  startedAt: v.optional(v.number()),
+  completedAt: v.optional(v.number()),
+  totalRecipients: v.number(),
+  sentCount: v.number(),
+  failedCount: v.number(),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+  userId: v.id('user'),
+}
+
+// Schema para Rastreamento de Mensagens
+export const messageTrackingSchema = {
+  campaignId: v.id('campaign'),
+  userId: v.id('user'),
+  phoneNumber: v.string(),
+  messageContent: v.string(),
+  status: v.union(
+    v.literal('pending'),
+    v.literal('sent'),
+    v.literal('delivered'),
+    v.literal('read'),
+    v.literal('failed'),
+  ),
+  metaMessageId: v.optional(v.string()),
+  failureReason: v.optional(v.string()),
+  sentAt: v.optional(v.number()),
+  deliveredAt: v.optional(v.number()),
+  readAt: v.optional(v.number()),
+  retryCount: v.number(),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+}
+
+// Schema para Logs de Atividades
+export const activityLogSchema = {
+  userId: v.id('user'),
+  action: v.string(), // 'template_created', 'campaign_started', 'message_sent', etc.
+  resourceType: v.string(), // 'template', 'campaign', 'message'
+  resourceId: v.optional(v.string()),
+  details: v.optional(v.string()),
+  timestamp: v.number(),
+}
+
+// Schema para Contatos (importados)
+export const contactsSchema = {
+  number: v.string(),
+  name: v.string(),
+  lastMessageAt: v.string(), // ISO date string
+  lastMessageText: v.string(),
+  userId: v.id('user'),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -140,4 +244,22 @@ export default defineSchema({
   exercise: defineTable(exerciseSchema)
     .index('by_day', ['dayId'])
     .index('by_catalog', ['catalogId']),
+  whatsAppTemplate: defineTable(whatsAppTemplateSchema)
+    .index('by_user', ['userId'])
+    .index('by_status', ['status']),
+  campaign: defineTable(campaignSchema)
+    .index('by_user', ['userId'])
+    .index('by_status', ['status'])
+    .index('by_template', ['templateId']),
+  messageTracking: defineTable(messageTrackingSchema)
+    .index('by_campaign', ['campaignId'])
+    .index('by_user', ['userId'])
+    .index('by_phone', ['phoneNumber'])
+    .index('by_status', ['status']),
+  activityLog: defineTable(activityLogSchema)
+    .index('by_user', ['userId'])
+    .index('by_action', ['action']),
+  contacts: defineTable(contactsSchema)
+    .index('by_user', ['userId'])
+    .index('by_user_number', ['userId', 'number']),
 })
