@@ -108,8 +108,8 @@ export default function ImportarContatosPage() {
     setProgress({ current: 0, total: contacts.length })
 
     try {
-      // Processar em lotes de 1000 contatos por vez
-      const CHUNK_SIZE = 1000
+      // Processar em lotes menores (100) para evitar timeout do Convex
+      const CHUNK_SIZE = 100
       let totalInserted = 0
       let totalUpdated = 0
       let totalSkipped = 0
@@ -132,7 +132,7 @@ export default function ImportarContatosPage() {
 
         // Pequeno delay para evitar sobrecarga
         if (i + CHUNK_SIZE < contacts.length) {
-          await new Promise((resolve) => setTimeout(resolve, 100))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
       }
 

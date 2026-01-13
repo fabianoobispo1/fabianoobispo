@@ -14,23 +14,28 @@ export const importFromJson = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    try {
-      const now = Date.now()
-      let inserted = 0
-      let updated = 0
-      let skipped = 0
+    const now = Date.now()
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
 
-      // Busca todos os contatos existentes do usuário uma única vez
-      const existing = await ctx.db
-        .query('contacts')
-        .withIndex('by_user', (q) => q.eq('userId', args.userId))
-        .collect()
+    // Limita processamento para debug
+    console.log(`Starting import of ${args.contacts.length} contacts for user ${args.userId}`)
 
-      // Cria um mapa para busca rápida por número
-      const existingMap = new Map(existing.map((c) => [c.number, c._id]))
+    // Busca todos os contatos existentes do usuário uma única vez
+    const existing = await ctx.db
+      .query('contacts')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .collect()
 
-      // Processa cada contato sequencialmente para evitar race conditions
-      for (const contact of args.contacts) {
+    console.log(`Found ${existing.length} existing contacts`)
+
+    // Cria um mapa para busca rápida por número
+    const existingMap = new Map(existing.map((c) => [c.number, c._id]))
+
+    // Processa cada contato sequencialmente para evitar race conditions
+    for (const contact of args.contacts) {
+      try {
         // Valida dados obrigatórios
         if (!contact.number || !contact.name) {
           skipped++
@@ -71,15 +76,14 @@ export const importFromJson = mutation({
           })
           inserted++
         }
+      } catch (innerError) {
+        console.error(`Error processing contact ${contact.number}:`, innerError)
+        skipped++
       }
-
-      return { inserted, updated, skipped }
-    } catch (error) {
-      console.error('Error importing contacts:', error)
-      throw new Error(
-        `Erro ao importar contatos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
-      )
     }
+
+    console.log(`Import complete: ${inserted} inserted, ${updated} updated, ${skipped} skipped`)
+    return { inserted, updated, skipped }
   },
 })
 
