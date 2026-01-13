@@ -35,10 +35,12 @@ interface ContactItem {
 export default function ImportarContatosPage() {
   const { data: session } = useSession()
   const importContacts = useMutation(api.contacts.importFromJson)
+  const importContactsOptimized = useMutation(api.contacts.importFromJsonOptimized)
 
   const [contacts, setContacts] = useState<ContactItem[] | null>(null)
   const [fileName, setFileName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [useOptimized, setUseOptimized] = useState(false)
   const [progress, setProgress] = useState({ current: 0, total: 0 })
   const [result, setResult] = useState<{
     inserted: number
@@ -108,16 +110,18 @@ export default function ImportarContatosPage() {
     setProgress({ current: 0, total: contacts.length })
 
     try {
-      // Processar em lotes menores (100) para evitar timeout do Convex
-      const CHUNK_SIZE = 100
+      // Define tamanho do lote baseado no método escolhido
+      const CHUNK_SIZE = useOptimized ? 50 : 100
       let totalInserted = 0
       let totalUpdated = 0
       let totalSkipped = 0
 
+      const importFn = useOptimized ? importContactsOptimized : importContacts
+
       for (let i = 0; i < contacts.length; i += CHUNK_SIZE) {
         const chunk = contacts.slice(i, i + CHUNK_SIZE)
 
-        const res = await importContacts({
+        const res = await importFn({
           userId: session.user.id as Id<'user'>,
           contacts: chunk,
         })
@@ -130,9 +134,9 @@ export default function ImportarContatosPage() {
           total: contacts.length,
         })
 
-        // Pequeno delay para evitar sobrecarga
+        // Delay ajustado baseado no método
         if (i + CHUNK_SIZE < contacts.length) {
-          await new Promise((resolve) => setTimeout(resolve, 200))
+          await new Promise((resolve) => setTimeout(resolve, useOptimized ? 300 : 200))
         }
       }
 
@@ -170,7 +174,7 @@ export default function ImportarContatosPage() {
             Selecione o arquivo com a estrutura esperada
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <Input
             type="file"
             accept="application/json"
@@ -181,6 +185,43 @@ export default function ImportarContatosPage() {
               Selecionado: {fileName}
             </p>
           )}
+
+          {contacts && contacts.length > 0 && (
+            <div className="p-4 border rounded-lg space-y-3">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="use-optimized"
+                  checked={useOptimized}
+                  onChange={(e) => setUseOptimized(e.target.checked)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <label
+                    htmlFor="use-optimized"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Usar modo otimizado para grandes volumes
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {useOptimized ? (
+                      <>
+                        ✓ Recomendado para +100k contatos no banco. Busca
+                        individual por contato (mais lento, mas sem limite de
+                        leitura)
+                      </>
+                    ) : (
+                      <>
+                        ✓ Modo padrão: Carrega contatos existentes com
+                        paginação. Mais rápido para volumes médios (até 50k)
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           {loading && progress.total > 0 && (
