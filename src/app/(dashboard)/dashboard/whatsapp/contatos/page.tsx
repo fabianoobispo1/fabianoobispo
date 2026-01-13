@@ -43,6 +43,7 @@ export default function ImportarContatosPage() {
   const [result, setResult] = useState<{
     inserted: number
     updated: number
+    skipped?: number
   } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -111,6 +112,7 @@ export default function ImportarContatosPage() {
       const CHUNK_SIZE = 1000
       let totalInserted = 0
       let totalUpdated = 0
+      let totalSkipped = 0
 
       for (let i = 0; i < contacts.length; i += CHUNK_SIZE) {
         const chunk = contacts.slice(i, i + CHUNK_SIZE)
@@ -122,6 +124,7 @@ export default function ImportarContatosPage() {
 
         totalInserted += res.inserted
         totalUpdated += res.updated
+        totalSkipped += res.skipped || 0
         setProgress({
           current: Math.min(i + CHUNK_SIZE, contacts.length),
           total: contacts.length,
@@ -133,7 +136,11 @@ export default function ImportarContatosPage() {
         }
       }
 
-      setResult({ inserted: totalInserted, updated: totalUpdated })
+      setResult({
+        inserted: totalInserted,
+        updated: totalUpdated,
+        skipped: totalSkipped,
+      })
     } catch (err) {
       setError(
         err instanceof Error
@@ -205,6 +212,9 @@ export default function ImportarContatosPage() {
             {result && (
               <Badge variant="outline">
                 Inseridos: {result.inserted} • Atualizados: {result.updated}
+                {result.skipped && result.skipped > 0
+                  ? ` • Ignorados: ${result.skipped}`
+                  : ''}
               </Badge>
             )}
           </div>
