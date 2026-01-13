@@ -18,16 +18,23 @@ export const importFromJson = mutation({
     let inserted = 0
     let updated = 0
 
-    for (const contact of args.contacts) {
-      const existing = await ctx.db
-        .query('contacts')
-        .withIndex('by_user_number', (q) =>
-          q.eq('userId', args.userId).eq('number', contact.number),
-        )
-        .first()
+    // Busca todos os contatos existentes do usuário para evitar multiple queries
+    const existing = await ctx.db
+      .query('contacts')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .collect()
 
-      if (existing) {
-        await ctx.db.patch(existing._id, {
+    // Cria um mapa para busca rápida por número
+    const existingMap = new Map(
+      existing.map((c) => [c.number, c._id]),
+    )
+
+    // Processa contatos em batch
+    for (const contact of args.contacts) {
+      const existingId = existingMap.get(contact.number)
+
+      if (existingId) {
+        await ctx.db.patch(existingId, {
           name: contact.name,
           lastMessageAt: contact.lastMessageAt,
           lastMessageText: contact.lastMessageText,
