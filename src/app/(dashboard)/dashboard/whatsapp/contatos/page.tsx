@@ -35,7 +35,9 @@ interface ContactItem {
 export default function ImportarContatosPage() {
   const { data: session } = useSession()
   const importContacts = useMutation(api.contacts.importFromJson)
-  const importContactsOptimized = useMutation(api.contacts.importFromJsonOptimized)
+  const importContactsOptimized = useMutation(
+    api.contacts.importFromJsonOptimized,
+  )
 
   const [contacts, setContacts] = useState<ContactItem[] | null>(null)
   const [fileName, setFileName] = useState('')
@@ -136,7 +138,9 @@ export default function ImportarContatosPage() {
 
         // Delay ajustado baseado no método
         if (i + CHUNK_SIZE < contacts.length) {
-          await new Promise((resolve) => setTimeout(resolve, useOptimized ? 300 : 200))
+          await new Promise((resolve) =>
+            setTimeout(resolve, useOptimized ? 300 : 200),
+          )
         }
       }
 

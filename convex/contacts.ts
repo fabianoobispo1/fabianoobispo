@@ -19,19 +19,21 @@ export const importFromJson = mutation({
     let updated = 0
     let skipped = 0
 
-    console.log(`Starting import of ${args.contacts.length} contacts for user ${args.userId}`)
+    console.log(
+      `Starting import of ${args.contacts.length} contacts for user ${args.userId}`,
+    )
 
     // Busca contatos existentes com paginação para evitar limite de 32k
     const existingMap = new Map<string, any>()
     let cursor = null
     let totalExisting = 0
-    
+
     do {
       const page = await ctx.db
         .query('contacts')
         .withIndex('by_user', (q) => q.eq('userId', args.userId))
         .paginate({ cursor, numItems: 1000 })
-      
+
       page.page.forEach((c) => existingMap.set(c.number, c._id))
       totalExisting += page.page.length
       cursor = page.isDone ? null : page.continueCursor
@@ -88,7 +90,9 @@ export const importFromJson = mutation({
       }
     }
 
-    console.log(`Import complete: ${inserted} inserted, ${updated} updated, ${skipped} skipped`)
+    console.log(
+      `Import complete: ${inserted} inserted, ${updated} updated, ${skipped} skipped`,
+    )
     return { inserted, updated, skipped }
   },
 })
@@ -135,15 +139,19 @@ export const importFromJsonOptimized = mutation({
         const cleanContact = {
           number: String(contact.number).trim(),
           name: String(contact.name).trim(),
-          lastMessageAt: contact.lastMessageAt ? String(contact.lastMessageAt) : '',
-          lastMessageText: contact.lastMessageText ? String(contact.lastMessageText) : '',
+          lastMessageAt: contact.lastMessageAt
+            ? String(contact.lastMessageAt)
+            : '',
+          lastMessageText: contact.lastMessageText
+            ? String(contact.lastMessageText)
+            : '',
         }
 
         // Busca apenas este contato específico (operação muito mais leve)
         const existing = await ctx.db
           .query('contacts')
-          .withIndex('by_user_number', (q) => 
-            q.eq('userId', args.userId).eq('number', cleanContact.number)
+          .withIndex('by_user_number', (q) =>
+            q.eq('userId', args.userId).eq('number', cleanContact.number),
           )
           .first()
 
@@ -173,7 +181,9 @@ export const importFromJsonOptimized = mutation({
       }
     }
 
-    console.log(`Optimized import complete: ${inserted} inserted, ${updated} updated, ${skipped} skipped`)
+    console.log(
+      `Optimized import complete: ${inserted} inserted, ${updated} updated, ${skipped} skipped`,
+    )
     return { inserted, updated, skipped }
   },
 })
@@ -183,18 +193,18 @@ export const deleteByUser = mutation({
   handler: async (ctx, args) => {
     let cursor = null
     let totalDeleted = 0
-    
+
     do {
       const page = await ctx.db
         .query('contacts')
         .withIndex('by_user', (q) => q.eq('userId', args.userId))
         .paginate({ cursor, numItems: 100 })
-      
+
       for (const contact of page.page) {
         await ctx.db.delete(contact._id)
         totalDeleted++
       }
-      
+
       cursor = page.isDone ? null : page.continueCursor
     } while (cursor !== null)
 
