@@ -39,6 +39,7 @@ export default function ImportarContatosPage() {
   const [contacts, setContacts] = useState<ContactItem[] | null>(null)
   const [fileName, setFileName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState({ current: 0, total: 0 })
   const [result, setResult] = useState<{
     inserted: number
     updated: number
@@ -103,12 +104,36 @@ export default function ImportarContatosPage() {
     }
     setLoading(true)
     setError(null)
+    setProgress({ current: 0, total: contacts.length })
+
     try {
-      const res = await importContacts({
-        userId: session.user.id as Id<'user'>,
-        contacts,
-      })
-      setResult(res)
+      // Processar em lotes de 1000 contatos por vez
+      const CHUNK_SIZE = 1000
+      let totalInserted = 0
+      let totalUpdated = 0
+
+      for (let i = 0; i < contacts.length; i += CHUNK_SIZE) {
+        const chunk = contacts.slice(i, i + CHUNK_SIZE)
+
+        const res = await importContacts({
+          userId: session.user.id as Id<'user'>,
+          contacts: chunk,
+        })
+
+        totalInserted += res.inserted
+        totalUpdated += res.updated
+        setProgress({
+          current: Math.min(i + CHUNK_SIZE, contacts.length),
+          total: contacts.length,
+        })
+
+        // Pequeno delay para evitar sobrecarga
+        if (i + CHUNK_SIZE < contacts.length) {
+          await new Promise((resolve) => setTimeout(resolve, 100))
+        }
+      }
+
+      setResult({ inserted: totalInserted, updated: totalUpdated })
     } catch (err) {
       setError(
         err instanceof Error
@@ -117,6 +142,7 @@ export default function ImportarContatosPage() {
       )
     } finally {
       setLoading(false)
+      setProgress({ current: 0, total: 0 })
     }
   }
 
@@ -149,6 +175,26 @@ export default function ImportarContatosPage() {
             </p>
           )}
           {error && <p className="text-sm text-red-600">{error}</p>}
+
+          {loading && progress.total > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Processando...</span>
+                <span>
+                  {progress.current} / {progress.total}
+                </span>
+              </div>
+              <div className="w-full bg-secondary rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(progress.current / progress.total) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <Button
               onClick={handleImport}
@@ -169,7 +215,10 @@ export default function ImportarContatosPage() {
         <Card>
           <CardHeader>
             <CardTitle>Pré-visualização</CardTitle>
-            <CardDescription>Mostrando até 10 contatos</CardDescription>
+            <CardDescription>
+              Total: {contacts.length.toLocaleString('pt-BR')} contatos •
+              Mostrando até 10
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
@@ -187,7 +236,7 @@ export default function ImportarContatosPage() {
                     </p>
                   )}
                   {c.lastMessageText && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       Texto: {c.lastMessageText}
                     </p>
                   )}
