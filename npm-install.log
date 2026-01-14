@@ -1,0 +1,31 @@
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: @react-three/drei@10.7.7
+npm error Found: react@18.3.1
+npm error node_modules/react
+npm error   react@"^18.2.0" from the root project
+npm error   peer react@">=16.8.0" from @dnd-kit/sortable@9.0.0
+npm error   node_modules/@dnd-kit/sortable
+npm error     @dnd-kit/sortable@"^9.0.0" from the root project
+npm error   107 more (@dnd-kit/utilities, @floating-ui/react-dom, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"^19" from @react-three/drei@10.7.7
+npm error node_modules/@react-three/drei
+npm error   @react-three/drei@"^10.7.7" from the root project
+npm error
+npm error Conflicting peer dependency: react@19.2.3
+npm error node_modules/react
+npm error   peer react@"^19" from @react-three/drei@10.7.7
+npm error   node_modules/@react-three/drei
+npm error     @react-three/drei@"^10.7.7" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/codespace/.npm/_logs/2026-01-14T13_11_12_967Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/codespace/.npm/_logs/2026-01-14T13_11_12_967Z-debug-0.log

@@ -27,7 +27,14 @@ const gap = 0.06
 const step = size + gap
 
 function faceColorDefaults(): Faces {
-  return { U: '#ffffff', D: '#ffff00', F: '#00a800', B: '#0055ff', R: '#ff0000', L: '#ff8c00' }
+  return {
+    U: '#ffffff',
+    D: '#ffff00',
+    F: '#00a800',
+    B: '#0055ff',
+    R: '#ff0000',
+    L: '#ff8c00',
+  }
 }
 
 function createSolvedCubies(): Cubie[] {
@@ -90,7 +97,20 @@ export default function RubiksCube3D() {
   }
 
   function scramble(times = 20) {
-    const movesList = ['U', "U'", 'D', "D'", 'L', "L'", 'R', "R'", 'F', "F'", 'B', "B'"]
+    const movesList = [
+      'U',
+      "U'",
+      'D',
+      "D'",
+      'L',
+      "L'",
+      'R',
+      "R'",
+      'F',
+      "F'",
+      'B',
+      "B'",
+    ]
     let newCubies = cubies.slice()
     for (let i = 0; i < times; i++) {
       const mv = movesList[Math.floor(Math.random() * movesList.length)]
@@ -106,28 +126,50 @@ export default function RubiksCube3D() {
     // move examples: U, U', R, R', etc.
     const clockwise = !move.includes("'")
     const face = move.replace("'", '') as 'U' | 'D' | 'L' | 'R' | 'F' | 'B'
-    const axisMap: Record<string, 'x' | 'y' | 'z'> = { U: 'y', D: 'y', L: 'x', R: 'x', F: 'z', B: 'z' }
-    const indexMap: Record<string, number> = { U: 1, D: -1, L: -1, R: 1, F: 1, B: -1 }
+    const axisMap: Record<string, 'x' | 'y' | 'z'> = {
+      U: 'y',
+      D: 'y',
+      L: 'x',
+      R: 'x',
+      F: 'z',
+      B: 'z',
+    }
+    const indexMap: Record<string, number> = {
+      U: 1,
+      D: -1,
+      L: -1,
+      R: 1,
+      F: 1,
+      B: -1,
+    }
     const axis = axisMap[face]
     const index = indexMap[face]
 
     // rotate positions
-    const newState = state.map((c) => ({ ...c, pos: [...c.pos] as Vec3, faces: { ...c.faces } }))
+    const newState = state.map((c) => ({
+      ...c,
+      pos: [...c.pos] as Vec3,
+      faces: { ...c.faces },
+    }))
     const toRotate = newState.filter((c) => {
       const p = c.pos
-      return axis === 'x' ? p[0] === index : axis === 'y' ? p[1] === index : p[2] === index
+      return axis === 'x'
+        ? p[0] === index
+        : axis === 'y'
+          ? p[1] === index
+          : p[2] === index
     })
 
     const rotatePos = (p: Vec3) => {
       const [x, y, z] = p
       if (axis === 'x') {
-        return clockwise ? [x, -z, y] as Vec3 : [x, z, -y] as Vec3
+        return clockwise ? ([x, -z, y] as Vec3) : ([x, z, -y] as Vec3)
       }
       if (axis === 'y') {
-        return clockwise ? [z, y, -x] as Vec3 : [-z, y, x] as Vec3
+        return clockwise ? ([z, y, -x] as Vec3) : ([-z, y, x] as Vec3)
       }
       // z
-      return clockwise ? [-y, x, z] as Vec3 : [y, -x, z] as Vec3
+      return clockwise ? ([-y, x, z] as Vec3) : ([y, -x, z] as Vec3)
     }
 
     // face rotation mapping for stickers (simple permutation)
@@ -153,8 +195,6 @@ export default function RubiksCube3D() {
     const merged = [...others, ...toRotate]
     return merged
   }
-
-  const controls = useMemo(() => ({ touchRotate: true }), [])
 
   // LOD state: true = high detail, false = low detail
   const [highDetail, setHighDetail] = useState(true)
@@ -191,22 +231,34 @@ export default function RubiksCube3D() {
 
     return (
       <>
-        <instancedMesh ref={instRef} args={[undefined, undefined, cubies.length]}>
+        <instancedMesh
+          ref={instRef}
+          args={[undefined, undefined, cubies.length]}
+        >
           <boxGeometry args={[size, size, size]} />
           <meshStandardMaterial color="#111827" />
         </instancedMesh>
 
         {/* stickers rendered as normal meshes (can be instanced further if needed) */}
         {cubies.map((c) => (
-          <group key={c.id} position={[c.pos[0] * step, c.pos[1] * step, c.pos[2] * step]}>
+          <group
+            key={c.id}
+            position={[c.pos[0] * step, c.pos[1] * step, c.pos[2] * step]}
+          >
             {c.faces.U && (
-              <mesh position={[0, size / 2 + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <mesh
+                position={[0, size / 2 + 0.001, 0]}
+                rotation={[-Math.PI / 2, 0, 0]}
+              >
                 <planeGeometry args={[0.8, 0.8]} />
                 <meshStandardMaterial color={c.faces.U} />
               </mesh>
             )}
             {c.faces.D && (
-              <mesh position={[0, -size / 2 - 0.001, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <mesh
+                position={[0, -size / 2 - 0.001, 0]}
+                rotation={[Math.PI / 2, 0, 0]}
+              >
                 <planeGeometry args={[0.8, 0.8]} />
                 <meshStandardMaterial color={c.faces.D} />
               </mesh>
@@ -218,19 +270,28 @@ export default function RubiksCube3D() {
               </mesh>
             )}
             {c.faces.B && (
-              <mesh position={[0, 0, -size / 2 - 0.001]} rotation={[0, Math.PI, 0]}>
+              <mesh
+                position={[0, 0, -size / 2 - 0.001]}
+                rotation={[0, Math.PI, 0]}
+              >
                 <planeGeometry args={[0.8, 0.8]} />
                 <meshStandardMaterial color={c.faces.B} />
               </mesh>
             )}
             {c.faces.R && (
-              <mesh position={[size / 2 + 0.001, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+              <mesh
+                position={[size / 2 + 0.001, 0, 0]}
+                rotation={[0, -Math.PI / 2, 0]}
+              >
                 <planeGeometry args={[0.8, 0.8]} />
                 <meshStandardMaterial color={c.faces.R} />
               </mesh>
             )}
             {c.faces.L && (
-              <mesh position={[-size / 2 - 0.001, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+              <mesh
+                position={[-size / 2 - 0.001, 0, 0]}
+                rotation={[0, Math.PI / 2, 0]}
+              >
                 <planeGeometry args={[0.8, 0.8]} />
                 <meshStandardMaterial color={c.faces.L} />
               </mesh>
@@ -261,15 +322,38 @@ export default function RubiksCube3D() {
         <group position={[0, 0, 0]}>
           {highDetail ? <HighDetail cubies={cubies} /> : <LowDetail />}
         </group>
-        <OrbitControls enablePan={false} enableZoom={true} enableRotate={true} makeDefault />
+        <OrbitControls
+          enablePan={false}
+          enableZoom={true}
+          enableRotate={true}
+          makeDefault
+        />
       </Canvas>
 
       {/* overlay UI */}
       <div className="absolute left-2 top-2 flex flex-col gap-2">
         <div className="bg-white/90 text-black rounded-md p-2 text-sm flex gap-2 items-center">
-          <button aria-label="Iniciar timer" className="px-2 py-1 rounded bg-green-500 text-white" onClick={startTimer}>Iniciar</button>
-          <button aria-label="Parar timer" className="px-2 py-1 rounded bg-yellow-500 text-black" onClick={stopTimer}>Parar</button>
-          <button aria-label="Resetar" className="px-2 py-1 rounded bg-red-500 text-white" onClick={reset}>Reset</button>
+          <button
+            aria-label="Iniciar timer"
+            className="px-2 py-1 rounded bg-green-500 text-white"
+            onClick={startTimer}
+          >
+            Iniciar
+          </button>
+          <button
+            aria-label="Parar timer"
+            className="px-2 py-1 rounded bg-yellow-500 text-black"
+            onClick={stopTimer}
+          >
+            Parar
+          </button>
+          <button
+            aria-label="Resetar"
+            className="px-2 py-1 rounded bg-red-500 text-white"
+            onClick={reset}
+          >
+            Reset
+          </button>
         </div>
 
         <div className="bg-white/90 text-black rounded-md p-2 text-sm">
@@ -279,30 +363,82 @@ export default function RubiksCube3D() {
 
         <div className="bg-white/90 text-black rounded-md p-2 text-sm">
           <div className="flex flex-wrap gap-2">
-            {['U', "U'", 'D', "D'", 'L', "L'", 'R', "R'", 'F', "F'", 'B', "B'"] .map((m) => (
-              <button key={m} aria-label={`Movimento ${m}`} className="px-2 py-1 rounded bg-slate-700 text-white text-xs" onClick={() => { setCubies(s => applyMove(s, m)); setMoves((c)=>c+1); setRunning(true); setStartAt((p)=>p??Date.now()) }}>{m}</button>
+            {[
+              'U',
+              "U'",
+              'D',
+              "D'",
+              'L',
+              "L'",
+              'R',
+              "R'",
+              'F',
+              "F'",
+              'B',
+              "B'",
+            ].map((m) => (
+              <button
+                key={m}
+                aria-label={`Movimento ${m}`}
+                className="px-2 py-1 rounded bg-slate-700 text-white text-xs"
+                onClick={() => {
+                  setCubies((s) => applyMove(s, m))
+                  setMoves((c) => c + 1)
+                  setRunning(true)
+                  setStartAt((p) => p ?? Date.now())
+                }}
+              >
+                {m}
+              </button>
             ))}
           </div>
         </div>
 
         <div className="bg-white/90 text-black rounded-md p-2 text-sm flex gap-2">
-          <button aria-label="Embaralhar" className="px-2 py-1 rounded bg-indigo-600 text-white" onClick={() => scramble(25)}>Embaralhar</button>
-          <button aria-label="Solução (reset)" className="px-2 py-1 rounded bg-gray-600 text-white" onClick={reset}>Solução</button>
+          <button
+            aria-label="Embaralhar"
+            className="px-2 py-1 rounded bg-indigo-600 text-white"
+            onClick={() => scramble(25)}
+          >
+            Embaralhar
+          </button>
+          <button
+            aria-label="Solução (reset)"
+            className="px-2 py-1 rounded bg-gray-600 text-white"
+            onClick={reset}
+          >
+            Solução
+          </button>
         </div>
       </div>
 
       {/* mobile controls bottom */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 md:hidden flex gap-2">
         <div className="bg-white/95 p-2 rounded-md flex gap-1">
-          {['U','D','L','R','F','B'].map((m) => (
-            <button key={m} aria-label={`Movimento ${m}`} className="w-10 h-10 rounded-md bg-slate-800 text-white" onClick={() => { setCubies(s => applyMove(s, m)); setMoves((c)=>c+1); setRunning(true); setStartAt((p)=>p??Date.now()) }}>{m}</button>
+          {['U', 'D', 'L', 'R', 'F', 'B'].map((m) => (
+            <button
+              key={m}
+              aria-label={`Movimento ${m}`}
+              className="w-10 h-10 rounded-md bg-slate-800 text-white"
+              onClick={() => {
+                setCubies((s) => applyMove(s, m))
+                setMoves((c) => c + 1)
+                setRunning(true)
+                setStartAt((p) => p ?? Date.now())
+              }}
+            >
+              {m}
+            </button>
           ))}
         </div>
       </div>
 
       {/* accessibility hint */}
       <div className="absolute right-2 bottom-2 bg-white/90 p-2 rounded text-sm">
-        <div>Toque e arraste para rotacionar o cubo. Use os botões para girar camadas.</div>
+        <div>
+          Toque e arraste para rotacionar o cubo. Use os botões para girar
+          camadas.
+        </div>
       </div>
     </div>
   )
