@@ -1,9 +1,7 @@
 'use client'
 
-import React, { useEffect, useMemo, useState, useRef } from 'react'
-import * as THREE from 'three'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import React, { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 
 type Vec3 = [number, number, number]
 
@@ -24,7 +22,7 @@ type Cubie = {
 
 const size = 0.9
 const gap = 0.06
-const step = size + gap
+export const step = size + gap
 
 function faceColorDefaults(): Faces {
   return {
@@ -57,6 +55,16 @@ function createSolvedCubies(): Cubie[] {
   }
   return cubies
 }
+
+// Importação dinâmica do Canvas 3D
+const ThreeCanvas = dynamic(() => import('./RubiksCube3DCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <p>Carregando visualização 3D...</p>
+    </div>
+  ),
+})
 
 export default function RubiksCube3D() {
   const [cubies, setCubies] = useState<Cubie[]>(() => createSolvedCubies())
@@ -123,7 +131,6 @@ export default function RubiksCube3D() {
   }
 
   function applyMove(state: Cubie[], move: string) {
-    // move examples: U, U', R, R', etc.
     const clockwise = !move.includes("'")
     const face = move.replace("'", '') as 'U' | 'D' | 'L' | 'R' | 'F' | 'B'
     const axisMap: Record<string, 'x' | 'y' | 'z'> = {
@@ -145,7 +152,6 @@ export default function RubiksCube3D() {
     const axis = axisMap[face]
     const index = indexMap[face]
 
-    // rotate positions
     const newState = state.map((c) => ({
       ...c,
       pos: [...c.pos] as Vec3,
@@ -168,11 +174,9 @@ export default function RubiksCube3D() {
       if (axis === 'y') {
         return clockwise ? ([z, y, -x] as Vec3) : ([-z, y, x] as Vec3)
       }
-      // z
       return clockwise ? ([-y, x, z] as Vec3) : ([y, -x, z] as Vec3)
     }
 
-    // face rotation mapping for stickers (simple permutation)
     const faceCycle: Record<string, string[]> = {
       x: ['U', 'B', 'D', 'F'],
       y: ['F', 'R', 'B', 'L'],
@@ -181,7 +185,6 @@ export default function RubiksCube3D() {
 
     toRotate.forEach((c) => {
       c.pos = rotatePos(c.pos)
-      // rotate face colors
       const cycle = faceCycle[axis]
       const oldFaces = { ...c.faces }
       cycle.forEach((f, i) => {
@@ -190,145 +193,14 @@ export default function RubiksCube3D() {
       })
     })
 
-    // rebuild complete array (positions changed)
     const others = newState.filter((c) => !toRotate.some((t) => t.id === c.id))
     const merged = [...others, ...toRotate]
     return merged
   }
 
-  // LOD state: true = high detail, false = low detail
-  const [highDetail, setHighDetail] = useState(true)
-
-  // Camera watcher to toggle LOD based on distance with mild hysteresis
-  function CameraWatcher({ setHigh }: { setHigh: (v: boolean) => void }) {
-    const lastRef = useRef<boolean | null>(null)
-    const { camera } = useThree()
-    useFrame(() => {
-      const dist = camera.position.length()
-      const isHigh = dist < 8 // threshold (tune as needed)
-      if (lastRef.current !== isHigh) {
-        lastRef.current = isHigh
-        setHigh(isHigh)
-      }
-    })
-    return null
-  }
-
-  // High detail renderer: instanced base cubes + per-cubie sticker meshes
-  function HighDetail({ cubies }: { cubies: Cubie[] }) {
-    const instRef = useRef<THREE.InstancedMesh | null>(null)
-    const temp = useMemo(() => new THREE.Object3D(), [])
-
-    useEffect(() => {
-      if (!instRef.current) return
-      cubies.forEach((c, i) => {
-        temp.position.set(c.pos[0] * step, c.pos[1] * step, c.pos[2] * step)
-        temp.updateMatrix()
-        instRef.current!.setMatrixAt(i, temp.matrix)
-      })
-      instRef.current.instanceMatrix.needsUpdate = true
-    }, [cubies, temp])
-
-    return (
-      <>
-        <instancedMesh
-          ref={instRef}
-          args={[undefined, undefined, cubies.length]}
-        >
-          <boxGeometry args={[size, size, size]} />
-          <meshStandardMaterial color="#111827" />
-        </instancedMesh>
-
-        {/* stickers rendered as normal meshes (can be instanced further if needed) */}
-        {cubies.map((c) => (
-          <group
-            key={c.id}
-            position={[c.pos[0] * step, c.pos[1] * step, c.pos[2] * step]}
-          >
-            {c.faces.U && (
-              <mesh
-                position={[0, size / 2 + 0.001, 0]}
-                rotation={[-Math.PI / 2, 0, 0]}
-              >
-                <planeGeometry args={[0.8, 0.8]} />
-                <meshStandardMaterial color={c.faces.U} />
-              </mesh>
-            )}
-            {c.faces.D && (
-              <mesh
-                position={[0, -size / 2 - 0.001, 0]}
-                rotation={[Math.PI / 2, 0, 0]}
-              >
-                <planeGeometry args={[0.8, 0.8]} />
-                <meshStandardMaterial color={c.faces.D} />
-              </mesh>
-            )}
-            {c.faces.F && (
-              <mesh position={[0, 0, size / 2 + 0.001]}>
-                <planeGeometry args={[0.8, 0.8]} />
-                <meshStandardMaterial color={c.faces.F} />
-              </mesh>
-            )}
-            {c.faces.B && (
-              <mesh
-                position={[0, 0, -size / 2 - 0.001]}
-                rotation={[0, Math.PI, 0]}
-              >
-                <planeGeometry args={[0.8, 0.8]} />
-                <meshStandardMaterial color={c.faces.B} />
-              </mesh>
-            )}
-            {c.faces.R && (
-              <mesh
-                position={[size / 2 + 0.001, 0, 0]}
-                rotation={[0, -Math.PI / 2, 0]}
-              >
-                <planeGeometry args={[0.8, 0.8]} />
-                <meshStandardMaterial color={c.faces.R} />
-              </mesh>
-            )}
-            {c.faces.L && (
-              <mesh
-                position={[-size / 2 - 0.001, 0, 0]}
-                rotation={[0, Math.PI / 2, 0]}
-              >
-                <planeGeometry args={[0.8, 0.8]} />
-                <meshStandardMaterial color={c.faces.L} />
-              </mesh>
-            )}
-          </group>
-        ))}
-      </>
-    )
-  }
-
-  // Low detail renderer: single simplified cube to represent whole puzzle
-  function LowDetail() {
-    const sizeAll = size * 3 + gap * 2
-    return (
-      <mesh>
-        <boxGeometry args={[sizeAll, sizeAll, sizeAll]} />
-        <meshStandardMaterial color="#111827" />
-      </mesh>
-    )
-  }
-
   return (
     <div className="w-full h-[80vh] md:h-[70vh] relative bg-slate-900/20 rounded-lg overflow-hidden">
-      <Canvas camera={{ position: [5, 5, 6], fov: 50 }} dpr={[1, 2]}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 10, 5]} intensity={0.8} />
-        <CameraWatcher setHigh={setHighDetail} />
-        <group position={[0, 0, 0]}>
-          {highDetail ? <HighDetail cubies={cubies} /> : <LowDetail />}
-        </group>
-        <OrbitControls
-          enablePan={false}
-          enableZoom={true}
-          enableRotate={true}
-          makeDefault
-        />
-      </Canvas>
+      <ThreeCanvas cubies={cubies} />
 
       {/* overlay UI */}
       <div className="absolute left-2 top-2 flex flex-col gap-2">

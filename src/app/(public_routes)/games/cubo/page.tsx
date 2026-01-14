@@ -3,14 +3,17 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
 
-const RubiksCube3D = dynamic(() => import('@/components/games/RubiksCube3D'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-[600px]">
-      <p>Carregando cubo...</p>
-    </div>
-  ),
-})
+const RubiksCube3D = dynamic(
+  () => import('@/components/games/RubiksCube3DFixed'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[600px]">
+        <p>Carregando cubo...</p>
+      </div>
+    ),
+  },
+)
 
 export default function Page() {
   return (
