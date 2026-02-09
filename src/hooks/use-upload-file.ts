@@ -7,11 +7,10 @@ import { getErrorMessage } from '@/lib/handle-error'
 import { uploadFiles } from '@/lib/uploadthing'
 import { type OurFileRouter } from '@/app/api/uploadthing/core'
 
-interface UseUploadFileOptions<TFileRoute extends AnyFileRoute>
-  extends Pick<
-    UploadFilesOptions<TFileRoute>,
-    'headers' | 'onUploadBegin' | 'onUploadProgress' | 'skipPolling'
-  > {
+interface UseUploadFileOptions<TFileRoute extends AnyFileRoute> extends Pick<
+  UploadFilesOptions<TFileRoute>,
+  'headers' | 'onUploadBegin' | 'onUploadProgress' | 'skipPolling'
+> {
   defaultUploadedFiles?: UploadedFile[]
 }
 
