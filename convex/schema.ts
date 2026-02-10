@@ -221,6 +221,83 @@ export const contactsSchema = {
   updatedAt: v.number(),
 }
 
+// Schema para Pagamentos
+export const paymentSchema = {
+  userId: v.id('user'),
+  mercadoPagoId: v.string(), // ID do pagamento no Mercado Pago
+  type: v.union(
+    v.literal('pix'),
+    v.literal('credit_card'),
+    v.literal('debit_card'),
+  ),
+  status: v.union(
+    v.literal('pending'),
+    v.literal('approved'),
+    v.literal('rejected'),
+    v.literal('cancelled'),
+    v.literal('refunded'),
+  ),
+  amount: v.number(),
+  description: v.string(),
+  payerEmail: v.string(),
+  payerName: v.optional(v.string()),
+  // Dados do cartão (últimos 4 dígitos, bandeira)
+  cardLastFourDigits: v.optional(v.string()),
+  cardBrand: v.optional(v.string()),
+  // Relacionamento com assinatura (se for pagamento recorrente)
+  subscriptionId: v.optional(v.id('subscriptions')),
+  // Timestamps
+  createdAt: v.number(),
+  updatedAt: v.number(),
+  approvedAt: v.optional(v.number()),
+}
+
+// Schema para Assinaturas/Planos
+export const subscriptionPlanSchema = {
+  name: v.string(), // Ex: "Plano Premium Mensal"
+  description: v.string(),
+  amount: v.number(), // Valor em reais
+  frequency: v.union(
+    v.literal('monthly'),
+    v.literal('quarterly'),
+    v.literal('semiannual'),
+    v.literal('annual'),
+  ),
+  frequencyDays: v.number(), // 30, 90, 180, 365
+  active: v.boolean(),
+  features: v.array(v.string()), // Lista de features do plano
+  createdAt: v.number(),
+  updatedAt: v.number(),
+}
+
+// Schema para Assinaturas de Usuários
+export const subscriptionSchema = {
+  userId: v.id('user'),
+  planId: v.id('subscriptionPlans'),
+  mercadoPagoPreapprovalId: v.optional(v.string()), // ID da pre-approval no MP
+  status: v.union(
+    v.literal('active'),
+    v.literal('paused'),
+    v.literal('cancelled'),
+    v.literal('expired'),
+    v.literal('pending'),
+  ),
+  // Informações de pagamento
+  cardToken: v.optional(v.string()), // Token do cartão para recorrência
+  cardLastFourDigits: v.optional(v.string()),
+  cardBrand: v.optional(v.string()),
+  // Datas importantes
+  startDate: v.number(), // Início da assinatura
+  nextBillingDate: v.number(), // Próxima cobrança
+  endDate: v.optional(v.number()), // Fim da assinatura (se cancelada)
+  // Contadores
+  billingCycle: v.number(), // Número de cobranças realizadas
+  failedPayments: v.number(), // Cobranças falhadas consecutivas
+  // Timestamps
+  createdAt: v.number(),
+  updatedAt: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -262,4 +339,17 @@ export default defineSchema({
   contacts: defineTable(contactsSchema)
     .index('by_user', ['userId'])
     .index('by_user_number', ['userId', 'number']),
+  payments: defineTable(paymentSchema)
+    .index('by_user', ['userId'])
+    .index('by_mercadopago_id', ['mercadoPagoId'])
+    .index('by_status', ['status'])
+    .index('by_subscription', ['subscriptionId']),
+  subscriptionPlans: defineTable(subscriptionPlanSchema).index('by_active', [
+    'active',
+  ]),
+  subscriptions: defineTable(subscriptionSchema)
+    .index('by_user', ['userId'])
+    .index('by_plan', ['planId'])
+    .index('by_status', ['status'])
+    .index('by_next_billing', ['nextBillingDate']),
 })
