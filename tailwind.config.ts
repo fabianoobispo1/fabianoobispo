@@ -99,10 +99,16 @@ module.exports = {
             height: '0',
           },
         },
+        'scan-line': {
+          '0%': { top: '4px', opacity: '1' },
+          '50%': { opacity: '0.6' },
+          '100%': { top: 'calc(100% - 4px)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'scan-line': 'scan-line 1.8s ease-in-out infinite alternate',
       },
     },
   },

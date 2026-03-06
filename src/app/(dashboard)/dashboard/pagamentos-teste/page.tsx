@@ -1,8 +1,8 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-
 import { Id } from '@/../convex/_generated/dataModel'
+
+import { useSession } from 'next-auth/react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -61,12 +61,11 @@ export default function PaginaTestes() {
                 <li>Clique em &quot;Pagar com Pix&quot;</li>
                 <li>Sistema gerará QR Code</li>
                 <li>
-                  Em <strong>ambiente de teste</strong>, o pagamento é
-                  aprovado automaticamente após alguns segundos
+                  Em <strong>ambiente de teste</strong>, o pagamento é aprovado
+                  automaticamente após alguns segundos
                 </li>
                 <li>
-                  Em <strong>produção</strong>, use o app do banco para
-                  pagar
+                  Em <strong>produção</strong>, use o app do banco para pagar
                 </li>
               </ol>
             </CardContent>

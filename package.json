@@ -3,7 +3,7 @@
   "version": "2.0.2",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --experimental-https",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier . --write",
@@ -51,6 +51,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.17.3",
     "date-fns": "^3.6.0",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.456.0",

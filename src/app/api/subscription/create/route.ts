@@ -1,9 +1,9 @@
 // app/api/subscription/create/route.ts
+import { api } from '@/../convex/_generated/api'
+
+import { fetchMutation } from 'convex/nextjs'
 import { MercadoPagoConfig, PreApproval } from 'mercadopago'
 import { NextRequest, NextResponse } from 'next/server'
-
-import { api } from '@/../convex/_generated/api'
-import { fetchMutation } from 'convex/nextjs'
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,

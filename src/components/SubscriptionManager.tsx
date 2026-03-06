@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-
 import { api } from '@/../convex/_generated/api'
 import { Id } from '@/../convex/_generated/dataModel'
+
+import { useState } from 'react'
 import { useQuery } from 'convex/react'
 
 import { Badge } from '@/components/ui/badge'
@@ -61,6 +61,7 @@ export function SubscriptionManager({ userId }: SubscriptionManagerProps) {
   }
 
   const handlePaymentSuccess = async (paymentData: Record<string, unknown>) => {
+    if (!selectedPlan) return
     // Criar assinatura no backend
     try {
       const response = await fetch('/api/subscription/create', {
@@ -170,7 +171,7 @@ export function SubscriptionManager({ userId }: SubscriptionManagerProps) {
           ← Voltar para planos
         </Button>
         <CardPaymentForm
-          amount={selectedPlan.amount}
+          amount={selectedPlan.amount as number}
           description={`Assinatura ${selectedPlan.name}`}
           userId={userId}
           onSuccess={handlePaymentSuccess}
