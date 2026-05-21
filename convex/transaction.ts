@@ -38,11 +38,14 @@ export const getDashboard = query({
     const balance = depositsTotal - investmentsTotal - expensesTotal
     const transactionsTotal = depositsTotal + investmentsTotal + expensesTotal
 
-    const typesPercentage = {
-      DEPOSIT: (depositsTotal / transactionsTotal) * 100,
-      EXPENSE: (expensesTotal / transactionsTotal) * 100,
-      INVESTMENT: (investmentsTotal / transactionsTotal) * 100,
-    }
+    const typesPercentage =
+      transactionsTotal === 0
+        ? { DEPOSIT: 0, EXPENSE: 0, INVESTMENT: 0 }
+        : {
+            DEPOSIT: (depositsTotal / transactionsTotal) * 100,
+            EXPENSE: (expensesTotal / transactionsTotal) * 100,
+            INVESTMENT: (investmentsTotal / transactionsTotal) * 100,
+          }
 
     // Group expenses by category
     const expensesByCategory = expenses.reduce(
@@ -61,7 +64,8 @@ export const getDashboard = query({
       .map(([category, amount]) => ({
         category,
         totalAmount: amount,
-        percentageOfTotal: Math.round((amount / expensesTotal) * 100),
+        percentageOfTotal:
+          expensesTotal === 0 ? 0 : Math.round((amount / expensesTotal) * 100),
       }))
       .sort((a, b) => b.percentageOfTotal - a.percentageOfTotal)
 
@@ -92,19 +96,22 @@ export const create = mutation({
 
 export const remove = mutation({
   args: {
-    transactionsId: v.id('transactions'), // ID do todo a ser removido
+    transactionsId: v.id('transactions'),
   },
-  handler: async ({ db }, { transactionsId }) => {
-    // Buscar o todo para garantir que ele existe antes de remover
+  handler: async ({ db, auth }, { transactionsId }) => {
+    const identity = await auth.getUserIdentity()
+    if (!identity) throw new Error('Não autenticado')
+
     const transacao = await db.get(transactionsId)
-    if (!transacao) {
-      throw new Error('transacao não encontrado')
+    if (!transacao) throw new Error('transacao não encontrado')
+
+    const owner = await db.get(transacao.userId)
+    if (!owner || owner.email !== identity.email) {
+      throw new Error('Acesso negado')
     }
 
-    // Remover o transacao do banco de dados
     await db.delete(transactionsId)
-
-    return { success: true, message: 'transacao removido com sucesso' } // Resposta de confirmação
+    return { success: true, message: 'transacao removido com sucesso' }
   },
 })
 

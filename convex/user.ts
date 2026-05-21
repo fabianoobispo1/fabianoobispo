@@ -49,7 +49,7 @@ export const UpdateUser = mutation({
     password: v.optional(v.string()),
   },
   handler: async (
-    { db },
+    { db, auth },
     {
       userId,
       nome,
@@ -61,13 +61,16 @@ export const UpdateUser = mutation({
       password,
     },
   ) => {
-    // Buscar o usuario atual
+    const identity = await auth.getUserIdentity()
+    if (!identity) throw new Error('Não autenticado')
+
     const usuario = await db.get(userId)
-    if (!usuario) {
-      throw new Error('Usuario não encontrado')
+    if (!usuario) throw new Error('Usuario não encontrado')
+
+    if (identity.email !== usuario.email) {
+      throw new Error('Acesso negado: você só pode modificar seu próprio perfil')
     }
 
-    // altera os valores
     const updateUser = await db.patch(userId, {
       nome,
       email,

@@ -2,6 +2,14 @@ import { v } from 'convex/values'
 
 import { mutation, query } from './_generated/server'
 
+const ADMIN_EMAIL = 'fbc623@gmail.com'
+
+async function assertAdmin(auth: { getUserIdentity: () => Promise<{ email?: string } | null> }) {
+  const identity = await auth.getUserIdentity()
+  if (!identity) throw new Error('Não autenticado')
+  if (identity.email !== ADMIN_EMAIL) throw new Error('Acesso negado')
+}
+
 export const list = query({
   handler: async (ctx) => {
     const categories = await ctx.db
@@ -37,6 +45,7 @@ export const create = mutation({
     updated_at: v.number(),
   },
   handler: async (ctx, args) => {
+    await assertAdmin(ctx.auth)
     const category = await ctx.db.insert('categories', {
       name: args.name,
       type: args.type,
@@ -59,6 +68,7 @@ export const update = mutation({
     updated_at: v.number(),
   },
   handler: async (ctx, args) => {
+    await assertAdmin(ctx.auth)
     const { categoryId, ...updates } = args
     const category = await ctx.db.patch(categoryId, updates)
     return category
@@ -70,6 +80,7 @@ export const remove = mutation({
     categoryId: v.id('categories'),
   },
   handler: async (ctx, args) => {
+    await assertAdmin(ctx.auth)
     await ctx.db.delete(args.categoryId)
   },
 })
