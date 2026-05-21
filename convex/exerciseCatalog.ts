@@ -2,6 +2,14 @@ import { v } from 'convex/values'
 
 import { mutation, query } from './_generated/server'
 
+const ADMIN_EMAIL = 'fbc623@gmail.com'
+
+async function assertAdmin(auth: { getUserIdentity: () => Promise<{ email?: string } | null> }) {
+  const identity = await auth.getUserIdentity()
+  if (!identity) throw new Error('Não autenticado')
+  if (identity.email !== ADMIN_EMAIL) throw new Error('Acesso negado')
+}
+
 // ==================== EXERCISE CATALOG ====================
 
 // Criar exercício no catálogo
@@ -16,6 +24,7 @@ export const createCatalogExercise = mutation({
     defaultReps: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await assertAdmin(ctx.auth)
     const catalogId = await ctx.db.insert('exerciseCatalog', {
       ...args,
       created_at: Date.now(),
@@ -67,6 +76,7 @@ export const updateCatalogExercise = mutation({
     defaultReps: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await assertAdmin(ctx.auth)
     const { catalogId, ...updates } = args
     await ctx.db.patch(catalogId, {
       ...updates,
@@ -75,18 +85,18 @@ export const updateCatalogExercise = mutation({
   },
 })
 
-// Deletar exercício do catálogo
 export const deleteCatalogExercise = mutation({
   args: { catalogId: v.id('exerciseCatalog') },
   handler: async (ctx, args) => {
+    await assertAdmin(ctx.auth)
     await ctx.db.delete(args.catalogId)
   },
 })
 
-// Seed - Popular catálogo com exercícios padrão
 export const seedCatalog = mutation({
   args: {},
   handler: async (ctx) => {
+    await assertAdmin(ctx.auth)
     const exercises = [
       // PEITO
       {

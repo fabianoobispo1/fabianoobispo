@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { auth } from '@/auth/auth'
+
 export type Produto = {
   descricao: string
   quantidade: string
@@ -226,6 +228,11 @@ function normalizeProdutos(produtos: Produto[]): Produto[] {
 }
 
 export async function GET(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  }
+
   const url = request.nextUrl.searchParams.get('url')
 
   if (!url) {
@@ -277,7 +284,6 @@ export async function GET(request: NextRequest) {
         {
           error:
             'Não foi possível extrair os produtos. O portal pode usar carregamento dinâmico.',
-          debug: html.substring(0, 3000),
         },
         { status: 422 },
       )

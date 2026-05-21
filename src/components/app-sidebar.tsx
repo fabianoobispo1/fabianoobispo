@@ -8,10 +8,8 @@ import {
   Settings,
   ChevronDown,
   Dumbbell,
-  MessageSquare,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
-import { useState } from 'react'
 
 import {
   Sidebar,
@@ -58,11 +56,6 @@ const items = [
     title: 'Finanças',
     url: '/dashboard/financas',
     icon: DollarSign,
-  },
-  {
-    title: 'WhatsApp Business',
-    url: '/dashboard/whatsapp',
-    icon: MessageSquare,
   },
   {
     title: 'Perfil',
@@ -124,21 +117,7 @@ const itemsAdm = [
 export function AppSidebar() {
   const { data: session } = useSession()
   const { open } = useSidebar()
-  const [isAdmin, setIsAdmin] = useState(true) // hardcoded true para testes
-  const [carregou, setiscarregou] = useState(false)
-  if (session) {
-    /*     console.log(session) */
-
-    if (!carregou) {
-      console.log('Carregando sessão', session)
-      if (session.user.role === 'admin') {
-        setIsAdmin(true)
-        console.log(isAdmin)
-      }
-
-      setiscarregou(true)
-    }
-  }
+  const isAdmin = session?.user?.role === 'admin'
 
   /*   const [loadingData, setLoadingData] = useState(true)
   const [usuario, setUsuario] = useState<Usuario>() */

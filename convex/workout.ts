@@ -1,6 +1,22 @@
 import { v } from 'convex/values'
 
-import { mutation, query } from './_generated/server'
+import { mutation, query, MutationCtx } from './_generated/server'
+import type { Id } from './_generated/dataModel'
+
+const ADMIN_EMAIL = 'fbc623@gmail.com'
+
+async function assertPlanOwner(ctx: MutationCtx, planId: Id<'workoutPlan'>) {
+  const identity = await ctx.auth.getUserIdentity()
+  if (!identity) throw new Error('Não autenticado')
+
+  const plan = await ctx.db.get(planId)
+  if (!plan) throw new Error('Plano não encontrado')
+
+  const owner = await ctx.db.get(plan.userId)
+  if (!owner || owner.email !== identity.email) throw new Error('Acesso negado')
+
+  return plan
+}
 
 // ==================== WORKOUT PLAN ====================
 
@@ -11,6 +27,9 @@ export const createPlan = mutation({
     userId: v.id('user'),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error('Não autenticado')
+
     const planId = await ctx.db.insert('workoutPlan', {
       name: args.name,
       description: args.description,
@@ -48,38 +67,33 @@ export const updatePlan = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await assertPlanOwner(ctx, args.planId)
     const { planId, ...updates } = args
-    await ctx.db.patch(planId, {
-      ...updates,
-      updated_at: Date.now(),
-    })
+    await ctx.db.patch(planId, { ...updates, updated_at: Date.now() })
   },
 })
 
 export const deletePlan = mutation({
   args: { planId: v.id('workoutPlan') },
   handler: async (ctx, args) => {
-    // Deletar todos os dias do plano
+    await assertPlanOwner(ctx, args.planId)
+
     const days = await ctx.db
       .query('workoutDay')
       .withIndex('by_plan', (q) => q.eq('planId', args.planId))
       .collect()
 
     for (const day of days) {
-      // Deletar todos os exercícios do dia
       const exercises = await ctx.db
         .query('exercise')
         .withIndex('by_day', (q) => q.eq('dayId', day._id))
         .collect()
-
       for (const exercise of exercises) {
         await ctx.db.delete(exercise._id)
       }
-
       await ctx.db.delete(day._id)
     }
 
-    // Deletar o plano
     await ctx.db.delete(args.planId)
   },
 })
@@ -95,6 +109,8 @@ export const createDay = mutation({
     order: v.number(),
   },
   handler: async (ctx, args) => {
+    await assertPlanOwner(ctx, args.planId)
+
     const dayId = await ctx.db.insert('workoutDay', {
       ...args,
       created_at: Date.now(),
@@ -123,34 +139,35 @@ export const updateDay = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const day = await ctx.db.get(args.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     const { dayId, ...updates } = args
-    await ctx.db.patch(dayId, {
-      ...updates,
-      updated_at: Date.now(),
-    })
+    await ctx.db.patch(dayId, { ...updates, updated_at: Date.now() })
   },
 })
 
 export const deleteDay = mutation({
   args: { dayId: v.id('workoutDay') },
   handler: async (ctx, args) => {
-    // Deletar todos os exercícios do dia
+    const day = await ctx.db.get(args.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     const exercises = await ctx.db
       .query('exercise')
       .withIndex('by_day', (q) => q.eq('dayId', args.dayId))
       .collect()
-
     for (const exercise of exercises) {
       await ctx.db.delete(exercise._id)
     }
-
     await ctx.db.delete(args.dayId)
   },
 })
 
 // ==================== EXERCISE ====================
 
-// Criar exercício a partir do catálogo
 export const createExerciseFromCatalog = mutation({
   args: {
     dayId: v.id('workoutDay'),
@@ -159,7 +176,10 @@ export const createExerciseFromCatalog = mutation({
     carga: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Buscar dados do catálogo
+    const day = await ctx.db.get(args.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     const catalog = await ctx.db.get(args.catalogId)
     if (!catalog) throw new Error('Exercício não encontrado no catálogo')
 
@@ -180,7 +200,6 @@ export const createExerciseFromCatalog = mutation({
   },
 })
 
-// Criar exercício customizado (sem catálogo)
 export const createExercise = mutation({
   args: {
     dayId: v.id('workoutDay'),
@@ -193,6 +212,10 @@ export const createExercise = mutation({
     videoUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const day = await ctx.db.get(args.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     const exerciseId = await ctx.db.insert('exercise', {
       ...args,
       created_at: Date.now(),
@@ -224,11 +247,14 @@ export const updateExercise = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const exercise = await ctx.db.get(args.exerciseId)
+    if (!exercise) throw new Error('Exercício não encontrado')
+    const day = await ctx.db.get(exercise.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     const { exerciseId, ...updates } = args
-    await ctx.db.patch(exerciseId, {
-      ...updates,
-      updated_at: Date.now(),
-    })
+    await ctx.db.patch(exerciseId, { ...updates, updated_at: Date.now() })
   },
 })
 
@@ -238,6 +264,12 @@ export const updateExerciseCarga = mutation({
     carga: v.string(),
   },
   handler: async (ctx, args) => {
+    const exercise = await ctx.db.get(args.exerciseId)
+    if (!exercise) throw new Error('Exercício não encontrado')
+    const day = await ctx.db.get(exercise.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     await ctx.db.patch(args.exerciseId, {
       carga: args.carga,
       updated_at: Date.now(),
@@ -248,6 +280,12 @@ export const updateExerciseCarga = mutation({
 export const deleteExercise = mutation({
   args: { exerciseId: v.id('exercise') },
   handler: async (ctx, args) => {
+    const exercise = await ctx.db.get(args.exerciseId)
+    if (!exercise) throw new Error('Exercício não encontrado')
+    const day = await ctx.db.get(exercise.dayId)
+    if (!day) throw new Error('Dia não encontrado')
+    await assertPlanOwner(ctx, day.planId)
+
     await ctx.db.delete(args.exerciseId)
   },
 })
@@ -291,7 +329,11 @@ export const getFullWorkoutPlan = query({
 export const seedDefaultPlan = mutation({
   args: { userId: v.id('user') },
   handler: async (ctx, args) => {
-    // Criar plano padrão
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity || identity.email !== ADMIN_EMAIL) {
+      throw new Error('Acesso negado')
+    }
+
     const planId = await ctx.db.insert('workoutPlan', {
       name: 'Left Tackle Protocol',
       description: 'Ficha de retorno: Força, Estabilidade e Proteção Articular',
@@ -301,7 +343,6 @@ export const seedDefaultPlan = mutation({
       updated_at: Date.now(),
     })
 
-    // Segunda-feira
     const seg = await ctx.db.insert('workoutDay', {
       planId,
       title: 'Segunda-Feira',
@@ -345,25 +386,12 @@ export const seedDefaultPlan = mutation({
         reps: '30-45 seg',
         note: 'Segure firme. O core protege sua coluna.',
       },
-      {
-        name: 'Cardio: Bike ou Elíptico',
-        sets: '1',
-        reps: '15 min',
-        note: 'Ritmo moderado.',
-      },
+      { name: 'Cardio: Bike ou Elíptico', sets: '1', reps: '15 min', note: 'Ritmo moderado.' },
     ]
-
     for (let i = 0; i < segExercises.length; i++) {
-      await ctx.db.insert('exercise', {
-        dayId: seg,
-        ...segExercises[i],
-        order: i,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      })
+      await ctx.db.insert('exercise', { dayId: seg, ...segExercises[i], order: i, created_at: Date.now(), updated_at: Date.now() })
     }
 
-    // Quarta-feira
     const qua = await ctx.db.insert('workoutDay', {
       planId,
       title: 'Quarta-Feira',
@@ -375,55 +403,17 @@ export const seedDefaultPlan = mutation({
     })
 
     const quaExercises = [
-      {
-        name: 'Mobilidade Torácica',
-        sets: '1',
-        reps: '5 min',
-        note: 'Gato-vaca e rotações.',
-      },
-      {
-        name: 'Levantamento Terra (Trap Bar/Hex Bar)',
-        sets: '4',
-        reps: '6-8',
-        note: 'Use a barra hexagonal se tiver, é mais seguro para as costas.',
-      },
-      {
-        name: 'Remada Curvada ou Máquina',
-        sets: '4',
-        reps: '10-12',
-        note: 'Costas fortes = estabilidade no bloqueio.',
-      },
-      {
-        name: 'Face Pulls',
-        sets: '3',
-        reps: '15',
-        note: 'Saúde do manguito rotador.',
-      },
-      {
-        name: 'Farmer Walk (Caminhada do Fazendeiro)',
-        sets: '3',
-        reps: '30 metros',
-        note: 'Pegada e estabilidade do core em movimento.',
-      },
-      {
-        name: 'Cardio: Remo (Ergômetro)',
-        sets: '1',
-        reps: '10-15 min',
-        note: 'Excelente para condicionamento total.',
-      },
+      { name: 'Mobilidade Torácica', sets: '1', reps: '5 min', note: 'Gato-vaca e rotações.' },
+      { name: 'Levantamento Terra (Trap Bar/Hex Bar)', sets: '4', reps: '6-8', note: 'Use a barra hexagonal se tiver, é mais seguro para as costas.' },
+      { name: 'Remada Curvada ou Máquina', sets: '4', reps: '10-12', note: 'Costas fortes = estabilidade no bloqueio.' },
+      { name: 'Face Pulls', sets: '3', reps: '15', note: 'Saúde do manguito rotador.' },
+      { name: 'Farmer Walk (Caminhada do Fazendeiro)', sets: '3', reps: '30 metros', note: 'Pegada e estabilidade do core em movimento.' },
+      { name: 'Cardio: Remo (Ergômetro)', sets: '1', reps: '10-15 min', note: 'Excelente para condicionamento total.' },
     ]
-
     for (let i = 0; i < quaExercises.length; i++) {
-      await ctx.db.insert('exercise', {
-        dayId: qua,
-        ...quaExercises[i],
-        order: i,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      })
+      await ctx.db.insert('exercise', { dayId: qua, ...quaExercises[i], order: i, created_at: Date.now(), updated_at: Date.now() })
     }
 
-    // Sexta-feira
     const sex = await ctx.db.insert('workoutDay', {
       planId,
       title: 'Sexta-Feira',
@@ -435,52 +425,15 @@ export const seedDefaultPlan = mutation({
     })
 
     const sexExercises = [
-      {
-        name: 'Aquecimento Dinâmico',
-        sets: '1',
-        reps: '5 min',
-        note: 'Passadas, rotações.',
-      },
-      {
-        name: 'Sled Push (Empurrar o Trenó)',
-        sets: '5',
-        reps: '15-20 metros',
-        note: 'O exercício nº 1 para Lineman. Coloque carga moderada.',
-      },
-      {
-        name: 'Step-up na Caixa',
-        sets: '3',
-        reps: '10 (cada perna)',
-        note: 'Força unilateral. Use uma caixa baixa/média.',
-      },
-      {
-        name: 'Medicine Ball Slams',
-        sets: '4',
-        reps: '10-12',
-        note: 'Explosão pura sem impacto articular.',
-      },
-      {
-        name: 'Pallof Press',
-        sets: '3',
-        reps: '12 (cada lado)',
-        note: 'Anti-rotação. Vital para não ser girado pelo Defensive End.',
-      },
-      {
-        name: 'Alongamento Completo',
-        sets: '1',
-        reps: '10 min',
-        note: 'Foco em flexores de quadril e peitoral.',
-      },
+      { name: 'Aquecimento Dinâmico', sets: '1', reps: '5 min', note: 'Passadas, rotações.' },
+      { name: 'Sled Push (Empurrar o Trenó)', sets: '5', reps: '15-20 metros', note: 'O exercício nº 1 para Lineman. Coloque carga moderada.' },
+      { name: 'Step-up na Caixa', sets: '3', reps: '10 (cada perna)', note: 'Força unilateral. Use uma caixa baixa/média.' },
+      { name: 'Medicine Ball Slams', sets: '4', reps: '10-12', note: 'Explosão pura sem impacto articular.' },
+      { name: 'Pallof Press', sets: '3', reps: '12 (cada lado)', note: 'Anti-rotação. Vital para não ser girado pelo Defensive End.' },
+      { name: 'Alongamento Completo', sets: '1', reps: '10 min', note: 'Foco em flexores de quadril e peitoral.' },
     ]
-
     for (let i = 0; i < sexExercises.length; i++) {
-      await ctx.db.insert('exercise', {
-        dayId: sex,
-        ...sexExercises[i],
-        order: i,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      })
+      await ctx.db.insert('exercise', { dayId: sex, ...sexExercises[i], order: i, created_at: Date.now(), updated_at: Date.now() })
     }
 
     return planId

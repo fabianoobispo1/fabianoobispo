@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/react'
 import NextTopLoader from 'nextjs-toploader'
@@ -42,10 +41,6 @@ export default async function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <Script
-          src="https://sdk.mercadopago.com/js/v2"
-          strategy="beforeInteractive"
-        />
       </head>
       <body className="font-inter">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
