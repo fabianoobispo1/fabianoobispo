@@ -21,16 +21,6 @@ export const moedaMask = (value: string) => {
   }).format(numberValue)
 }
 
-export function formatWhatsAppNumber(phone: string) {
-  // Remove any non-digits
-  const cleanNumber = phone.replace(/\D/g, '')
-
-  // Remove the '9' from third position if it exists
-  const numberWithout9 = cleanNumber.substring(0, 2) + cleanNumber.substring(3)
-
-  // Add country code and WhatsApp suffix
-  return `55${numberWithout9}@c.us`
-}
 
 export function formatPhoneNumber(phone: string) {
   const cleaned = phone.replace(/\D/g, '')

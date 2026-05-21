@@ -37,7 +37,6 @@ export function SkillsSection() {
         'Vercel',
         'ESLint',
         'Prettier',
-        'Stripe',
         'Uploadthing',
         'Resend',
         'jsPDF',

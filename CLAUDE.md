@@ -121,6 +121,10 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 NEXTAUTH_SECRET, NEXTAUTH_URL
 ```
 
+## Scope
+
+This is a **personal portfolio + company management tool** for FABIANOOBISPO DESENVOLVIMENTO E CONSULTORIA (CNPJ: 66.797.389/0001-56). It is NOT a SaaS product. Features that could become products (WhatsApp Business Tools, payment processing, subscriptions) have been removed to a separate repository.
+
 ## Module Notes
 
 **Financial dashboard** (`/dashboard/financas`): transaction types are `DEPOSIT`, `EXPENSE`, `INVESTMENT`; payment methods include `CREDIT_CARD`, `DEBIT_CARD`, `PIX`, `CASH`, `BANK_TRANSFER`. Dates stored as Unix timestamps.
