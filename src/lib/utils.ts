@@ -21,7 +21,6 @@ export const moedaMask = (value: string) => {
   }).format(numberValue)
 }
 
-
 export function formatPhoneNumber(phone: string) {
   const cleaned = phone.replace(/\D/g, '')
   const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/)
