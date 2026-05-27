@@ -1,8 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
 export function SkillsSection() {
   const skillCategories = [
     {
@@ -56,13 +53,13 @@ export function SkillsSection() {
   ]
 
   return (
-    <section id="skills" className="py-24 sm:py-32">
+    <section id="skills" className="bg-brand-forest-2 py-24 sm:py-32">
       <div className="container px-4 md:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+          <h2 className="text-3xl font-bold tracking-tighter text-brand-cream sm:text-4xl md:text-5xl">
             Tecnologias & Habilidades
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="mt-4 text-brand-mute">
             Stack moderna e ferramentas que utilizo para criar aplicações de
             alta qualidade.
           </p>
@@ -70,24 +67,24 @@ export function SkillsSection() {
 
         <div className="mx-auto mt-16 grid max-w-5xl gap-6 sm:grid-cols-2">
           {skillCategories.map((category, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="text-xl">{category.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {category.skills.map((skill, skillIndex) => (
-                    <Badge
-                      key={skillIndex}
-                      variant="outline"
-                      className="text-sm"
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div
+              key={index}
+              className="rounded-lg border border-brand-forest-3 bg-brand-forest p-6"
+            >
+              <h3 className="mb-4 font-mono text-xs tracking-wider text-brand-cream uppercase">
+                {category.title}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {category.skills.map((skill, skillIndex) => (
+                  <span
+                    key={skillIndex}
+                    className="rounded border border-brand-forest-3 px-2 py-0.5 font-mono text-xs text-brand-cream/80"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>

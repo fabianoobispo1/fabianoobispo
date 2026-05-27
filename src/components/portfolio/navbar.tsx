@@ -2,142 +2,109 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Menu, X } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/brand/logo'
+import { cn } from '@/lib/utils'
 
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon">
-        <Sun className="h-5 w-5" />
-      </Button>
-    )
-  }
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-    >
-      {theme === 'dark' ? (
-        <Sun className="h-5 w-5" />
-      ) : (
-        <Moon className="h-5 w-5" />
-      )}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  )
-}
+const NAV_ITEMS = [
+  { name: 'Sobre', href: '#sobre' },
+  { name: 'Projetos', href: '#projetos' },
+  { name: 'Skills', href: '#skills' },
+  { name: 'Contato', href: '#contato' },
+]
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setIsScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const navItems = [
-    { name: 'Sobre', href: '#sobre' },
-    { name: 'Projetos', href: '#projetos' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Contato', href: '#contato' },
-  ]
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string,
   ) => {
     e.preventDefault()
-    const element = document.querySelector(href)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const el = document.querySelector(href)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setIsMobileMenuOpen(false)
     }
   }
 
   return (
     <nav
-      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+      className={cn(
+        'fixed top-0 inset-x-0 z-50 transition-all duration-200',
         isScrolled
-          ? 'border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'
-          : 'bg-transparent'
-      }`}
+          ? 'bg-brand-forest/85 backdrop-blur border-b border-brand-forest-3'
+          : 'bg-transparent',
+      )}
     >
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="text-xl font-bold">
-          <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            FB
-          </span>
+      <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
+        <Link href="/" aria-label="fabianoobispo — home">
+          <Logo variant="lockup" theme="dark" size={22} collapseOnMobile />
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-6 md:flex">
-          {navItems.map((item) => (
+        {/* Desktop */}
+        <div className="hidden items-center gap-7 md:flex">
+          {NAV_ITEMS.map((item) => (
             <a
               key={item.name}
               href={item.href}
               onClick={(e) => handleNavClick(e, item.href)}
-              className="cursor-pointer text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm text-brand-cream/75 hover:text-brand-emerald transition-colors cursor-pointer"
             >
               {item.name}
             </a>
           ))}
-          <ThemeToggle />
-          <Button asChild>
-            <Link href="/entrar">Dashboard</Link>
-          </Button>
+          <Link
+            href="/entrar"
+            className="ml-2 px-3 py-1.5 rounded border border-brand-emerald/40 text-brand-emerald hover:bg-brand-emerald hover:text-brand-forest transition-colors font-mono text-xs tracking-wider uppercase"
+          >
+            Dashboard
+          </Link>
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
-        </div>
+        {/* Mobile trigger */}
+        <button
+          className="flex items-center justify-center md:hidden text-brand-cream"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Menu"
+        >
+          {isMobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="border-t bg-background md:hidden">
-          <div className="container space-y-4 px-4 py-6">
-            {navItems.map((item) => (
+        <div className="border-t border-brand-forest-3 bg-brand-forest md:hidden">
+          <div className="mx-auto max-w-6xl px-6 py-6 space-y-4">
+            {NAV_ITEMS.map((item) => (
               <a
                 key={item.name}
                 href={item.href}
                 onClick={(e) => handleNavClick(e, item.href)}
-                className="block cursor-pointer text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="block text-sm text-brand-cream/75 hover:text-brand-emerald transition-colors cursor-pointer"
               >
                 {item.name}
               </a>
             ))}
-            <Button asChild className="w-full">
-              <Link href="/entrar">Dashboard</Link>
-            </Button>
+            <Link
+              href="/entrar"
+              className="inline-block px-3 py-1.5 rounded border border-brand-emerald/40 text-brand-emerald hover:bg-brand-emerald hover:text-brand-forest transition-colors font-mono text-xs tracking-wider uppercase"
+            >
+              Dashboard
+            </Link>
           </div>
         </div>
       )}

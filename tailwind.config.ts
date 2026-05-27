@@ -26,6 +26,15 @@ module.exports = {
     },
     extend: {
       colors: {
+        brand: {
+          forest: '#0a1611',
+          'forest-2': '#0f1f17',
+          'forest-3': '#132a20',
+          emerald: '#10b981',
+          'emerald-hi': '#34d399',
+          cream: '#f4f1ea',
+          mute: '#7a8a83',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -77,12 +86,20 @@ module.exports = {
           ring: 'hsl(var(--sidebar-ring))',
         },
       },
+      fontFamily: {
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
+        'brand-blink': {
+          '0%, 49%': { opacity: '1' },
+          '50%, 100%': { opacity: '0' },
+        },
         'accordion-down': {
           from: {
             height: '0',
@@ -106,6 +123,7 @@ module.exports = {
         },
       },
       animation: {
+        'brand-blink': 'brand-blink 1.05s steps(1) infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'scan-line': 'scan-line 1.8s ease-in-out infinite alternate',
