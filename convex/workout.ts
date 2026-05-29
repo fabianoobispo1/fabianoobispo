@@ -386,10 +386,21 @@ export const seedDefaultPlan = mutation({
         reps: '30-45 seg',
         note: 'Segure firme. O core protege sua coluna.',
       },
-      { name: 'Cardio: Bike ou Elíptico', sets: '1', reps: '15 min', note: 'Ritmo moderado.' },
+      {
+        name: 'Cardio: Bike ou Elíptico',
+        sets: '1',
+        reps: '15 min',
+        note: 'Ritmo moderado.',
+      },
     ]
     for (let i = 0; i < segExercises.length; i++) {
-      await ctx.db.insert('exercise', { dayId: seg, ...segExercises[i], order: i, created_at: Date.now(), updated_at: Date.now() })
+      await ctx.db.insert('exercise', {
+        dayId: seg,
+        ...segExercises[i],
+        order: i,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      })
     }
 
     const qua = await ctx.db.insert('workoutDay', {
@@ -403,15 +414,51 @@ export const seedDefaultPlan = mutation({
     })
 
     const quaExercises = [
-      { name: 'Mobilidade Torácica', sets: '1', reps: '5 min', note: 'Gato-vaca e rotações.' },
-      { name: 'Levantamento Terra (Trap Bar/Hex Bar)', sets: '4', reps: '6-8', note: 'Use a barra hexagonal se tiver, é mais seguro para as costas.' },
-      { name: 'Remada Curvada ou Máquina', sets: '4', reps: '10-12', note: 'Costas fortes = estabilidade no bloqueio.' },
-      { name: 'Face Pulls', sets: '3', reps: '15', note: 'Saúde do manguito rotador.' },
-      { name: 'Farmer Walk (Caminhada do Fazendeiro)', sets: '3', reps: '30 metros', note: 'Pegada e estabilidade do core em movimento.' },
-      { name: 'Cardio: Remo (Ergômetro)', sets: '1', reps: '10-15 min', note: 'Excelente para condicionamento total.' },
+      {
+        name: 'Mobilidade Torácica',
+        sets: '1',
+        reps: '5 min',
+        note: 'Gato-vaca e rotações.',
+      },
+      {
+        name: 'Levantamento Terra (Trap Bar/Hex Bar)',
+        sets: '4',
+        reps: '6-8',
+        note: 'Use a barra hexagonal se tiver, é mais seguro para as costas.',
+      },
+      {
+        name: 'Remada Curvada ou Máquina',
+        sets: '4',
+        reps: '10-12',
+        note: 'Costas fortes = estabilidade no bloqueio.',
+      },
+      {
+        name: 'Face Pulls',
+        sets: '3',
+        reps: '15',
+        note: 'Saúde do manguito rotador.',
+      },
+      {
+        name: 'Farmer Walk (Caminhada do Fazendeiro)',
+        sets: '3',
+        reps: '30 metros',
+        note: 'Pegada e estabilidade do core em movimento.',
+      },
+      {
+        name: 'Cardio: Remo (Ergômetro)',
+        sets: '1',
+        reps: '10-15 min',
+        note: 'Excelente para condicionamento total.',
+      },
     ]
     for (let i = 0; i < quaExercises.length; i++) {
-      await ctx.db.insert('exercise', { dayId: qua, ...quaExercises[i], order: i, created_at: Date.now(), updated_at: Date.now() })
+      await ctx.db.insert('exercise', {
+        dayId: qua,
+        ...quaExercises[i],
+        order: i,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      })
     }
 
     const sex = await ctx.db.insert('workoutDay', {
@@ -425,15 +472,51 @@ export const seedDefaultPlan = mutation({
     })
 
     const sexExercises = [
-      { name: 'Aquecimento Dinâmico', sets: '1', reps: '5 min', note: 'Passadas, rotações.' },
-      { name: 'Sled Push (Empurrar o Trenó)', sets: '5', reps: '15-20 metros', note: 'O exercício nº 1 para Lineman. Coloque carga moderada.' },
-      { name: 'Step-up na Caixa', sets: '3', reps: '10 (cada perna)', note: 'Força unilateral. Use uma caixa baixa/média.' },
-      { name: 'Medicine Ball Slams', sets: '4', reps: '10-12', note: 'Explosão pura sem impacto articular.' },
-      { name: 'Pallof Press', sets: '3', reps: '12 (cada lado)', note: 'Anti-rotação. Vital para não ser girado pelo Defensive End.' },
-      { name: 'Alongamento Completo', sets: '1', reps: '10 min', note: 'Foco em flexores de quadril e peitoral.' },
+      {
+        name: 'Aquecimento Dinâmico',
+        sets: '1',
+        reps: '5 min',
+        note: 'Passadas, rotações.',
+      },
+      {
+        name: 'Sled Push (Empurrar o Trenó)',
+        sets: '5',
+        reps: '15-20 metros',
+        note: 'O exercício nº 1 para Lineman. Coloque carga moderada.',
+      },
+      {
+        name: 'Step-up na Caixa',
+        sets: '3',
+        reps: '10 (cada perna)',
+        note: 'Força unilateral. Use uma caixa baixa/média.',
+      },
+      {
+        name: 'Medicine Ball Slams',
+        sets: '4',
+        reps: '10-12',
+        note: 'Explosão pura sem impacto articular.',
+      },
+      {
+        name: 'Pallof Press',
+        sets: '3',
+        reps: '12 (cada lado)',
+        note: 'Anti-rotação. Vital para não ser girado pelo Defensive End.',
+      },
+      {
+        name: 'Alongamento Completo',
+        sets: '1',
+        reps: '10 min',
+        note: 'Foco em flexores de quadril e peitoral.',
+      },
     ]
     for (let i = 0; i < sexExercises.length; i++) {
-      await ctx.db.insert('exercise', { dayId: sex, ...sexExercises[i], order: i, created_at: Date.now(), updated_at: Date.now() })
+      await ctx.db.insert('exercise', {
+        dayId: sex,
+        ...sexExercises[i],
+        order: i,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      })
     }
 
     return planId

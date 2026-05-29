@@ -49,7 +49,7 @@ Using Convex in components (requires `'use client'`):
 
 ```tsx
 import { useQuery, useMutation } from 'convex/react'
-import { api } from '@/../convex/_generated/api'  // note the path alias
+import { api } from '@/../convex/_generated/api' // note the path alias
 
 const data = useQuery(api.transaction.getDashboard, { month: '01', userId })
 const create = useMutation(api.transaction.create)

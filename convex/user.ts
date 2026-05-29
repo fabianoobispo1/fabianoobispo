@@ -68,7 +68,9 @@ export const UpdateUser = mutation({
     if (!usuario) throw new Error('Usuario não encontrado')
 
     if (identity.email !== usuario.email) {
-      throw new Error('Acesso negado: você só pode modificar seu próprio perfil')
+      throw new Error(
+        'Acesso negado: você só pode modificar seu próprio perfil',
+      )
     }
 
     const updateUser = await db.patch(userId, {

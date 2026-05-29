@@ -4,7 +4,9 @@ import { mutation, query } from './_generated/server'
 
 const ADMIN_EMAIL = 'fbc623@gmail.com'
 
-async function assertAdmin(auth: { getUserIdentity: () => Promise<{ email?: string } | null> }) {
+async function assertAdmin(auth: {
+  getUserIdentity: () => Promise<{ email?: string } | null>
+}) {
   const identity = await auth.getUserIdentity()
   if (!identity) throw new Error('Não autenticado')
   if (identity.email !== ADMIN_EMAIL) throw new Error('Acesso negado')
