@@ -9,6 +9,8 @@ import {
   Medal,
   Activity,
   ExternalLink,
+  MessageSquare,
+  Mail,
 } from 'lucide-react'
 
 export function ProjectsSection() {
@@ -65,6 +67,24 @@ export function ProjectsSection() {
       icon: Activity,
       tags: ['React', 'Node.js', 'PostgreSQL', 'Material-UI'],
       link: 'https://sistema.fisiosport.com.br/',
+      external: true,
+    },
+    {
+      title: 'Zapeio',
+      description:
+        'SaaS multi-tenant de atendimento via WhatsApp com IA para pequenas e médias empresas. Agentes inteligentes, múltiplos atendentes e integração com Evolution API.',
+      icon: MessageSquare,
+      tags: ['Next.js', 'Convex', 'TypeScript', 'WhatsApp', 'IA'],
+      link: 'https://zapeio.com.br',
+      external: true,
+    },
+    {
+      title: 'SendCloud',
+      description:
+        'Plataforma self-hosted de envio de e-mails transacionais, alternativa ao Resend e SendGrid. Suporte a domínios customizados, filas, webhooks e painel de analytics.',
+      icon: Mail,
+      tags: ['Fastify', 'PostgreSQL', 'Redis', 'Docker', 'Node.js'],
+      link: 'https://sendcloud.dev.br',
       external: true,
     },
   ]
