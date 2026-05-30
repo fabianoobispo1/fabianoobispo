@@ -3,6 +3,7 @@
 import Link from 'next/link'
 
 import { Logo } from '@/components/brand/logo'
+import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
   { label: 'Sobre', href: '#sobre' },
@@ -59,6 +60,25 @@ export function Footer() {
             © {currentYear} fabianoobispo. Todos os direitos reservados.
           </span>
           <span>{'// feito com next.js'}</span>
+        </div>
+      </div>
+
+      <div className="border-t border-brand-forest-3">
+        <div
+          className={cn(
+            'mx-auto max-w-6xl px-6 py-4',
+            'text-center text-[11px] leading-relaxed text-brand-mute/60 font-mono',
+          )}
+        >
+          <span>
+            FABIANOOBISPO DESENVOLVIMENTO E CONSULTORIA &nbsp;·&nbsp; CNPJ:
+            66.797.389/0001-56
+          </span>
+          <br />
+          <span>
+            R. Coronel Vieira, 141 - Apto 403 - Centro - Cataguases/MG &nbsp;·&nbsp; CEP:
+            36.770-028 &nbsp;·&nbsp; contato@fabianoobispo.com.br
+          </span>
         </div>
       </div>
     </footer>
