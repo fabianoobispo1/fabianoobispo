@@ -76,8 +76,9 @@ export function Footer() {
           </span>
           <br />
           <span>
-            R. Coronel Vieira, 141 - Apto 403 - Centro - Cataguases/MG &nbsp;·&nbsp; CEP:
-            36.770-028 &nbsp;·&nbsp; contato@fabianoobispo.com.br
+            R. Coronel Vieira, 141 - Apto 403 - Centro - Cataguases/MG
+            &nbsp;·&nbsp; CEP: 36.770-028 &nbsp;·&nbsp;
+            contato@fabianoobispo.com.br
           </span>
         </div>
       </div>
