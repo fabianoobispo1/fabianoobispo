@@ -43,11 +43,11 @@ export function ProjectsSection() {
       external: false,
     },
     {
-      title: 'A dica Certa',
+      title: 'A Dica Certa',
       description:
-        'Recomendações Autênticas da Comunidade. Descubra filmes, séries, músicas, livros e mais, todos recomendados por pessoas reais. Sem algoritmos. Apenas descoberta genuína.',
+        'Plataforma colaborativa de recomendações culturais validadas pela comunidade. Filmes, séries, livros, músicas e mais — sem algoritmos, apenas descobertas genuínas de pessoas reais.',
       icon: Users,
-      tags: ['React', 'Node.js', 'MySQL', 'Email'],
+      tags: ['Next.js', 'Convex', 'TypeScript', 'Comunidade'],
       link: 'https://www.adicacerta.com',
       external: true,
     },
