@@ -23,9 +23,10 @@ Full-stack Next.js 15 (App Router) + Convex + NextAuth v5 personal portfolio and
 
 ### Route Groups
 
-- `src/app/(dashboard)/` — Protected routes behind auth, sidebar layout
-- `src/app/(public_routes)/` — Public pages (login, dontpad editor, tools, games)
-- `src/app/api/` — API routes (NextAuth, Uploadthing webhooks, WhatsApp)
+- `src/app/(dashboard)/` — Protected routes behind auth, sidebar layout (financas, fichaexercicios, lista, perfil, admin)
+- `src/app/(public_routes)/` — Public pages (login, dontpad editor, qrcode/barcode tools, games)
+- `src/app/api/` — API routes (NextAuth, Uploadthing webhooks, NFC-e parser, seed)
+- `src/app/page.tsx` — Portfolio publico com identidade visual `<fb/>` (JetBrains Mono + Space Grotesk, paleta floresta/esmeralda)
 
 ### Convex Backend
 
@@ -133,8 +134,19 @@ This is a **personal portfolio + company management tool** for FABIANOOBISPO DES
 
 **DontPad** (`/dontpad/[page]`): public collaborative text editor with 1.8s auto-save debounce, dynamic page creation, admin panel at `/dashboard/admin/administracao-dontpad`. Convex functions in `convex/dontPad.ts`.
 
+**Ficha de treino** (`/dashboard/fichaexercicios`): workout tracking com catalogo de exercicios. Convex functions em `convex/workout.ts` e `convex/exerciseCatalog.ts`. Setup em `FICHA_TREINO_SETUP.md`.
+
+**Lista de tarefas** (`/dashboard/lista`): todo list pessoal. Convex functions em `convex/todo.ts`.
+
+**NFC-e** (`/api/nfce`): parser de nota fiscal de consumidor (extrai produtos/valores) usado para importar despesas no modulo financeiro.
+
 **File uploads**: `@uploadthing/react` + `@xixixao/uploadstuff` for Convex storage integration. Functions in `convex/files.ts`.
 
 **Exports**: `jspdf`/`jspdf-autotable` for PDF, `xlsx` for spreadsheets.
 
 **Debug**: Convex backend logs appear in the `npx convex dev` terminal. Dashboard at `https://dashboard.convex.dev`.
+
+## Documentacao
+
+- `ROADMAP.md` — correcoes pendentes e features planejadas
+- Docs historicos na raiz: `pagamentos.md` e `RESUMO_WHATSAPP_TOOLS.md` descrevem modulos **ja removidos** do codebase (movidos para repo separado) — nao usar como referencia. `handoff/` contem o pacote da identidade visual `<fb/>`, **ja integrada** (commit `c46fb17`).
