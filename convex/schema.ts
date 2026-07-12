@@ -117,6 +117,21 @@ export const exerciseSchema = {
   updated_at: v.number(),
 }
 
+// Resultados da Mega-Sena (histórico global, não é por usuário)
+export const megaSenaResultSchema = {
+  concurso: v.number(),
+  data: v.number(), // timestamp
+  dezenas: v.array(v.number()), // 6 dezenas sorteadas, 1-60, ordenadas
+  ganhadores6: v.number(),
+  rateio6: v.number(),
+  ganhadores5: v.number(),
+  rateio5: v.number(),
+  ganhadores4: v.number(),
+  rateio4: v.number(),
+  acumulado6: v.number(), // valor acumulado quando não há ganhador de 6 acertos
+  created_at: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -140,4 +155,7 @@ export default defineSchema({
   exercise: defineTable(exerciseSchema)
     .index('by_day', ['dayId'])
     .index('by_catalog', ['catalogId']),
+  megaSenaResult: defineTable(megaSenaResultSchema)
+    .index('by_concurso', ['concurso'])
+    .index('by_data', ['data']),
 })

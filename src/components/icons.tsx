@@ -35,6 +35,7 @@ import {
   ArrowBigUpDash,
   ArrowBigDownDash,
   Dumbbell,
+  Dices,
 } from 'lucide-react'
 
 export type Icon = LucideIcon
@@ -153,4 +154,5 @@ export const Icons = {
   setaUp: ArrowBigUpDash,
   setaDown: ArrowBigDownDash,
   anilha: Dumbbell,
+  megasena: Dices,
 }

@@ -8,6 +8,7 @@ import {
   Settings,
   ChevronDown,
   Dumbbell,
+  Dices,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 
@@ -66,6 +67,11 @@ const items = [
     title: 'Ficha de Exercícios',
     url: '/dashboard/fichaexercicios',
     icon: Dumbbell,
+  },
+  {
+    title: 'Mega-Sena BI',
+    url: '/dashboard/megasena',
+    icon: Dices,
   } /* ,
   {
     title: 'Atletas',

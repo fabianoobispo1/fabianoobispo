@@ -1,6 +1,6 @@
 # Roadmap — fabianoobispo.com.br
 
-> Atualizado em 2026-06-10. Portfolio pessoal + ferramenta de gestão da FABIANOOBISPO DESENVOLVIMENTO E CONSULTORIA. Não é SaaS — features "produtizáveis" vivem em repos separados (zapeio, send-cloud).
+> Atualizado em 2026-07-12. Portfolio pessoal + ferramenta de gestão da FABIANOOBISPO DESENVOLVIMENTO E CONSULTORIA. Não é SaaS — features "produtizáveis" vivem em repos separados (zapeio, send-cloud).
 
 ## 🐛 Correções pendentes
 
@@ -8,6 +8,8 @@
 - [ ] **Arquivar docs de módulos removidos** — `pagamentos.md` e `RESUMO_WHATSAPP_TOOLS.md` descrevem código que não existe mais no repo; mover para `docs/archived/` (criar pasta).
 - [ ] **Arquivar `handoff/`** — pacote da identidade visual `<fb/>` já foi integrado (commit `c46fb17`); manter só como referência arquivada ou deletar.
 - [ ] **Limpar `npm-install.log` da raiz** — artefato de instalação commitado.
+- [ ] **Login: senha vazando na URL em dev** — em `src/components/forms/user-auth-form.tsx`, uma submissão do form de login (credentials) chegou ao servidor como `GET /entrar?email=...&password=...`, expondo a senha em texto puro na URL/histórico do navegador. Suspeita: corrida entre clique e hidratação do React em dev (submit nativo do `<form>` antes do handler anexar). Investigar se acontece também em build de produção; se sim, é mais grave que um artefato de dev.
+- [ ] **Tabelas órfãs no Convex** — `activityLog`, `campaign`, `cartoes`, `contacts`, `financeiro`, `messageTracking`, `payments`, `subscriptionPlans`, `subscriptions`, `whatsAppTemplate` existem no deployment mas não estão mais em `convex/schema.ts` (sobras da remoção do WhatsApp/pagamentos). Decidir: exportar/arquivar dados e apagar as tabelas, ou formalizar como "legado" documentado.
 
 ## 🔧 Melhorias técnicas
 
@@ -32,6 +34,13 @@
 ### Portfolio
 - [ ] **Blog/notas técnicas** — seção de artigos para SEO pessoal (o dontpad já prova o editor; falta render público com markdown).
 - [ ] **Página de projetos dinâmica** — puxar repos/projetos do Convex em vez de hardcoded em `projects-section.tsx`.
+
+### Mega-Sena BI (`/dashboard/megasena`, adicionado 2026-07-12)
+- [x] Histórico completo importado (3.030 concursos, 1996–2026) para a tabela `megaSenaResult`.
+- [x] Insights: frequência (quentes/frias), atraso, pares mais frequentes, distribuição de soma e par/ímpar.
+- [x] Gerador de jogos sugeridos (client-side, estatístico/lúdico) e cadastro manual de concurso (fallback).
+- [ ] **Atualizador via VPS** — `convex/megaSena.ts:fetchLatestFromCaixa` e o cron em `convex/crons.ts` chamam a API oficial da Caixa (`servicebus2.caixa.gov.br`), mas ela retorna **403** quando a requisição vem de IP de datacenter/cloud (testado: funciona via `curl` local, falha a partir de uma Convex action). Ideia: rodar um script/cron **na VPS própria** (IP não-datacenter) que busca o resultado mais recente e chama a mutation pública `megaSena.bulkImport` via `ConvexHttpClient` (`NEXT_PUBLIC_CONVEX_URL` + a mesma lógica de mapeamento de campos já implementada na action). Isso substituiria a necessidade do cron do Convex rodar o fetch — ele pode continuar existindo só como fallback caso o bloqueio de IP não se aplique no futuro.
+- [ ] Avaliar mover o cron do Convex (`crons.ts`) para só rodar se a VPS não reportar atualização em N dias (alerta), já que ele sozinho não consegue buscar da Caixa.
 
 ## 📌 Lembretes operacionais
 
