@@ -16,8 +16,8 @@ import type { Doc } from './_generated/dataModel'
 const MEGASENA_API_URL =
   'https://loteriascaixa-api.herokuapp.com/api/megasena/latest'
 
-// Dispara um e-mail (via Resend) quando o valor estimado do próximo concurso
-// passa desse limiar. Configurável via env var do deployment do Convex
+// Dispara um e-mail (via SendCloud) quando o valor estimado do próximo
+// concurso passa desse limiar. Configurável via env var do deployment do Convex
 // (`npx convex env set MEGASENA_LIMIAR_ALERTA <valor>`) pra ajustar sem
 // precisar redeploy caso fique barulhento.
 function limiarAlertaAcumulado(): number {
@@ -328,39 +328,45 @@ export const fetchLatestFromCaixa = action({
   },
 })
 
+// Envia via SendCloud (plataforma própria de e-mail transacional,
+// https://sendcloud.dev.br) em vez de Resend. `from` precisa ser um domínio
+// verificado no workspace da API key usada.
 async function enviarAlertaAcumulado(
   proximoConcurso: number | undefined,
   valorEstimado: number,
 ) {
-  const apiKey = process.env.RESEND_API_KEY
+  const apiKey = process.env.SENDCLOUD_API_KEY
   const destinatario = process.env.MEGASENA_ALERTA_EMAIL
   if (!apiKey || !destinatario) {
     console.warn(
-      'Mega-Sena acumulou, mas RESEND_API_KEY ou MEGASENA_ALERTA_EMAIL não estão configurados no deployment do Convex — alerta não enviado.',
+      'Mega-Sena acumulou, mas SENDCLOUD_API_KEY ou MEGASENA_ALERTA_EMAIL não estão configurados no deployment do Convex — alerta não enviado.',
     )
     return
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://api.sendcloud.dev.br/v1/emails/send',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Mega-Sena BI <noreply@sendcloud.dev.br>',
+          to: destinatario,
+          subject: `Mega-Sena acumulada: concurso ${proximoConcurso ?? '?'} estimado em ${formatBRL(valorEstimado)}`,
+          html: `<p>O próximo concurso da Mega-Sena (nº ${proximoConcurso ?? '?'}) está estimado em <strong>${formatBRL(valorEstimado)}</strong>.</p>`,
+        }),
       },
-      body: JSON.stringify({
-        from: 'Mega-Sena BI <onboarding@resend.dev>',
-        to: [destinatario],
-        subject: `Mega-Sena acumulada: concurso ${proximoConcurso ?? '?'} estimado em ${formatBRL(valorEstimado)}`,
-        html: `<p>O próximo concurso da Mega-Sena (nº ${proximoConcurso ?? '?'}) está estimado em <strong>${formatBRL(valorEstimado)}</strong>.</p>`,
-      }),
-    })
+    )
     if (!response.ok) {
       console.error(
-        `Falha ao enviar alerta de acumulado via Resend: ${response.status}`,
+        `Falha ao enviar alerta de acumulado via SendCloud: ${response.status}`,
       )
     }
   } catch (error) {
-    console.error('Erro ao enviar alerta de acumulado via Resend:', error)
+    console.error('Erro ao enviar alerta de acumulado via SendCloud:', error)
   }
 }
