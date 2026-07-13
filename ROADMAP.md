@@ -22,25 +22,29 @@
 ## ✨ Novas features
 
 ### Finanças (pendências de MELHORIAS_FINANCAS.md)
+
 - [ ] **UI de categorias customizadas** — `/dashboard/financas/categorias` para criar/editar categorias além das do seed.
 - [ ] **Relatórios por categoria** — export PDF/XLSX agrupado por categoria (jspdf/xlsx já estão no projeto).
 - [ ] **Gráficos de gastos por categoria** — evolução mensal e comparativo entre meses.
 - [ ] **Importação NFC-e → transação** — fluxo completo: escanear QR code da nota e criar despesa com produtos itemizados.
 
 ### Ficha de treino
+
 - [ ] **Histórico e progressão de cargas** — registrar peso/reps por sessão e plotar evolução.
 - [ ] **Compartilhamento de ficha** — link público read-only da ficha de treino.
 
 ### Portfolio
+
 - [ ] **Blog/notas técnicas** — seção de artigos para SEO pessoal (o dontpad já prova o editor; falta render público com markdown).
 - [ ] **Página de projetos dinâmica** — puxar repos/projetos do Convex em vez de hardcoded em `projects-section.tsx`.
 
 ### Mega-Sena BI (`/dashboard/megasena`, adicionado 2026-07-12)
+
 - [x] Histórico completo importado (3.030 concursos, 1996–2026) para a tabela `megaSenaResult`.
 - [x] Insights: frequência (quentes/frias), atraso, pares mais frequentes, distribuição de soma e par/ímpar.
 - [x] Gerador de jogos sugeridos (client-side, estatístico/lúdico) e cadastro manual de concurso (fallback).
-- [x] **Atualizador via VPS** — `scripts/sync-megasena.mjs` busca o resultado mais recente direto na API da Caixa e importa via mutation pública `megaSena.bulkImport` usando `ConvexHttpClient` (`NEXT_PUBLIC_CONVEX_URL`). Testado localmente contra o deployment dev (concurso 3030, IP não-datacenter). Falta: configurar o cron **na VPS** (`0 22 * * * cd /caminho/do/repo && node scripts/sync-megasena.mjs >> /var/log/megasena-sync.log 2>&1`, horário de Brasília ~19h / 22h UTC) e rodar `npm install` lá para ter `convex` disponível.
-- [ ] Avaliar mover o cron do Convex (`crons.ts`) para só rodar se a VPS não reportar atualização em N dias (alerta), já que ele sozinho não consegue buscar da Caixa.
+- [x] **Atualizador via VPS** — a API oficial da Caixa (`servicebus2.caixa.gov.br`) retorna 403 pra qualquer IP de datacenter/cloud; confirmado que isso vale até pra uma VPS própria (Contabo) — só funciona de IP residencial. Solução: `scripts/sync-megasena.mjs` usa o espelho comunitário `loteriascaixa-api.herokuapp.com` (mesmo formato de campos: `faixa` 1/2/3 = 6/5/4 acertos, `valorAcumuladoProximoConcurso`) e importa via mutation pública `megaSena.bulkImport` com `ConvexHttpClient`. Rodando em produção: deploy standalone em `/opt/megasena-sync/` numa VPS da empresa (script + `package.json` mínimo com só a dep `convex`, instalada via container `node:20-alpine` descartável — nada instalado no host, nenhum serviço existente tocado), cron `0 22 * * *` (fuso do servidor: `America/Sao_Paulo`, roda ~2h depois do sorteio) chamando `docker run --rm --env-file /opt/megasena-sync/.env -v /opt/megasena-sync:/app -w /app node:20-alpine node sync-megasena.mjs`, log em `/var/log/megasena-sync.log`. Testado manualmente antes de agendar (concurso 3030 confirmado).
+- [ ] Avaliar mover/desligar o cron do Convex (`crons.ts:fetchLatestFromCaixa`) já que ele sempre vai tomar 403 (roda em IP de cloud) — hoje é só uma tentativa inofensiva (bulkImport ignora duplicado), mas pode virar um alerta de "VPS não atualizou em N dias" no lugar.
 
 ## 📌 Lembretes operacionais
 
