@@ -7,8 +7,7 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier . --write",
-    "build": "next build",
-    "megasena:sync": "node scripts/sync-megasena.mjs"
+    "build": "next build"
   },
   "dependencies": {
     "@dnd-kit/sortable": "^9.0.0",

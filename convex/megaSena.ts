@@ -4,8 +4,11 @@ import { action, mutation, query } from './_generated/server'
 import { api } from './_generated/api'
 import { megaSenaResultSchema } from './schema'
 
-const CAIXA_API_URL =
-  'https://servicebus2.caixa.gov.br/portaldeloterias/api/megasena/'
+// A API oficial da Caixa (servicebus2.caixa.gov.br) retorna 403 pra
+// requisições vindas de IP de datacenter/cloud, incluindo as Convex actions.
+// Usamos o espelho comunitário abaixo, que replica o mesmo formato de campos.
+const MEGASENA_API_URL =
+  'https://loteriascaixa-api.herokuapp.com/api/megasena/latest'
 
 function parseDataBr(dataStr: string): number {
   const [dia, mes, ano] = dataStr.split('/').map(Number)
@@ -148,42 +151,35 @@ export const getStats = query({
 export const fetchLatestFromCaixa = action({
   args: {},
   handler: async (ctx): Promise<{ inserted: number; recebidos: number }> => {
-    const response = await fetch(CAIXA_API_URL, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Accept: 'application/json, text/plain, */*',
-        Referer: 'https://loterias.caixa.gov.br/',
-      },
-    })
+    const response = await fetch(MEGASENA_API_URL)
     if (!response.ok) {
-      throw new Error(`Falha ao consultar API da Caixa: ${response.status}`)
+      throw new Error(
+        `Falha ao consultar loteriascaixa-api: ${response.status}`,
+      )
     }
     const data = await response.json()
 
-    const dezenas = (data.listaDezenas as string[])
-      .map(Number)
-      .sort((a, b) => a - b)
+    const dezenas = (data.dezenas as string[]).map(Number).sort((a, b) => a - b)
 
     type Faixa = {
       faixa: number
-      numeroDeGanhadores: number
+      ganhadores: number
       valorPremio: number
     }
-    const listaRateio = data.listaRateioPremio as Faixa[]
-    const faixa6 = listaRateio.find((f) => f.faixa === 1)
-    const faixa5 = listaRateio.find((f) => f.faixa === 2)
-    const faixa4 = listaRateio.find((f) => f.faixa === 3)
+    const premiacoes = data.premiacoes as Faixa[]
+    const faixa6 = premiacoes.find((f) => f.faixa === 1)
+    const faixa5 = premiacoes.find((f) => f.faixa === 2)
+    const faixa4 = premiacoes.find((f) => f.faixa === 3)
 
     const resultado = {
-      concurso: data.numero as number,
-      data: parseDataBr(data.dataApuracao as string),
+      concurso: data.concurso as number,
+      data: parseDataBr(data.data as string),
       dezenas,
-      ganhadores6: faixa6?.numeroDeGanhadores ?? 0,
+      ganhadores6: faixa6?.ganhadores ?? 0,
       rateio6: faixa6?.valorPremio ?? 0,
-      ganhadores5: faixa5?.numeroDeGanhadores ?? 0,
+      ganhadores5: faixa5?.ganhadores ?? 0,
       rateio5: faixa5?.valorPremio ?? 0,
-      ganhadores4: faixa4?.numeroDeGanhadores ?? 0,
+      ganhadores4: faixa4?.ganhadores ?? 0,
       rateio4: faixa4?.valorPremio ?? 0,
       acumulado6: (data.valorAcumuladoProximoConcurso as number) ?? 0,
       created_at: Date.now(),
