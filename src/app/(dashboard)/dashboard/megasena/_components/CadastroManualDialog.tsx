@@ -32,6 +32,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { api } from '@/convex/_generated/api'
 import { showErrorToast } from '@/lib/handle-error'
+import { parseDezenas } from '@/lib/megasena'
 
 const formSchema = z.object({
   concurso: z.coerce
@@ -45,19 +46,6 @@ const formSchema = z.object({
 })
 
 type FormSchema = z.infer<typeof formSchema>
-
-function parseDezenas(value: string): number[] | null {
-  const numeros = value
-    .split(/[,\s]+/)
-    .filter(Boolean)
-    .map(Number)
-
-  if (numeros.length !== 6) return null
-  if (numeros.some((n) => !Number.isInteger(n) || n < 1 || n > 60)) return null
-  if (new Set(numeros).size !== 6) return null
-
-  return numeros.sort((a, b) => a - b)
-}
 
 export const CadastroManualDialog = () => {
   const [isOpen, setIsOpen] = useState(false)

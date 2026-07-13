@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
+import { formatDataBR } from '@/lib/megasena'
 import type { Id } from '@/convex/_generated/dataModel'
 
 interface Resultado {
@@ -46,9 +47,7 @@ export const UltimosResultados = ({ resultados }: UltimosResultadosProps) => {
             {resultados.map((resultado) => (
               <TableRow key={resultado._id}>
                 <TableCell>{resultado.concurso}</TableCell>
-                <TableCell>
-                  {new Date(resultado.data).toLocaleDateString('pt-BR')}
-                </TableCell>
+                <TableCell>{formatDataBR(resultado.data)}</TableCell>
                 <TableCell className="flex flex-wrap gap-1">
                   {resultado.dezenas.map((dezena) => (
                     <Badge key={dezena} variant="outline">

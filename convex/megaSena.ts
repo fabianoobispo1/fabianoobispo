@@ -1,8 +1,14 @@
 import { v } from 'convex/values'
 
-import { action, mutation, query } from './_generated/server'
+import {
+  action,
+  mutation,
+  query,
+  type DatabaseReader,
+} from './_generated/server'
 import { api } from './_generated/api'
 import { megaSenaResultSchema } from './schema'
+import type { Doc } from './_generated/dataModel'
 
 // A API oficial da Caixa (servicebus2.caixa.gov.br) retorna 403 pra
 // requisições vindas de IP de datacenter/cloud, incluindo as Convex actions.
@@ -10,9 +16,35 @@ import { megaSenaResultSchema } from './schema'
 const MEGASENA_API_URL =
   'https://loteriascaixa-api.herokuapp.com/api/megasena/latest'
 
+// Dispara um e-mail (via Resend) quando o valor estimado do próximo concurso
+// passa desse limiar. Configurável via env var do deployment do Convex
+// (`npx convex env set MEGASENA_LIMIAR_ALERTA <valor>`) pra ajustar sem
+// precisar redeploy caso fique barulhento.
+function limiarAlertaAcumulado(): number {
+  const valor = Number(process.env.MEGASENA_LIMIAR_ALERTA)
+  return Number.isFinite(valor) && valor > 0 ? valor : 100_000_000
+}
+
 function parseDataBr(dataStr: string): number {
   const [dia, mes, ano] = dataStr.split('/').map(Number)
   return new Date(ano, mes - 1, dia).getTime()
+}
+
+function formatBRL(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value)
+}
+
+async function buscarPorConcurso(
+  db: DatabaseReader,
+  concurso: number,
+): Promise<Doc<'megaSenaResult'> | null> {
+  return await db
+    .query('megaSenaResult')
+    .withIndex('by_concurso', (q) => q.eq('concurso', concurso))
+    .unique()
 }
 
 export const bulkImport = mutation({
@@ -22,10 +54,7 @@ export const bulkImport = mutation({
   handler: async ({ db }, { results }) => {
     let inserted = 0
     for (const result of results) {
-      const existing = await db
-        .query('megaSenaResult')
-        .withIndex('by_concurso', (q) => q.eq('concurso', result.concurso))
-        .unique()
+      const existing = await buscarPorConcurso(db, result.concurso)
       if (existing) continue
       await db.insert('megaSenaResult', result)
       inserted++
@@ -34,13 +63,42 @@ export const bulkImport = mutation({
   },
 })
 
+// Usada pela action de atualização: diferente de bulkImport (que ignora
+// concurso já existente), aqui o registro do concurso mais recente é
+// atualizado se já existir — é como o campo `proximoConcurso` (que descreve o
+// sorteio seguinte) chega até ficar atualizado dia a dia. Preserva
+// `created_at` (data da 1ª importação) e não deixa um campo proximo*
+// ausente na resposta da API apagar um valor já salvo.
+export const upsertLatest = mutation({
+  args: megaSenaResultSchema,
+  handler: async ({ db }, args) => {
+    const existing = await buscarPorConcurso(db, args.concurso)
+    if (existing) {
+      await db.patch(existing._id, {
+        ...args,
+        created_at: existing.created_at,
+        proximoConcurso: args.proximoConcurso ?? existing.proximoConcurso,
+        dataProximoConcurso:
+          args.dataProximoConcurso ?? existing.dataProximoConcurso,
+        valorEstimadoProximoConcurso:
+          args.valorEstimadoProximoConcurso ??
+          existing.valorEstimadoProximoConcurso,
+      })
+      return {
+        inserted: 0,
+        recebidos: 1,
+        estimativaAnterior: existing.valorEstimadoProximoConcurso ?? 0,
+      }
+    }
+    await db.insert('megaSenaResult', args)
+    return { inserted: 1, recebidos: 1, estimativaAnterior: 0 }
+  },
+})
+
 export const create = mutation({
   args: megaSenaResultSchema,
   handler: async ({ db }, args) => {
-    const existing = await db
-      .query('megaSenaResult')
-      .withIndex('by_concurso', (q) => q.eq('concurso', args.concurso))
-      .unique()
+    const existing = await buscarPorConcurso(db, args.concurso)
     if (existing) throw new Error(`Concurso ${args.concurso} já cadastrado`)
     return await db.insert('megaSenaResult', args)
   },
@@ -148,6 +206,55 @@ export const getStats = query({
   },
 })
 
+export const conferirAposta = query({
+  args: { dezenas: v.array(v.number()) },
+  handler: async ({ db }, { dezenas }) => {
+    if (dezenas.length !== 6) {
+      throw new Error('Informe exatamente 6 dezenas')
+    }
+    const apostaSet = new Set(dezenas)
+
+    const resultados = await db
+      .query('megaSenaResult')
+      .withIndex('by_concurso')
+      .collect()
+
+    const distribuicaoMap = new Map<number, number>()
+    for (let acertos = 0; acertos <= 6; acertos++) {
+      distribuicaoMap.set(acertos, 0)
+    }
+
+    let maiorConcurso = 0
+    let acertosUltimoConcurso = 0
+    let melhorResultado: { concurso: number; acertos: number } | null = null
+
+    for (const resultado of resultados) {
+      const acertos = resultado.dezenas.filter((d) => apostaSet.has(d)).length
+      distribuicaoMap.set(acertos, (distribuicaoMap.get(acertos) ?? 0) + 1)
+
+      if (resultado.concurso > maiorConcurso) {
+        maiorConcurso = resultado.concurso
+        acertosUltimoConcurso = acertos
+      }
+
+      if (!melhorResultado || acertos > melhorResultado.acertos) {
+        melhorResultado = { concurso: resultado.concurso, acertos }
+      }
+    }
+
+    const distribuicaoHistorica = Array.from(distribuicaoMap.entries())
+      .map(([acertos, quantidade]) => ({ acertos, quantidade }))
+      .sort((a, b) => b.acertos - a.acertos)
+
+    return {
+      ultimoConcurso: maiorConcurso,
+      acertosUltimoConcurso,
+      distribuicaoHistorica,
+      melhorResultado,
+    }
+  },
+})
+
 export const fetchLatestFromCaixa = action({
   args: {},
   handler: async (ctx): Promise<{ inserted: number; recebidos: number }> => {
@@ -171,6 +278,9 @@ export const fetchLatestFromCaixa = action({
     const faixa5 = premiacoes.find((f) => f.faixa === 2)
     const faixa4 = premiacoes.find((f) => f.faixa === 3)
 
+    const valorEstimadoProximoConcurso =
+      (data.valorEstimadoProximoConcurso as number) ?? 0
+
     const resultado = {
       concurso: data.concurso as number,
       data: parseDataBr(data.data as string),
@@ -183,10 +293,74 @@ export const fetchLatestFromCaixa = action({
       rateio4: faixa4?.valorPremio ?? 0,
       acumulado6: (data.valorAcumuladoProximoConcurso as number) ?? 0,
       created_at: Date.now(),
+      proximoConcurso: data.proximoConcurso as number | undefined,
+      dataProximoConcurso: data.dataProximoConcurso
+        ? parseDataBr(data.dataProximoConcurso as string)
+        : undefined,
+      valorEstimadoProximoConcurso,
     }
 
-    return await ctx.runMutation(api.megaSena.bulkImport, {
-      results: [resultado],
-    })
+    const resultadoDoImport = await ctx.runMutation(
+      api.megaSena.upsertLatest,
+      resultado,
+    )
+
+    // Dispara o alerta só no momento em que a estimativa CRUZA o limiar (e não
+    // a cada corrida do cron enquanto ela permanece acima) — funciona tanto
+    // quando um concurso novo já nasce acima do limiar quanto quando a
+    // estimativa de um concurso ainda em aberto sobe até ultrapassá-lo.
+    const limiar = limiarAlertaAcumulado()
+    const jaEstavaAcimaDoLimiar = resultadoDoImport.estimativaAnterior >= limiar
+    const cruzouLimiar =
+      valorEstimadoProximoConcurso >= limiar && !jaEstavaAcimaDoLimiar
+
+    if (cruzouLimiar) {
+      await enviarAlertaAcumulado(
+        resultado.proximoConcurso,
+        valorEstimadoProximoConcurso,
+      )
+    }
+
+    return {
+      inserted: resultadoDoImport.inserted,
+      recebidos: resultadoDoImport.recebidos,
+    }
   },
 })
+
+async function enviarAlertaAcumulado(
+  proximoConcurso: number | undefined,
+  valorEstimado: number,
+) {
+  const apiKey = process.env.RESEND_API_KEY
+  const destinatario = process.env.MEGASENA_ALERTA_EMAIL
+  if (!apiKey || !destinatario) {
+    console.warn(
+      'Mega-Sena acumulou, mas RESEND_API_KEY ou MEGASENA_ALERTA_EMAIL não estão configurados no deployment do Convex — alerta não enviado.',
+    )
+    return
+  }
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Mega-Sena BI <onboarding@resend.dev>',
+        to: [destinatario],
+        subject: `Mega-Sena acumulada: concurso ${proximoConcurso ?? '?'} estimado em ${formatBRL(valorEstimado)}`,
+        html: `<p>O próximo concurso da Mega-Sena (nº ${proximoConcurso ?? '?'}) está estimado em <strong>${formatBRL(valorEstimado)}</strong>.</p>`,
+      }),
+    })
+    if (!response.ok) {
+      console.error(
+        `Falha ao enviar alerta de acumulado via Resend: ${response.status}`,
+      )
+    }
+  } catch (error) {
+    console.error('Erro ao enviar alerta de acumulado via Resend:', error)
+  }
+}

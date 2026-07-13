@@ -130,6 +130,18 @@ export const megaSenaResultSchema = {
   rateio4: v.number(),
   acumulado6: v.number(), // valor acumulado quando não há ganhador de 6 acertos
   created_at: v.number(),
+  // Info do próximo concurso, opcional pois só vem da API a partir do
+  // concurso mais recente importado (histórico antigo não tem esses dados)
+  proximoConcurso: v.optional(v.number()),
+  dataProximoConcurso: v.optional(v.number()), // timestamp
+  valorEstimadoProximoConcurso: v.optional(v.number()),
+}
+
+// Jogos gerados pelo usuário e salvos pra acompanhar depois
+export const megaSenaJogoGeradoSchema = {
+  userId: v.id('user'),
+  dezenas: v.array(v.number()),
+  createdAt: v.number(),
 }
 
 // Definição do Schema completo
@@ -158,4 +170,7 @@ export default defineSchema({
   megaSenaResult: defineTable(megaSenaResultSchema)
     .index('by_concurso', ['concurso'])
     .index('by_data', ['data']),
+  megaSenaJogoGerado: defineTable(megaSenaJogoGeradoSchema).index('by_user', [
+    'userId',
+  ]),
 })

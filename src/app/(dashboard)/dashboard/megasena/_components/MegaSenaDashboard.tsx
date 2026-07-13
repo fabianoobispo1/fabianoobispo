@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { formatCurrency } from '@/lib/utils'
+import { formatDataBR } from '@/lib/megasena'
 import { showErrorToast } from '@/lib/handle-error'
 
 import { FrequenciaCharts } from './FrequenciaCharts'
@@ -19,6 +20,8 @@ import { InsightsTables } from './InsightsTables'
 import { GeradorJogos } from './GeradorJogos'
 import { UltimosResultados } from './UltimosResultados'
 import { CadastroManualDialog } from './CadastroManualDialog'
+import { ConferirApostaCard } from './ConferirApostaCard'
+import { MeusJogosSalvos } from './MeusJogosSalvos'
 
 export const MegaSenaDashboard = () => {
   const [isAtualizando, setIsAtualizando] = useState(false)
@@ -71,7 +74,7 @@ export const MegaSenaDashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm text-muted-foreground">
@@ -110,6 +113,28 @@ export const MegaSenaDashboard = () => {
               : `Acumulado: ${formatCurrency(ultimoResultado?.acumulado6 ?? 0)}`}
           </CardContent>
         </Card>
+
+        {ultimoResultado?.proximoConcurso && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-muted-foreground">
+                Próximo concurso ({ultimoResultado.proximoConcurso})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {ultimoResultado.dataProximoConcurso && (
+                <p className="text-sm text-muted-foreground">
+                  {formatDataBR(ultimoResultado.dataProximoConcurso)}
+                </p>
+              )}
+              <p className="text-lg font-semibold">
+                {formatCurrency(
+                  ultimoResultado.valorEstimadoProximoConcurso ?? 0,
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <FrequenciaCharts frequencia={stats.frequencia} />
@@ -121,11 +146,20 @@ export const MegaSenaDashboard = () => {
         atraso={stats.atraso}
         paresFrequentes={stats.paresFrequentes}
       />
+      <ConferirApostaCard />
       <GeradorJogos
         frequencia={stats.frequencia}
         somaHistograma={stats.somaHistograma}
         paridade={stats.paridade}
       />
+      {ultimoResultado && (
+        <MeusJogosSalvos
+          ultimoResultado={{
+            concurso: ultimoResultado.concurso,
+            dezenas: ultimoResultado.dezenas,
+          }}
+        />
+      )}
       <UltimosResultados resultados={ultimos} />
     </div>
   )

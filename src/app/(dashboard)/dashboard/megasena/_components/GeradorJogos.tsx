@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Dices } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useMutation } from 'convex/react'
+import { Dices, Save } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,6 +15,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
+import { showErrorToast } from '@/lib/handle-error'
 
 interface GeradorJogosProps {
   frequencia: { dezena: number; quantidade: number }[]
@@ -71,6 +77,21 @@ export const GeradorJogos = ({
   paridade,
 }: GeradorJogosProps) => {
   const [jogos, setJogos] = useState<number[][]>([])
+  const { data: session } = useSession()
+  const salvarJogo = useMutation(api.megaSenaJogo.salvar)
+
+  const onSalvar = async (jogo: number[]) => {
+    if (!session?.user?.id) return
+    try {
+      await salvarJogo({
+        userId: session.user.id as Id<'user'>,
+        dezenas: jogo,
+      })
+      toast.success('Jogo salvo')
+    } catch (error) {
+      showErrorToast(error)
+    }
+  }
 
   const gerar = () => {
     const ordenada = [...frequencia].sort((a, b) => b.quantidade - a.quantidade)
@@ -115,6 +136,14 @@ export const GeradorJogos = ({
                     {String(numero).padStart(2, '0')}
                   </Badge>
                 ))}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Salvar jogo"
+                  onClick={() => onSalvar(jogo)}
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>

@@ -14,6 +14,7 @@ import type * as dontPad from "../dontPad.js";
 import type * as exerciseCatalog from "../exerciseCatalog.js";
 import type * as files from "../files.js";
 import type * as megaSena from "../megaSena.js";
+import type * as megaSenaJogo from "../megaSenaJogo.js";
 import type * as recuperaSenha from "../recuperaSenha.js";
 import type * as seed from "../seed.js";
 import type * as todo from "../todo.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   exerciseCatalog: typeof exerciseCatalog;
   files: typeof files;
   megaSena: typeof megaSena;
+  megaSenaJogo: typeof megaSenaJogo;
   recuperaSenha: typeof recuperaSenha;
   seed: typeof seed;
   todo: typeof todo;
