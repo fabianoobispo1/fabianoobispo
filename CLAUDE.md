@@ -61,6 +61,8 @@ await create({ name: 'Test', amount: 100 })
 
 Use `fetchQuery`/`fetchMutation` from `convex/nextjs` inside `useEffect` or event callbacks instead of `useQuery`/`useMutation`.
 
+**⚠️ Convex has two separate deployments — `npx convex dev` does NOT reach production.** The project `fabianoobispo-com-br` has a dev deployment (`abundant-ant-397`, what `npx convex dev` / `npx convex dev --once` push to) and a distinct production deployment (`intent-cow-40`, what the live site's `NEXT_PUBLIC_CONVEX_URL` on Vercel points to). Schema/function changes only reach the dev deployment until you run **`npx convex deploy`**. Env vars (`npx convex env set KEY value`) also default to dev — add `--prod` to set them on production. This bit the project once already: a whole feature (Mega-Sena BI) shipped to Vercel and looked fine in `next build`, but the live page threw `Application error` because the Convex functions/schema/data simply didn't exist on the production deployment. Before considering a Convex-backed feature "done" and telling the user it's live, run `npx convex deploy` (and any needed `npx convex env set ... --prod`), then verify against the actual production URL — not just `npx convex dev`.
+
 ### Authentication
 
 - Config: `src/auth/auth.config.ts` and `src/auth/auth.ts`
