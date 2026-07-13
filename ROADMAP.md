@@ -4,6 +4,7 @@
 
 ## 🐛 Correções pendentes
 
+- [x] **Login com Google quebrado em produção** — `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` nunca tinham sido cadastrados nas env vars de **Production** na Vercel (só existiam no `.env` local e no deployment do Convex); o provider do Google em `src/auth/auth.config.ts` rodava com client id/secret vazios. Corrigido: `npx vercel env add GOOGLE_CLIENT_ID production` / `GOOGLE_CLIENT_SECRET production` (valores copiados do Convex dev) + redeploy (`npx vercel redeploy`). Testado end-to-end no site ao vivo: logout → clique em "Continue Com Google" → callback → `/dashboard`, duas vezes, sessão limpa. Nada foi alterado no código (por isso não há commit associado). `GITHUB_ID`/`GITHUB_SECRET` têm a mesma ausência em Production e devem estar quebrados do mesmo jeito — não corrigido ainda, ninguém reportou usar login via GitHub.
 - [ ] **Rota `/dashboard/testeUpload` em produção** — página de teste de upload acessível; remover ou restringir a admin.
 - [ ] **Arquivar docs de módulos removidos** — `pagamentos.md` e `RESUMO_WHATSAPP_TOOLS.md` descrevem código que não existe mais no repo; mover para `docs/archived/` (criar pasta).
 - [ ] **Arquivar `handoff/`** — pacote da identidade visual `<fb/>` já foi integrado (commit `c46fb17`); manter só como referência arquivada ou deletar.
