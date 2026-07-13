@@ -67,11 +67,6 @@ const items = [
     title: 'Ficha de Exercícios',
     url: '/dashboard/fichaexercicios',
     icon: Dumbbell,
-  },
-  {
-    title: 'Mega-Sena BI',
-    url: '/dashboard/megasena',
-    icon: Dices,
   } /* ,
   {
     title: 'Atletas',
@@ -83,6 +78,13 @@ const items = [
     url: '/dashboard/mensalidade',
     icon: User,
   }, */
+]
+const itemsLoteria = [
+  {
+    title: 'Mega-Sena',
+    url: '/dashboard/megasena',
+    icon: Dices,
+  },
 ]
 const itemsAdm = [
   /* {
@@ -174,6 +176,33 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              <Collapsible className="group/collapsible" defaultOpen>
+                <SidebarGroup>
+                  <SidebarGroupLabel asChild>
+                    <CollapsibleTrigger>
+                      Loteria
+                      <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </CollapsibleTrigger>
+                  </SidebarGroupLabel>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {itemsLoteria.map((item) => (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild>
+                              <a href={item.url}>
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </a>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
 
               <Collapsible className="group/collapsible">
                 <SidebarGroup>

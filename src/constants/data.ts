@@ -182,7 +182,7 @@ export const navItems: NavItem[] = [
     label: 'post',
   },
   {
-    title: 'Mega-Sena BI',
+    title: 'Mega-Sena',
     href: '/dashboard/megasena',
     icon: 'megasena',
     label: 'megasena',

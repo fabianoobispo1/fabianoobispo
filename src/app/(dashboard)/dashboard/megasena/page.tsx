@@ -3,7 +3,10 @@ import { Heading } from '@/components/ui/heading'
 
 import { MegaSenaDashboard } from './_components/MegaSenaDashboard'
 
-const breadcrumbItems = [{ title: 'Mega-Sena BI', link: '/dashboard/megasena' }]
+const breadcrumbItems = [
+  { title: 'Loteria', link: '/dashboard/megasena' },
+  { title: 'Mega-Sena', link: '/dashboard/megasena' },
+]
 
 export default function Page() {
   return (
@@ -11,7 +14,7 @@ export default function Page() {
       <BreadCrumb items={breadcrumbItems} />
       <div className="flex items-start justify-between gap-4">
         <Heading
-          title="Mega-Sena BI"
+          title="Mega-Sena"
           description="Histórico completo de resultados e insights estatísticos para montar seus jogos."
         />
       </div>
