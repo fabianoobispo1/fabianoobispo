@@ -144,6 +144,19 @@ export const megaSenaJogoGeradoSchema = {
   createdAt: v.number(),
 }
 
+// Labs (VMs temporárias para testes)
+export const labSchema = {
+  userId: v.id('user'),
+  name: v.string(),
+  containerId: v.string(),
+  status: v.union(v.literal('creating'), v.literal('running'), v.literal('stopped'), v.literal('error')),
+  ip: v.optional(v.string()),
+  port: v.optional(v.number()), // SSH port
+  lastActivity: v.number(), // timestamp - para auto-cleanup
+  created_at: v.number(),
+  error: v.optional(v.string()),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -173,4 +186,7 @@ export default defineSchema({
   megaSenaJogoGerado: defineTable(megaSenaJogoGeradoSchema).index('by_user', [
     'userId',
   ]),
+  lab: defineTable(labSchema)
+    .index('by_user', ['userId'])
+    .index('by_container_id', ['containerId']),
 })
