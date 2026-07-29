@@ -15,4 +15,11 @@ crons.daily(
   api.megaSena.fetchLatestFromCaixa,
 )
 
+// Auto-cleanup de labs inativos (todos os dias às 03h da manhã UTC)
+crons.daily(
+  'cleanup de labs inativos',
+  { hourUTC: 3, minuteUTC: 0 },
+  api.lab.cleanupInactiveLabs,
+)
+
 export default crons
