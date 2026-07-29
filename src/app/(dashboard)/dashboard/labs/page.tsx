@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation, useQuery, useAction } from 'convex/react'
 import { api } from '@/../convex/_generated/api'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -29,9 +29,9 @@ export default function LabsPage() {
 
   // Queries e Mutations
   const userLabs = useQuery(api.lab.getUserLabs, userId ? { userId } : 'skip')
-  const createLab = useMutation(api.lab.createLab)
-  const deleteLab = useMutation(api.lab.deleteLab)
-  const updateActivity = useMutation(api.lab.updateLastActivity)
+  const createLab = useAction(api.lab.createLab)
+  const deleteLab = useAction(api.lab.deleteLab)
+  const updateActivity = useAction(api.lab.updateLastActivity)
 
   useEffect(() => {
     setMounted(true)
