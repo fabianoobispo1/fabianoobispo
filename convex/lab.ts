@@ -87,14 +87,14 @@ export const deleteLab = action({
     }
 
     // Deleta do Convex
-    await ctx.runMutation(internal.lab.deleteLab, { labId: args.labId })
+    await ctx.runMutation(internal.lab.deleteLabInternal, { labId: args.labId })
   },
 })
 
 export const updateLastActivity = action({
   args: { labId: v.id('lab') },
   handler: async (ctx, args) => {
-    await ctx.runMutation(internal.lab.updateLastActivity, {
+    await ctx.runMutation(internal.lab.updateLastActivityInternal, {
       labId: args.labId,
     })
   },
@@ -120,7 +120,7 @@ export const cleanupInactiveLabs = action({
           })
 
           // Deleta do Convex
-          await ctx.runMutation(internal.lab.deleteLab, { labId: lab._id })
+          await ctx.runMutation(internal.lab.deleteLabInternal, { labId: lab._id })
         } catch (err) {
           console.error(`Erro ao cleanup lab ${lab._id}:`, err)
         }
@@ -158,14 +158,14 @@ export const insertLab = internalMutation({
   },
 })
 
-export const deleteLab = internalMutation({
+export const deleteLabInternal = internalMutation({
   args: { labId: v.id('lab') },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.labId)
   },
 })
 
-export const updateLastActivity = internalMutation({
+export const updateLastActivityInternal = internalMutation({
   args: { labId: v.id('lab') },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.labId, { lastActivity: Date.now() })
