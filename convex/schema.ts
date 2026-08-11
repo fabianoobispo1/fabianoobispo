@@ -157,6 +157,33 @@ export const labSchema = {
   error: v.optional(v.string()),
 }
 
+// SSH Connections - Permite guardar múltiplas conexões SSH
+export const sshConnectionSchema = {
+  userId: v.id('user'),
+  name: v.string(), // Nome da conexão (ex: "Servidor Principal", "VPS Backup")
+  host: v.string(), // IP ou hostname do servidor
+  port: v.number(), // Porta SSH (padrão: 22)
+  username: v.string(), // Usuário SSH
+  authMethod: v.union(v.literal('password'), v.literal('privateKey')), // Método de autenticação
+
+  // Para autenticação por senha (criptografado no banco)
+  password: v.optional(v.string()),
+
+  // Para autenticação por chave privada (criptografado no banco)
+  privateKey: v.optional(v.string()), // Conteúdo da chave privada
+  privateKeyPassphrase: v.optional(v.string()), // Senha da chave (se houver)
+
+  // Metadados
+  description: v.optional(v.string()),
+  tags: v.optional(v.array(v.string())), // Tags para organizar (ex: ["produção", "crítico"])
+  isDefault: v.boolean(), // Conexão padrão?
+  lastUsed: v.optional(v.number()), // timestamp do último uso
+
+  // Auditoria e segurança
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -189,4 +216,8 @@ export default defineSchema({
   lab: defineTable(labSchema)
     .index('by_user', ['userId'])
     .index('by_container_id', ['containerId']),
+  sshConnection: defineTable(sshConnectionSchema)
+    .index('by_user', ['userId'])
+    .index('by_user_default', ['userId', 'isDefault'])
+    .index('by_user_name', ['userId', 'name']),
 })

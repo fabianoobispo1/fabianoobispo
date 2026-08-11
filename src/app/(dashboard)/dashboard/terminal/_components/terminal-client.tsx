@@ -8,10 +8,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle } from 'lucide-react'
 
 interface TerminalClientProps {
-  authorizedEmail: string
+  authorizedEmail?: string
+  connection?: any // SSHConnection
 }
 
-export function TerminalClient({ authorizedEmail }: TerminalClientProps) {
+export function TerminalClient({ authorizedEmail, connection }: TerminalClientProps) {
   const terminalRef = useRef<HTMLDivElement>(null)
   const terminalInstanceRef = useRef<Terminal | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
@@ -82,12 +83,20 @@ export function TerminalClient({ authorizedEmail }: TerminalClientProps) {
           terminalInstanceRef.current.writeln('')
         }
 
-        // Envia comando de inicialização
+        // Envia comando de inicialização com dados da conexão
         ws.send(
           JSON.stringify({
             command: 'start',
             cols: 120,
             rows: 30,
+            connectionId: connection?._id, // ID da conexão salva
+            credentials: connection ? {
+              host: connection.host,
+              port: connection.port,
+              username: connection.username,
+              authMethod: connection.authMethod,
+              // Nota: senha/chave privada devem ser enviadas pelo servidor via query
+            } : null,
           })
         )
       }

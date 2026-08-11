@@ -122,3 +122,25 @@ export interface TerminalAuthResponse {
   }
   sessionToken?: string
 }
+
+/**
+ * Conexão SSH salva no banco de dados
+ */
+export interface SSHConnection {
+  _id: string
+  userId: string
+  name: string
+  host: string
+  port: number
+  username: string
+  authMethod: 'password' | 'privateKey'
+  password?: string
+  privateKey?: string
+  privateKeyPassphrase?: string
+  description?: string
+  tags?: string[]
+  isDefault: boolean
+  lastUsed?: number
+  created_at: number
+  updated_at: number
+}
