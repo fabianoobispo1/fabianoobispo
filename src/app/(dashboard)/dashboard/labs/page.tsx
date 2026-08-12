@@ -1,10 +1,11 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import { useMutation, useQuery, useAction } from 'convex/react'
-import { api } from '@/../convex/_generated/api'
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { useSession } from 'next-auth/react'
+import { useQuery, useAction } from 'convex/react'
+import { Copy, Check, Trash2, Play, Loader } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,9 +14,16 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Copy, Trash2, Play, Loader } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 
 export default function LabsPage() {
   const { data: session } = useSession()
@@ -43,8 +51,8 @@ export default function LabsPage() {
     try {
       setCreating(true)
       await createLab({ userId })
-    } catch (error: any) {
-      alert(`Erro: ${error.message}`)
+    } catch (error) {
+      alert(`Erro: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setCreating(false)
     }
@@ -55,10 +63,10 @@ export default function LabsPage() {
 
     try {
       setDeleting(labId)
-      await deleteLab({ labId: labId as any, userId })
+      await deleteLab({ labId: labId as Id<'lab'>, userId })
       setShowDeleteDialog(null)
-    } catch (error: any) {
-      alert(`Erro: ${error.message}`)
+    } catch (error) {
+      alert(`Erro: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setDeleting(null)
     }
@@ -72,7 +80,7 @@ export default function LabsPage() {
 
   const handleActivityClick = async (labId: string) => {
     try {
-      await updateActivity({ labId: labId as any })
+      await updateActivity({ labId: labId as Id<'lab'> })
     } catch (error) {
       console.error('Erro ao atualizar atividade:', error)
     }
@@ -95,7 +103,8 @@ export default function LabsPage() {
         <div>
           <h1 className="text-3xl font-bold">Labs</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Ambientes descartáveis para testes. Auto-apagam após 2 horas de inatividade.
+            Ambientes descartáveis para testes. Auto-apagam após 2 horas de
+            inatividade.
           </p>
         </div>
 
@@ -118,7 +127,9 @@ export default function LabsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Labs Ativos</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Labs Ativos
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userLabs?.length || 0}/3</div>
@@ -127,7 +138,9 @@ export default function LabsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Memória</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Memória
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">512 MB</div>
@@ -137,7 +150,9 @@ export default function LabsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Timeout</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Timeout
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">2 horas</div>
@@ -153,7 +168,7 @@ export default function LabsPage() {
             <CardContent className="pt-6 pb-6 text-center">
               <p className="text-gray-500">Nenhum lab criado ainda.</p>
               <p className="text-sm text-gray-400 mt-1">
-                Clique em "Novo Lab" para começar!
+                Clique em &quot;Novo Lab&quot; para começar!
               </p>
             </CardContent>
           </Card>
@@ -170,7 +185,9 @@ export default function LabsPage() {
                     </CardDescription>
                   </div>
                   <Badge className={statusColor[lab.status]}>
-                    {lab.status === 'creating' && <Loader className="h-3 w-3 mr-1 animate-spin" />}
+                    {lab.status === 'creating' && (
+                      <Loader className="h-3 w-3 mr-1 animate-spin" />
+                    )}
                     {lab.status}
                   </Badge>
                 </div>
@@ -182,7 +199,8 @@ export default function LabsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <code className="break-all">
-                          ssh -p {lab.port} root@[seu-vps] (IP interno: {lab.ip})
+                          ssh -p {lab.port} root@[seu-vps] (IP interno: {lab.ip}
+                          )
                         </code>
                       </div>
                       <button
@@ -193,14 +211,20 @@ export default function LabsPage() {
                         className="ml-2 p-1 hover:bg-gray-800 rounded"
                         title="Copiar"
                       >
-                        <Copy className="h-4 w-4" />
+                        {copied === lab._id ? (
+                          <Check className="h-4 w-4 text-green-400" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
 
                   <div className="text-xs text-gray-500 space-y-1">
                     <p>• SSH disponível em ~10 segundos após criação</p>
-                    <p>• Qualquer dados locais serão perdidos após destruição</p>
+                    <p>
+                      • Qualquer dados locais serão perdidos após destruição
+                    </p>
                     <p>
                       • Última atividade:{' '}
                       {new Date(lab.lastActivity).toLocaleString('pt-BR')}
@@ -243,8 +267,8 @@ export default function LabsPage() {
                       <AlertDialogContent>
                         <AlertDialogTitle>Deletar Lab?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Todos os dados dentro do lab serão perdidos. Esta ação é
-                          irreversível.
+                          Todos os dados dentro do lab serão perdidos. Esta ação
+                          é irreversível.
                         </AlertDialogDescription>
                         <div className="flex gap-2 justify-end">
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -288,15 +312,17 @@ export default function LabsPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>
-            1. Clique em <strong>"Novo Lab"</strong> para criar um novo container
+            1. Clique em <strong>&quot;Novo Lab&quot;</strong> para criar um
+            novo container
           </p>
           <p>
-            2. Copie o comando SSH e acesse o lab de qualquer lugar (porta 2222+)
+            2. Copie o comando SSH e acesse o lab de qualquer lugar (porta
+            2222+)
           </p>
           <p>3. Use para testes, experimentos, ou qualquer coisa temporária</p>
           <p>
-            4. Labs ficam <strong>2 horas</strong> inativos antes de serem deletados
-            automaticamente
+            4. Labs ficam <strong>2 horas</strong> inativos antes de serem
+            deletados automaticamente
           </p>
           <p className="text-xs text-gray-600 mt-4">
             ℹ️ Máximo 3 labs simultâneos por usuário, 512 MB RAM, 0.2 CPU cada.
