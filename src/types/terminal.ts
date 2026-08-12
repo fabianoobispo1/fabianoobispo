@@ -6,19 +6,19 @@
  * Comando do terminal
  */
 export type TerminalCommand =
-  | 'start'      // Inicia conexão SSH
-  | 'send'       // Envia comando
-  | 'resize'     // Redimensiona terminal
-  | 'close'      // Fecha conexão
+  | 'start' // Inicia conexão SSH
+  | 'send' // Envia comando
+  | 'resize' // Redimensiona terminal
+  | 'close' // Fecha conexão
 
 /**
  * Tipo de mensagem WebSocket
  */
 export type TerminalMessageType =
-  | 'output'     // Output do terminal
-  | 'error'      // Erro
-  | 'ready'      // Pronto para usar
-  | 'closed'     // Conexão fechada
+  | 'output' // Output do terminal
+  | 'error' // Erro
+  | 'ready' // Pronto para usar
+  | 'closed' // Conexão fechada
   | 'config_required' // Configuração necessária
 
 /**

@@ -1,10 +1,19 @@
 # 🖥️ Terminal SSH - Setup e Uso
 
+> ⚠️ **Arquitetura atualizada**: o Terminal Server (SSH real) roda como
+> processo separado no VPS, não dentro do Next.js/Vercel — WebSocket de
+> longa duração não funciona em serverless. Guia completo e atualizado:
+> [`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md) e
+> [`TERMINAL_QUICK_START.md`](TERMINAL_QUICK_START.md). O restante deste
+> arquivo descreve o modelo de conexão única (via variáveis `SSH_*`), que
+> hoje serve como **fallback** quando nenhuma conexão salva é selecionada
+> — o app suporta múltiplas conexões salvas (aba "Conexões").
+
 Este guia explica como configurar e usar o terminal web SSH seguro.
 
 ## 📋 Requisitos
 
-- Node.js ≥ 18
+- Docker no VPS (o Terminal Server roda em container — não precisa Node.js no host)
 - Acesso SSH ao VPS
 - Credenciais SSH (usuário + senha OU chave privada)
 
@@ -12,9 +21,11 @@ Este guia explica como configurar e usar o terminal web SSH seguro.
 
 ### 1. Instalar Dependências
 
-```bash
-npm install xterm xterm-addon-fit ssh2 ws
-```
+As dependências do terminal (`ws`, `ssh2`) ficam **só no Terminal Server,
+no VPS** — não são instaladas no projeto Next.js principal. Veja
+[`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md).
+
+O frontend (`xterm`) já está em `package.json` deste repo.
 
 ### 2. Configurar Variáveis de Ambiente
 
@@ -163,27 +174,15 @@ User: fbc623@gmail.com | Host: exemplo.com | Port: 22
 
 ## 🚀 Deploy em Produção
 
-### Checklist de Deploy
+Este projeto é deployado na Vercel (não `npm start` num servidor próprio).
+Checklist real:
 
-```bash
-# 1. Configurar .env.local em produção
-echo "SSH_HOST=seu-vps.com" >> .env.local
-echo "SSH_USER=root" >> .env.local
-# ... adicione outras variáveis
-
-# 2. Garantir HTTPS
-# Configure certificado SSL/TLS
-
-# 3. Habilitar logs
-echo "TERMINAL_LOG_CONNECTIONS=true" >> .env.local
-
-# 4. Testar
-npm run dev
-
-# 5. Build e deploy
-npm run build
-npm start
-```
+1. **Terminal Server no VPS**: siga
+   [`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md) (systemd +
+   Nginx com TLS/WSS).
+2. **Variáveis de ambiente na Vercel**: `TERMINAL_AUTHORIZED_EMAIL`,
+   `TERMINAL_TOKEN_SECRET` (igual ao do VPS) e `TERMINAL_VPS_WS_URL`.
+3. **Deploy**: `git push` (Vercel) — não precisa de `npm start` manual.
 
 ## 📚 Documentação Adicional
 

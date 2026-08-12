@@ -2,24 +2,44 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
-import '@xterm/xterm/css/xterm.css'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { FitAddon } from '@xterm/addon-fit'
+import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { Loader2, AlertCircle } from 'lucide-react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
+import type { SSHConnection } from '@/types/terminal'
+
+import '@xterm/xterm/css/xterm.css'
 
 interface TerminalClientProps {
   authorizedEmail?: string
-  connection?: any // SSHConnection
+  userId?: string
+  connection?: SSHConnection | null
 }
 
-export function TerminalClient({ authorizedEmail, connection }: TerminalClientProps) {
+export function TerminalClient({
+  authorizedEmail,
+  userId,
+  connection,
+}: TerminalClientProps) {
   const terminalRef = useRef<HTMLDivElement>(null)
   const terminalInstanceRef = useRef<Terminal | null>(null)
+  const fitAddonRef = useRef<FitAddon | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [configStatus, setConfigStatus] = useState<string>('Aguardando configuração SSH...')
+  // Mensagem vinda do servidor (config_required); null = usa o texto
+  // derivado da conexão selecionada logo abaixo
+  const [serverStatus, setServerStatus] = useState<string | null>(null)
+  const configStatus =
+    serverStatus ??
+    (connection
+      ? `Pronto para conectar em ${connection.username}@${connection.host}`
+      : 'Selecione uma conexão salva na aba "Conexões" (ou configure SSH_* no Terminal Server).')
 
   /**
    * Inicializa o terminal xterm
@@ -27,53 +47,104 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
   const initializeTerminal = () => {
     if (!terminalRef.current) return
 
+    // Descarta uma instância anterior (ex: ao reconectar) antes de criar
+    // outra no mesmo container, senão os dois terminais ficam sobrepostos
+    terminalInstanceRef.current?.dispose()
+
     const term = new Terminal({
-      cols: 120,
-      rows: 30,
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-      fontSize: 12,
+      fontSize: 13,
       theme: {
         background: '#0d0d0d',
         foreground: '#d4d4d4',
         cursor: '#aeafad',
         cursorAccent: '#000000',
       },
-      cursorBlinkInterval: 800,
+      cursorBlink: true,
     })
 
+    const fitAddon = new FitAddon()
+    term.loadAddon(fitAddon)
+    fitAddonRef.current = fitAddon
+
     term.open(terminalRef.current)
+    fitAddon.fit()
     terminalInstanceRef.current = term
 
     term.writeln('🔐 Terminal SSH Seguro')
     term.writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    term.writeln(`Usuário autenticado: ${authorizedEmail}`)
+    // authorizedEmail vem da sessão (next-auth), que carrega de forma
+    // assíncrona — no primeiro mount ela costuma ainda não ter chegado.
+    // O efeito abaixo escreve essa linha depois, quando disponível.
+    if (authorizedEmail) {
+      term.writeln(`Usuário autenticado: ${authorizedEmail}`)
+    }
     term.writeln('')
     term.writeln('⏳ Aguardando conexão SSH...')
-    term.writeln('')
-    term.writeln('ℹ️  Configure as credenciais SSH no arquivo .env.local')
-    term.writeln('   e reinicie a aplicação para conectar.')
 
     return term
   }
 
   /**
-   * Conecta ao WebSocket
+   * Conecta ao Terminal Server do VPS (WebSocket) e inicia a sessão SSH
    */
-  const connectToWebSocket = () => {
+  const connectToWebSocket = async () => {
     if (isConnecting || isConnected) return
 
     setIsConnecting(true)
     setError(null)
+    setServerStatus(null)
 
     try {
-      // Determina protocolo (ws/wss)
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const wsUrl = `${protocol}//${window.location.host}/api/terminal/socket`
+      // 1. Busca as credenciais completas da conexão selecionada (a lista
+      //    exibida na UI vem sem senha/chave privada por segurança)
+      let credentials: {
+        host: string
+        port: number
+        username: string
+        authMethod: 'password' | 'privateKey'
+        password?: string
+        privateKey?: string
+        privateKeyPassphrase?: string
+      } | null = null
 
-      const ws = new WebSocket(wsUrl)
+      if (connection && userId) {
+        const full = await fetchQuery(api.sshConnection.getConnectionById, {
+          connectionId: connection._id as Id<'sshConnection'>,
+          userId: userId as Id<'user'>,
+        })
+
+        if (!full) {
+          throw new Error('Conexão selecionada não foi encontrada')
+        }
+
+        credentials = {
+          host: full.host,
+          port: full.port,
+          username: full.username,
+          authMethod: full.authMethod,
+          password: full.password,
+          privateKey: full.privateKey,
+          privateKeyPassphrase: full.privateKeyPassphrase,
+        }
+      }
+
+      // 2. Pede ao backend um token de curta duração para abrir o WebSocket
+      //    diretamente com o Terminal Server no VPS
+      const tokenRes = await fetch('/api/terminal/token')
+      const tokenData = await tokenRes.json()
+
+      if (!tokenRes.ok) {
+        throw new Error(
+          tokenData.error || 'Não foi possível obter token de acesso',
+        )
+      }
+
+      const ws = new WebSocket(
+        `${tokenData.wsUrl}?token=${encodeURIComponent(tokenData.token)}`,
+      )
 
       ws.onopen = () => {
-        console.log('✅ WebSocket conectado')
         setIsConnected(true)
         setIsConnecting(false)
 
@@ -83,22 +154,25 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
           terminalInstanceRef.current.writeln('')
         }
 
-        // Envia comando de inicialização com dados da conexão
+        fitAddonRef.current?.fit()
+
         ws.send(
           JSON.stringify({
             command: 'start',
-            cols: 120,
-            rows: 30,
-            connectionId: connection?._id, // ID da conexão salva
-            credentials: connection ? {
-              host: connection.host,
-              port: connection.port,
-              username: connection.username,
-              authMethod: connection.authMethod,
-              // Nota: senha/chave privada devem ser enviadas pelo servidor via query
-            } : null,
-          })
+            cols: terminalInstanceRef.current?.cols ?? 120,
+            rows: terminalInstanceRef.current?.rows ?? 30,
+            credentials,
+          }),
         )
+
+        if (connection && userId) {
+          fetchMutation(api.sshConnection.updateLastUsed, {
+            connectionId: connection._id as Id<'sshConnection'>,
+            userId: userId as Id<'user'>,
+          }).catch(() => {
+            // Não é crítico se essa atualização falhar
+          })
+        }
       }
 
       ws.onmessage = (event) => {
@@ -109,46 +183,50 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
         } else if (data.type === 'error') {
           setError(data.message)
           terminalInstanceRef.current?.write(
-            `\x1b[31m❌ Erro: ${data.message}\x1b[0m\n`
+            `\x1b[31m❌ Erro: ${data.message}\x1b[0m\n`,
           )
         } else if (data.type === 'config_required') {
-          setConfigStatus(data.message)
+          setServerStatus(data.message)
           terminalInstanceRef.current?.write(
-            `\x1b[33m⚠️  ${data.message}\x1b[0m\n`
+            `\x1b[33m⚠️  ${data.message}\x1b[0m\n`,
           )
+        } else if (data.type === 'closed') {
+          terminalInstanceRef.current?.write(
+            `\x1b[33m⚠️  ${data.message}\x1b[0m\n`,
+          )
+          setIsConnected(false)
         }
       }
 
-      ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error)
+      ws.onerror = () => {
         setError('Erro ao conectar ao servidor SSH')
         setIsConnecting(false)
         setIsConnected(false)
 
         if (terminalInstanceRef.current) {
           terminalInstanceRef.current.write(
-            '\x1b[31m❌ Erro na conexão WebSocket\x1b[0m\n'
+            '\x1b[31m❌ Erro na conexão WebSocket\x1b[0m\n',
           )
         }
       }
 
       ws.onclose = () => {
-        console.log('⚠️  WebSocket desconectado')
         setIsConnected(false)
         setIsConnecting(false)
 
         if (terminalInstanceRef.current) {
           terminalInstanceRef.current.write(
-            '\x1b[33m⚠️  Desconectado do servidor\x1b[0m\n'
+            '\x1b[33m⚠️  Desconectado do servidor\x1b[0m\n',
           )
         }
       }
 
       wsRef.current = ws
     } catch (err) {
-      console.error('Erro ao conectar:', err)
-      setError('Erro ao estabelecer conexão')
+      const message = err instanceof Error ? err.message : 'Erro desconhecido'
+      setError(message)
       setIsConnecting(false)
+      terminalInstanceRef.current?.write(`\x1b[31m❌ ${message}\x1b[0m\n`)
     }
   }
 
@@ -157,7 +235,6 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
    */
   const sendCommand = (data: string) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      setError('Não conectado ao servidor')
       return
     }
 
@@ -165,7 +242,7 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
       JSON.stringify({
         command: 'send',
         data,
-      })
+      }),
     )
   }
 
@@ -176,16 +253,52 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
     const term = initializeTerminal()
 
     // Listener para entrada do usuário
-    term?.onData((data) => {
+    term?.onData((data: string) => {
       sendCommand(data)
     })
 
+    // Reajusta o grid do terminal quando o container muda de tamanho
+    // (redimensionar janela, colapsar sidebar, etc.) e avisa o servidor
+    // para o pty do SSH acompanhar
+    const resizeObserver = new ResizeObserver(() => {
+      fitAddonRef.current?.fit()
+
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            command: 'resize',
+            cols: terminalInstanceRef.current?.cols,
+            rows: terminalInstanceRef.current?.rows,
+          }),
+        )
+      }
+    })
+
+    if (terminalRef.current) {
+      resizeObserver.observe(terminalRef.current)
+    }
+
     return () => {
+      resizeObserver.disconnect()
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.close()
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /**
+   * A sessão (e o e-mail do usuário) carrega de forma assíncrona; escreve
+   * a linha de boas-vindas assim que ela chegar, se ainda não conectou
+   */
+  useEffect(() => {
+    if (authorizedEmail && !isConnected) {
+      terminalInstanceRef.current?.writeln(
+        `Usuário autenticado: ${authorizedEmail}`,
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authorizedEmail])
 
   /**
    * Limpa a tela
@@ -199,6 +312,7 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
    */
   const disconnect = () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ command: 'close' }))
       wsRef.current.close()
     }
     setIsConnected(false)
@@ -222,7 +336,7 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
           />
           <span className="font-medium text-sm">
             {isConnected
-              ? '✅ Conectado'
+              ? `✅ Conectado${connection ? ` — ${connection.name}` : ''}`
               : isConnecting
                 ? '⏳ Conectando...'
                 : '❌ Desconectado'}
@@ -237,7 +351,9 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
               size="sm"
               variant="default"
             >
-              {isConnecting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {isConnecting && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               Conectar
             </Button>
           )}
@@ -271,11 +387,30 @@ export function TerminalClient({ authorizedEmail, connection }: TerminalClientPr
       )}
 
       {/* Terminal */}
+      {/*
+        Altura fixa (não `flex-1`/`h-full`): o layout do dashboard
+        (`(dashboard)/layout.tsx`) não limita a altura de `<main>`, então
+        qualquer wrapper "flex-1" acaba se ajustando ao conteúdo em vez
+        de à viewport. O FitAddon do xterm lê o tamanho real do container
+        pra decidir quantas linhas/colunas desenhar — se esse tamanho for
+        instável (dependente do próprio conteúdo), ele cresce sem
+        controle. Uma altura em viewport units resolve isso de forma
+        previsível sem mexer no layout compartilhado por outras páginas.
+      */}
+      {/*
+        Sem padding aqui: o FitAddon lê o padding do elemento que o
+        xterm cria (filho direto deste, sempre 0) para calcular quantas
+        linhas cabem — um padding neste container faz ele calcular
+        linhas a mais do que o espaço visível de fato, cortando a
+        última linha. Se quiser respiro visual, ponha padding num
+        wrapper por fora deste div, nunca nele.
+      */}
       <div
         ref={terminalRef}
-        className="flex-1 bg-black rounded-lg overflow-hidden border border-slate-700 shadow-lg"
+        className="bg-black rounded-lg overflow-hidden border border-slate-700 shadow-lg"
         style={{
-          minHeight: '500px',
+          height: 'min(65vh, 700px)',
+          minHeight: '400px',
         }}
       />
     </div>

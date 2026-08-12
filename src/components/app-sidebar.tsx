@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Dumbbell,
   Dices,
+  SquareTerminal,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 
@@ -96,6 +97,11 @@ const itemsAdm = [
     title: 'Administração',
     url: '/dashboard/admin',
     icon: Settings,
+  },
+  {
+    title: 'Terminal SSH',
+    url: '/dashboard/terminal',
+    icon: SquareTerminal,
   },
   /* {
     title: 'Configurar WhatsApp',

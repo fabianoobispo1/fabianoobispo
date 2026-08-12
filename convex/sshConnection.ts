@@ -155,6 +155,7 @@ export const updateConnection = mutation({
     host: v.optional(v.string()),
     port: v.optional(v.number()),
     username: v.optional(v.string()),
+    authMethod: v.optional(v.union(v.literal('password'), v.literal('privateKey'))),
     password: v.optional(v.string()),
     privateKey: v.optional(v.string()),
     privateKeyPassphrase: v.optional(v.string()),
@@ -183,7 +184,7 @@ export const updateConnection = mutation({
       }
     }
 
-    const updates: any = {
+    const updates: Record<string, unknown> = {
       updated_at: Date.now(),
     }
 
@@ -191,6 +192,7 @@ export const updateConnection = mutation({
     if (args.host !== undefined) updates.host = args.host
     if (args.port !== undefined) updates.port = args.port
     if (args.username !== undefined) updates.username = args.username
+    if (args.authMethod !== undefined) updates.authMethod = args.authMethod
     if (args.password !== undefined) updates.password = args.password
     if (args.privateKey !== undefined) updates.privateKey = args.privateKey
     if (args.privateKeyPassphrase !== undefined)

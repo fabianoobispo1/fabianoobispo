@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+import { Plus, Trash2, Edit2, CheckCircle, Lock } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -21,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Plus, Trash2, Edit2, CheckCircle, Lock } from 'lucide-react'
+import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import type { SSHConnection } from '@/types/terminal'
 
 interface ConnectionManagerProps {
@@ -36,9 +38,10 @@ export function ConnectionManager({
   onConnectionSelect,
   selectedConnectionId,
 }: ConnectionManagerProps) {
-  const connections = useQuery(api.sshConnection.getConnectionsByUser, {
-    userId: userId as any,
-  })
+  const connections = useQuery(
+    api.sshConnection.getConnectionsByUser,
+    userId ? { userId: userId as Id<'user'> } : 'skip',
+  )
 
   const createConnection = useMutation(api.sshConnection.createConnection)
   const updateConnection = useMutation(api.sshConnection.updateConnection)
@@ -51,7 +54,7 @@ export function ConnectionManager({
     host: '',
     port: '22',
     username: 'root',
-    authMethod: 'password' as const,
+    authMethod: 'password' as 'password' | 'privateKey',
     password: '',
     privateKey: '',
     description: '',
@@ -66,7 +69,7 @@ export function ConnectionManager({
       }
 
       const commonData = {
-        userId: userId as any,
+        userId: userId as Id<'user'>,
         name: formData.name,
         host: formData.host,
         port: parseInt(formData.port) || 22,
@@ -78,18 +81,24 @@ export function ConnectionManager({
 
       if (editingId) {
         await updateConnection({
-          connectionId: editingId as any,
+          connectionId: editingId as Id<'sshConnection'>,
           ...commonData,
-          password: formData.authMethod === 'password' ? formData.password : undefined,
+          password:
+            formData.authMethod === 'password' ? formData.password : undefined,
           privateKey:
-            formData.authMethod === 'privateKey' ? formData.privateKey : undefined,
+            formData.authMethod === 'privateKey'
+              ? formData.privateKey
+              : undefined,
         })
       } else {
         await createConnection({
           ...commonData,
-          password: formData.authMethod === 'password' ? formData.password : undefined,
+          password:
+            formData.authMethod === 'password' ? formData.password : undefined,
           privateKey:
-            formData.authMethod === 'privateKey' ? formData.privateKey : undefined,
+            formData.authMethod === 'privateKey'
+              ? formData.privateKey
+              : undefined,
         })
       }
 
@@ -104,8 +113,8 @@ export function ConnectionManager({
     if (confirm('Tem certeza que deseja deletar esta conexão?')) {
       try {
         await deleteConnection({
-          connectionId: id as any,
-          userId: userId as any,
+          connectionId: id as Id<'sshConnection'>,
+          userId: userId as Id<'user'>,
         })
       } catch (error) {
         alert('Erro ao deletar: ' + String(error))
@@ -128,7 +137,7 @@ export function ConnectionManager({
     setEditingId(null)
   }
 
-  const handleEdit = (conn: any) => {
+  const handleEdit = (conn: NonNullable<typeof connections>[number]) => {
     setFormData({
       name: conn.name,
       host: conn.host,
@@ -155,11 +164,7 @@ export function ConnectionManager({
         <h2 className="text-lg font-semibold">Conexões SSH Salvas</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button
-              size="sm"
-              onClick={() => resetForm()}
-              className="gap-2"
-            >
+            <Button size="sm" onClick={() => resetForm()} className="gap-2">
               <Plus className="w-4 h-4" />
               Nova Conexão
             </Button>
@@ -234,7 +239,7 @@ export function ConnectionManager({
                 <Label htmlFor="authMethod">Método de Autenticação *</Label>
                 <Select
                   value={formData.authMethod}
-                  onValueChange={(value: any) =>
+                  onValueChange={(value: 'password' | 'privateKey') =>
                     setFormData({ ...formData, authMethod: value })
                   }
                 >
@@ -270,7 +275,10 @@ export function ConnectionManager({
                 </div>
               ) : (
                 <div>
-                  <Label htmlFor="privateKey" className="flex gap-2 items-center">
+                  <Label
+                    htmlFor="privateKey"
+                    className="flex gap-2 items-center"
+                  >
                     <Lock className="w-4 h-4" />
                     Chave Privada SSH *
                   </Label>

@@ -51,7 +51,7 @@ export interface SSHEvent {
 export class SSHClient {
   private config: SSHConfig
   private isConnected: boolean = false
-  private shell: any = null // Tipo shell do ssh2
+  private shell: unknown = null // Tipo shell do ssh2
   private events: Array<(event: SSHEvent) => void> = []
 
   constructor(config: SSHConfig) {
@@ -78,7 +78,7 @@ export class SSHClient {
 
       if (!this.config.password && !this.config.privateKey) {
         throw new Error(
-          'SSH_PASSWORD ou SSH_PRIVATE_KEY deve estar configurado em .env.local'
+          'SSH_PASSWORD ou SSH_PRIVATE_KEY deve estar configurado em .env.local',
         )
       }
 
@@ -154,13 +154,13 @@ export class SSHClient {
   /**
    * Envia comando ao shell
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- `command` será usado quando a implementação real (ssh2) for conectada
   async sendCommand(command: string): Promise<void> {
     if (!this.isConnected) {
       this.emit({
         type: 'error',
         message: 'Não conectado ao servidor SSH',
       })
-      return
     }
 
     // Implementação real:
@@ -170,6 +170,7 @@ export class SSHClient {
   /**
    * Redimensiona terminal
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- `cols`/`rows` serão usados quando a implementação real (ssh2) for conectada
   async resize(cols: number, rows: number): Promise<void> {
     // Implementação real:
     // this.shell.setWindow(rows, cols, rows * 15, cols * 8)

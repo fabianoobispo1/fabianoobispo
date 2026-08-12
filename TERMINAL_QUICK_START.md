@@ -1,35 +1,46 @@
 # 🚀 Terminal SSH - Quick Start
 
-Guia rápido para colocar o terminal em funcionamento em 5 minutos.
+> Guia completo e atualizado: [`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md).
+> Este arquivo é só o resumo rápido.
+
+## Como funciona hoje
+
+O terminal roda em duas partes:
+
+1. **Next.js** (`/dashboard/terminal`) — UI, autenticação (`protectByEmail`),
+   gerenciamento de conexões salvas (Convex) e emissão de um token de
+   acesso de curta duração.
+2. **Terminal Server** (`scripts/vps-terminal-server.js`) — processo Node
+   separado rodando **no seu VPS**, que abre a sessão SSH de verdade
+   (via `ssh2`) e transmite tudo por WebSocket. Roda fora da Vercel porque
+   funções serverless não suportam WebSocket de longa duração.
+
+Sem o Terminal Server rodando e configurado, a tela do terminal abre
+normalmente, mas o botão **Conectar** mostra um erro explicando o que falta.
 
 ## ⚡ Instalação Rápida
 
-### 1. Instalar Dependências
+### 1. Deploy do Terminal Server (Docker) no VPS
+
+Da sua máquina, na raiz do repo:
 
 ```bash
-npm install xterm ssh2 ws
+bash scripts/deploy-terminal-docker.sh usuario@seu-vps
 ```
 
-### 2. Configurar .env.local
+Sobe um container `terminal-server` isolado (porta 3002 por padrão), sem
+mexer em outros serviços do VPS. O script imprime o `TERMINAL_TOKEN_SECRET`
+gerado — guarde-o.
 
-```bash
-# Copiar arquivo de exemplo
-cp .env.local.example .env.local
+Para produção, exponha em `wss://` via Nginx + certificado TLS — veja
+[`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md).
 
-# Editar com seus dados
-nano .env.local
-```
-
-Adicione no mínimo:
+### 2. No Next.js (`.env.local` e nas envs da Vercel)
 
 ```env
 TERMINAL_AUTHORIZED_EMAIL=seu-email@example.com
-SSH_HOST=seu-vps.com
-SSH_PORT=22
-SSH_USER=root
-SSH_PASSWORD=sua_senha
-# OU
-SSH_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
+TERMINAL_TOKEN_SECRET=seu-secret-gerado   # a MESMA chave do passo 1
+TERMINAL_VPS_WS_URL=wss://terminal.seu-vps.com
 ```
 
 ### 3. Testar
@@ -38,147 +49,16 @@ SSH_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-
 npm run dev
 ```
 
-Acesse: `http://localhost:3000/dashboard/terminal`
+Acesse `http://localhost:3000/dashboard/terminal`, salve uma conexão na aba
+**Conexões** e clique em **Conectar**.
 
-## 📁 Arquivos Criados
+## 🔐 Menu lateral
 
-```
-src/
-├── app/(dashboard)/dashboard/terminal/
-│   ├── page.tsx                    # Página principal
-│   └── _components/
-│       └── terminal-client.tsx     # Componente do terminal
-├── app/api/terminal/
-│   ├── route.ts                    # API de autenticação
-│   └── socket/route.ts             # API WebSocket
-├── middleware/
-│   └── email-protection.ts         # Middleware de segurança
-├── services/
-│   └── ssh-client.ts               # Serviço SSH
-├── types/
-│   └── terminal.ts                 # TypeScript types
-├── config/
-│   └── terminal-nav.ts             # Config de navegação
-│
-.env.local.example                  # Variáveis de ambiente
-TERMINAL_SSH_SETUP.md              # Documentação completa
-```
+O item **Terminal SSH** já está no menu (`src/components/app-sidebar.tsx`),
+dentro do grupo "Administração" (visível só para usuários com
+`role: 'admin'`).
 
-## 🔐 Adicionar ao Menu
+## 🆘 Problemas comuns
 
-Se seu projeto tem um menu de navegação, adicione:
-
-```tsx
-import { terminalNavItem } from '@/config/terminal-nav'
-
-// Em seu arquivo de menu:
-const navItems = [
-  // ... outros items
-  terminalNavItem,
-]
-```
-
-## ✅ Checklist de Configuração
-
-- [ ] `npm install xterm ssh2 ws` executado
-- [ ] `.env.local` criado com credenciais SSH
-- [ ] Email autorizado configurado
-- [ ] Servidor Dev rodando (`npm run dev`)
-- [ ] Terminal acessível em `/dashboard/terminal`
-- [ ] Login funciona com email autorizado
-
-## 🎯 Próximas Etapas
-
-1. **Testar conexão SSH**
-   - Execute `npm run dev`
-   - Acesse o terminal
-   - Clique em "Conectar"
-
-2. **Configurar segurança avançada** (opcional)
-   - Edite `src/middleware/email-protection.ts`
-   - Adicione autenticação de 2 fatores
-   - Configure IP whitelist
-
-3. **Deploy em produção**
-   - Use HTTPS (certificado SSL)
-   - Configure variáveis de ambiente no servidor
-   - Habilite logs (`TERMINAL_LOG_CONNECTIONS=true`)
-
-4. **Monitorar e auditar**
-   - Verifique logs de conexão
-   - Configure alertas de segurança
-   - Registre todas as atividades
-
-## 🆘 Problemas Comuns
-
-### Terminal não conecta
-
-```bash
-# Testar SSH localmente
-ssh -p 22 -i ~/.ssh/id_rsa usuario@seu-vps.com
-
-# Verificar se port 22 está aberto
-telnet seu-vps.com 22
-```
-
-### Email não está autorizado
-
-```env
-# Verifique se o email está exato
-TERMINAL_AUTHORIZED_EMAIL=seu-email@example.com
-# (espaços ou maiúsculas fazem diferença)
-```
-
-### Dependências não instaladas
-
-```bash
-# Reinstalar
-npm install
-npm install xterm ssh2 ws --save
-
-# Limpar cache
-npm cache clean --force
-```
-
-## 📖 Documentação Completa
-
-Leia `TERMINAL_SSH_SETUP.md` para:
-- Segurança em produção
-- Gerar chaves SSH
-- Troubleshooting detalhado
-- Deploy e monitoring
-
-## 💡 Dicas Úteis
-
-```bash
-# Gerar chave SSH de 4096 bits
-ssh-keygen -t rsa -b 4096
-
-# Copiar chave para servidor
-ssh-copy-id -i ~/.ssh/id_rsa user@servidor
-
-# Testar com arquivo .pem
-ssh -i chave.pem user@servidor
-```
-
-## 🎓 Exemplo de Uso
-
-Após conectado:
-
-```bash
-# Listar arquivos
-ls -la /home
-
-# Ver versão do Node
-node --version
-
-# Verificar saúde do servidor
-df -h
-ps aux
-```
-
----
-
-**Sucesso! Terminal SSH está configurado! 🎉**
-
-Para dúvidas, consulte `TERMINAL_SSH_SETUP.md`
+Veja a seção de troubleshooting completa em
+[`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md#-troubleshooting).

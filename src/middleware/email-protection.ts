@@ -1,5 +1,6 @@
-import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
+
+import { auth } from '@/auth/auth'
 
 /**
  * Middleware para proteger rotas por email específico
@@ -7,7 +8,7 @@ import { redirect } from 'next/navigation'
  */
 export async function protectByEmail(
   allowedEmails: string[],
-  fallbackRoute: string = '/dashboard'
+  fallbackRoute: string = '/dashboard',
 ) {
   const session = await auth()
 

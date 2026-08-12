@@ -1,0 +1,11 @@
+{
+  "name": "terminal-server",
+  "version": "1.0.0",
+  "private": true,
+  "main": "vps-terminal-server.js",
+  "dependencies": {
+    "ws": "^8.18.0",
+    "ssh2": "^1.16.0",
+    "dotenv": "^16.4.5"
+  }
+}
