@@ -18,6 +18,7 @@ import { FrequenciaCharts } from './FrequenciaCharts'
 import { DistribuicaoCharts } from './DistribuicaoCharts'
 import { InsightsTables } from './InsightsTables'
 import { GeradorJogos } from './GeradorJogos'
+import { SorteioAleatorioCard } from './SorteioAleatorioCard'
 import { UltimosResultados } from './UltimosResultados'
 import { CadastroManualDialog } from './CadastroManualDialog'
 import { ConferirApostaCard } from './ConferirApostaCard'
@@ -152,6 +153,7 @@ export const MegaSenaDashboard = () => {
         somaHistograma={stats.somaHistograma}
         paridade={stats.paridade}
       />
+      <SorteioAleatorioCard />
       {ultimoResultado && (
         <MeusJogosSalvos
           ultimoResultado={{

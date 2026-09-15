@@ -121,18 +121,12 @@ module.exports = {
           '50%': { opacity: '0.6' },
           '100%': { top: 'calc(100% - 4px)', opacity: '1' },
         },
-        'oracle-pop': {
-          '0%': { opacity: '0', transform: 'scale(0.3) translateY(10px)' },
-          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
-        },
       },
       animation: {
         'brand-blink': 'brand-blink 1.05s steps(1) infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'scan-line': 'scan-line 1.8s ease-in-out infinite alternate',
-        'oracle-pop':
-          'oracle-pop 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.2) backwards',
       },
     },
   },
