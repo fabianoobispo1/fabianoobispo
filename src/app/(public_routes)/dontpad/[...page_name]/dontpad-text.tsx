@@ -38,6 +38,20 @@ export default function DontpadText({ page_name }: DontpadTextProps) {
     }
   }, [pageData, isInitialized])
 
+  // Sincroniza mudanças feitas em outra aba/dispositivo (query do Convex é
+  // reativa). Só aplica se o usuário não tiver edição local não salva, pra
+  // não sobrescrever o que ele está digitando.
+  useEffect(() => {
+    if (!isInitialized || pageData === undefined) return
+
+    const remoteConteudo = pageData?.page_content ?? ''
+    if (remoteConteudo === ultimoConteudo) return
+
+    setUltimoConteudo(remoteConteudo)
+    setConteudo((atual) => (atual === ultimoConteudo ? remoteConteudo : atual))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageData])
+
   // Auto-save quando o conteúdo muda
   useEffect(() => {
     if (!isInitialized) return
