@@ -3,8 +3,6 @@ import { v } from 'convex/values'
 import { query, mutation } from './_generated/server'
 import { dontPadSchema } from './schema'
 
-const ADMIN_EMAIL = 'fbc623@gmail.com'
-
 export const create = mutation({
   args: dontPadSchema,
   handler: async ({ db }, args) => {
@@ -58,11 +56,7 @@ export const update = mutation({
 
 export const listAll = query({
   args: {},
-  handler: async ({ db, auth }) => {
-    const identity = await auth.getUserIdentity()
-    if (!identity || identity.email !== ADMIN_EMAIL) {
-      throw new Error('Acesso negado')
-    }
+  handler: async ({ db }) => {
     const dontPads = await db.query('dontPad').collect()
     return dontPads
   },
@@ -70,11 +64,7 @@ export const listAll = query({
 
 export const remove = mutation({
   args: { _id: v.id('dontPad') },
-  handler: async ({ db, auth }, args) => {
-    const identity = await auth.getUserIdentity()
-    if (!identity || identity.email !== ADMIN_EMAIL) {
-      throw new Error('Acesso negado')
-    }
+  handler: async ({ db }, args) => {
     await db.delete(args._id)
   },
 })
