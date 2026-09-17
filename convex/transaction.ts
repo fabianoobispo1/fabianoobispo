@@ -97,16 +97,13 @@ export const create = mutation({
 export const remove = mutation({
   args: {
     transactionsId: v.id('transactions'),
+    userId: v.id('user'),
   },
-  handler: async ({ db, auth }, { transactionsId }) => {
-    const identity = await auth.getUserIdentity()
-    if (!identity) throw new Error('Não autenticado')
-
+  handler: async ({ db }, { transactionsId, userId }) => {
     const transacao = await db.get(transactionsId)
     if (!transacao) throw new Error('transacao não encontrado')
 
-    const owner = await db.get(transacao.userId)
-    if (!owner || owner.email !== identity.email) {
+    if (transacao.userId !== userId) {
       throw new Error('Acesso negado')
     }
 

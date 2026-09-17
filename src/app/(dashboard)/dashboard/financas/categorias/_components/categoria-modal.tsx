@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useMutation } from 'convex/react'
+import { useSession } from 'next-auth/react'
 
 import { Modal } from '@/components/ui/modal'
 import {
@@ -14,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import {
   Select,
   SelectContent,
@@ -44,6 +46,7 @@ export const CategoriaModal = ({
   onClose,
   initialData,
 }: CategoriaModalProps) => {
+  const { data: session } = useSession()
   const create = useMutation(api.categories.create)
   const update = useMutation(api.categories.update)
 
@@ -58,12 +61,15 @@ export const CategoriaModal = ({
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!session?.user?.id) return
+    const userId = session.user.id as Id<'user'>
     try {
       if (initialData) {
         await update({
           categoryId: initialData._id,
           ...values,
           updated_at: Date.now(),
+          userId,
         })
         form.reset()
       } else {
@@ -71,6 +77,7 @@ export const CategoriaModal = ({
           ...values,
           created_at: Date.now(),
           updated_at: Date.now(),
+          userId,
         })
       }
       form.reset()

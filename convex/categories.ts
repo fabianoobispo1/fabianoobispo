@@ -1,16 +1,7 @@
 import { v } from 'convex/values'
 
 import { mutation, query } from './_generated/server'
-
-const ADMIN_EMAIL = 'fbc623@gmail.com'
-
-async function assertAdmin(auth: {
-  getUserIdentity: () => Promise<{ email?: string } | null>
-}) {
-  const identity = await auth.getUserIdentity()
-  if (!identity) throw new Error('Não autenticado')
-  if (identity.email !== ADMIN_EMAIL) throw new Error('Acesso negado')
-}
+import { requireAdmin } from './authz'
 
 export const list = query({
   handler: async (ctx) => {
@@ -45,9 +36,10 @@ export const create = mutation({
     active: v.boolean(),
     created_at: v.number(),
     updated_at: v.number(),
+    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx.auth)
+    await requireAdmin(ctx.db, args.userId)
     const category = await ctx.db.insert('categories', {
       name: args.name,
       type: args.type,
@@ -68,10 +60,11 @@ export const update = mutation({
     description: v.optional(v.string()),
     active: v.boolean(),
     updated_at: v.number(),
+    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx.auth)
-    const { categoryId, ...updates } = args
+    await requireAdmin(ctx.db, args.userId)
+    const { categoryId, userId, ...updates } = args
     const category = await ctx.db.patch(categoryId, updates)
     return category
   },
@@ -80,9 +73,10 @@ export const update = mutation({
 export const remove = mutation({
   args: {
     categoryId: v.id('categories'),
+    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx.auth)
+    await requireAdmin(ctx.db, args.userId)
     await ctx.db.delete(args.categoryId)
   },
 })

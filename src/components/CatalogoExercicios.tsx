@@ -5,6 +5,7 @@ import { api } from '@/../convex/_generated/api'
 
 import React, { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
+import { useSession } from 'next-auth/react'
 import { Plus, Pencil, Save, X, Video, Trash2, Dumbbell } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -98,6 +99,7 @@ export function CatalogoExercicios() {
     defaultReps: '10',
   })
 
+  const { data: session } = useSession()
   const catalogExercises = useQuery(api.exerciseCatalog.getAllCatalogExercises)
   const createExercise = useMutation(api.exerciseCatalog.createCatalogExercise)
   const updateExercise = useMutation(api.exerciseCatalog.updateCatalogExercise)
@@ -137,6 +139,8 @@ export function CatalogoExercicios() {
   }
 
   const handleSave = async () => {
+    if (!session?.user?.id) return
+    const userId = session.user.id as Id<'user'>
     if (isCreating) {
       await createExercise({
         name: editData.name,
@@ -146,6 +150,7 @@ export function CatalogoExercicios() {
         videoUrl: editData.videoUrl || undefined,
         defaultSets: editData.defaultSets || undefined,
         defaultReps: editData.defaultReps || undefined,
+        userId,
       })
     } else if (editingId) {
       await updateExercise({
@@ -157,20 +162,25 @@ export function CatalogoExercicios() {
         videoUrl: editData.videoUrl || undefined,
         defaultSets: editData.defaultSets || undefined,
         defaultReps: editData.defaultReps || undefined,
+        userId,
       })
     }
     handleCancel()
   }
 
   const handleDelete = async () => {
-    if (deleteId) {
-      await deleteExercise({ catalogId: deleteId })
+    if (deleteId && session?.user?.id) {
+      await deleteExercise({
+        catalogId: deleteId,
+        userId: session.user.id as Id<'user'>,
+      })
       setDeleteId(null)
     }
   }
 
   const handleSeedCatalog = async () => {
-    await seedCatalog({})
+    if (!session?.user?.id) return
+    await seedCatalog({ userId: session.user.id as Id<'user'> })
   }
 
   if (!catalogExercises) {

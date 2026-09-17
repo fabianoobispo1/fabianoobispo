@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { MoreHorizontal, Pencil, Trash } from 'lucide-react'
 import { useMutation } from 'convex/react'
+import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 
 import { Category } from '@/types'
+import type { Id } from '@/convex/_generated/dataModel'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,12 +29,17 @@ export const CategoriaActions = ({ data }: CategoriaActionsProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const { data: session } = useSession()
   const remove = useMutation(api.categories.remove)
 
   const onDelete = async () => {
+    if (!session?.user?.id) return
     try {
       setLoading(true)
-      await remove({ categoryId: data._id })
+      await remove({
+        categoryId: data._id,
+        userId: session.user.id as Id<'user'>,
+      })
       toast.success('Categoria excluída com sucesso')
       setIsDeleteModalOpen(false)
     } catch (error) {

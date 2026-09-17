@@ -2,6 +2,7 @@ import { v } from 'convex/values'
 
 import { query, mutation } from './_generated/server'
 import { dontPadSchema } from './schema'
+import { requireAdmin } from './authz'
 
 export const create = mutation({
   args: dontPadSchema,
@@ -55,16 +56,18 @@ export const update = mutation({
 })
 
 export const listAll = query({
-  args: {},
-  handler: async ({ db }) => {
+  args: { userId: v.id('user') },
+  handler: async ({ db }, { userId }) => {
+    await requireAdmin(db, userId)
     const dontPads = await db.query('dontPad').collect()
     return dontPads
   },
 })
 
 export const remove = mutation({
-  args: { _id: v.id('dontPad') },
+  args: { _id: v.id('dontPad'), userId: v.id('user') },
   handler: async ({ db }, args) => {
+    await requireAdmin(db, args.userId)
     await db.delete(args._id)
   },
 })

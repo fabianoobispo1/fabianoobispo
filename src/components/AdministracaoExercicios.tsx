@@ -154,6 +154,7 @@ export function AdministracaoExercicios() {
   }
 
   const handleSave = async (exerciseId: Id<'exercise'>) => {
+    if (!session?.user?.id) return
     await updateExercise({
       exerciseId,
       name: editData.name,
@@ -162,6 +163,7 @@ export function AdministracaoExercicios() {
       note: editData.note,
       carga: editData.carga || undefined,
       videoUrl: editData.videoUrl || undefined,
+      userId: session.user.id as Id<'user'>,
     })
     handleCancel()
   }
@@ -170,6 +172,7 @@ export function AdministracaoExercicios() {
     catalogId: Id<'exerciseCatalog'>,
     dayId: Id<'workoutDay'>,
   ) => {
+    if (!session?.user?.id) return
     const day = fullPlan?.days?.find((d) => d._id === dayId)
     const nextOrder = day ? day.exercises.length : 0
 
@@ -177,6 +180,7 @@ export function AdministracaoExercicios() {
       dayId,
       catalogId,
       order: nextOrder,
+      userId: session.user.id as Id<'user'>,
     })
     setIsAddingToDayId(null)
     setFilterGroup('all')
@@ -192,18 +196,19 @@ export function AdministracaoExercicios() {
   }
 
   const handleSavePlan = async () => {
-    if (fullPlan) {
+    if (fullPlan && session?.user?.id) {
       await updatePlan({
         planId: fullPlan._id,
         name: planName,
         description: planDescription,
+        userId: session.user.id as Id<'user'>,
       })
       setEditingPlan(false)
     }
   }
 
   const handleAddDay = async () => {
-    if (fullPlan && newDayData.title && newDayData.focus) {
+    if (fullPlan && newDayData.title && newDayData.focus && session?.user?.id) {
       const nextOrder = fullPlan.days?.length || 0
       await createDay({
         planId: fullPlan._id,
@@ -211,6 +216,7 @@ export function AdministracaoExercicios() {
         focus: newDayData.focus,
         dayOfWeek: newDayData.dayOfWeek || '',
         order: nextOrder,
+        userId: session.user.id as Id<'user'>,
       })
       setIsAddingDay(false)
       setNewDayData({ title: '', focus: '', dayOfWeek: '' })
@@ -219,11 +225,12 @@ export function AdministracaoExercicios() {
 
   const handleDeleteDay = async (dayId: Id<'workoutDay'>) => {
     if (
+      session?.user?.id &&
       confirm(
         'Tem certeza que deseja excluir este dia? Todos os exercícios serão removidos.',
       )
     ) {
-      await deleteDay({ dayId })
+      await deleteDay({ dayId, userId: session.user.id as Id<'user'> })
     }
   }
 

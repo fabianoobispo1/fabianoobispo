@@ -3,6 +3,7 @@ import { api } from '@/../convex/_generated/api'
 import type { Id } from '@/../convex/_generated/dataModel'
 
 import { useQuery, useMutation } from 'convex/react'
+import { useSession } from 'next-auth/react'
 import { Trash } from 'lucide-react'
 
 import {
@@ -21,12 +22,15 @@ import { Spinner } from './ui/spinner'
 
 export function AdministracaoDontPad() {
   const { toast } = useToast()
-  const dontPads = useQuery(api.dontPad.listAll)
+  const { data: session } = useSession()
+  const userId = session?.user?.id as Id<'user'> | undefined
+  const dontPads = useQuery(api.dontPad.listAll, userId ? { userId } : 'skip')
   const removePage = useMutation(api.dontPad.remove)
 
   const handleRemove = async (id: Id<'dontPad'>) => {
+    if (!userId) return
     try {
-      await removePage({ _id: id })
+      await removePage({ _id: id, userId })
       toast({
         title: 'Sucesso',
         description: 'Página removida com sucesso!',

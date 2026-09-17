@@ -32,8 +32,10 @@ export function UsuariosAdministradores() {
   const { data: session } = useSession()
 
   const loadUsuarios = useCallback(async () => {
-    if (session) {
-      fetchQuery(api.user.getAllUserRole).then((result) => {
+    if (session?.user?.id) {
+      fetchQuery(api.user.getAllUserRole, {
+        userId: session.user.id as Id<'user'>,
+      }).then((result) => {
         setusuarios(result)
       })
     }
@@ -49,10 +51,12 @@ export function UsuariosAdministradores() {
   }, [loadUsuarios, session, carregou, setiscarregou])
 
   const toggleAdmin = async (id: Id<'user'>) => {
+    if (!session?.user?.id) return
     setLoadingUsuario(true)
 
     await fetchMutation(api.user.toggleUserRole, {
-      userId: id,
+      userId: session.user.id as Id<'user'>,
+      targetUserId: id,
     })
 
     loadUsuarios()

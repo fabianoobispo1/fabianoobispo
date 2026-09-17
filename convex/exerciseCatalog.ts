@@ -1,16 +1,7 @@
 import { v } from 'convex/values'
 
 import { mutation, query } from './_generated/server'
-
-const ADMIN_EMAIL = 'fbc623@gmail.com'
-
-async function assertAdmin(auth: {
-  getUserIdentity: () => Promise<{ email?: string } | null>
-}) {
-  const identity = await auth.getUserIdentity()
-  if (!identity) throw new Error('Não autenticado')
-  if (identity.email !== ADMIN_EMAIL) throw new Error('Acesso negado')
-}
+import { requireAdmin } from './authz'
 
 // ==================== EXERCISE CATALOG ====================
 
@@ -24,11 +15,13 @@ export const createCatalogExercise = mutation({
     videoUrl: v.optional(v.string()),
     defaultSets: v.optional(v.string()),
     defaultReps: v.optional(v.string()),
+    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx.auth)
+    await requireAdmin(ctx.db, args.userId)
+    const { userId, ...data } = args
     const catalogId = await ctx.db.insert('exerciseCatalog', {
-      ...args,
+      ...data,
       created_at: Date.now(),
       updated_at: Date.now(),
     })
@@ -76,10 +69,11 @@ export const updateCatalogExercise = mutation({
     videoUrl: v.optional(v.string()),
     defaultSets: v.optional(v.string()),
     defaultReps: v.optional(v.string()),
+    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx.auth)
-    const { catalogId, ...updates } = args
+    await requireAdmin(ctx.db, args.userId)
+    const { catalogId, userId, ...updates } = args
     await ctx.db.patch(catalogId, {
       ...updates,
       updated_at: Date.now(),
@@ -88,17 +82,17 @@ export const updateCatalogExercise = mutation({
 })
 
 export const deleteCatalogExercise = mutation({
-  args: { catalogId: v.id('exerciseCatalog') },
+  args: { catalogId: v.id('exerciseCatalog'), userId: v.id('user') },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx.auth)
+    await requireAdmin(ctx.db, args.userId)
     await ctx.db.delete(args.catalogId)
   },
 })
 
 export const seedCatalog = mutation({
-  args: {},
-  handler: async (ctx) => {
-    await assertAdmin(ctx.auth)
+  args: { userId: v.id('user') },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx.db, args.userId)
     const exercises = [
       // PEITO
       {

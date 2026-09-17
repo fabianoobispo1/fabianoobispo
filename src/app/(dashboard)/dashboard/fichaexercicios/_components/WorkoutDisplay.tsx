@@ -70,14 +70,17 @@ export function WorkoutDisplay() {
     (exerciseId: Id<'exercise'>, value: string) => {
       setEditingCarga((prev) => ({ ...prev, [exerciseId]: value }))
 
+      if (!session?.user?.id) return
+      const userId = session.user.id as Id<'user'>
+
       // Salvar após 1 segundo sem digitar
       const timeoutId = setTimeout(() => {
-        updateCarga({ exerciseId, carga: value })
+        updateCarga({ exerciseId, carga: value, userId })
       }, 1000)
 
       return () => clearTimeout(timeoutId)
     },
-    [updateCarga],
+    [updateCarga, session],
   )
 
   // Criar plano padrão se não existir

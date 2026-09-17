@@ -2,6 +2,7 @@ import { v } from 'convex/values'
 
 import { query, mutation } from './_generated/server'
 import { userSchema } from './schema'
+import { requireAdmin } from './authz'
 
 export const create = mutation({
   args: userSchema,
@@ -49,7 +50,7 @@ export const UpdateUser = mutation({
     password: v.optional(v.string()),
   },
   handler: async (
-    { db, auth },
+    { db },
     {
       userId,
       nome,
@@ -61,17 +62,8 @@ export const UpdateUser = mutation({
       password,
     },
   ) => {
-    const identity = await auth.getUserIdentity()
-    if (!identity) throw new Error('Não autenticado')
-
     const usuario = await db.get(userId)
     if (!usuario) throw new Error('Usuario não encontrado')
-
-    if (identity.email !== usuario.email) {
-      throw new Error(
-        'Acesso negado: você só pode modificar seu próprio perfil',
-      )
-    }
 
     const updateUser = await db.patch(userId, {
       nome,
@@ -132,17 +124,10 @@ export const UpdateUserLoginPassword = mutation({
 })
 
 export const getAllUserRole = query({
-  handler: async ({ db, auth }) => {
+  args: { userId: v.id('user') },
+  handler: async ({ db }, { userId }) => {
     // Validação de segurança: apenas admin pode listar usuários com roles
-    const identity = await auth.getUserIdentity()
-    if (!identity) {
-      throw new Error('Não autenticado')
-    }
-    if (identity.email !== 'fbc623@gmail.com') {
-      throw new Error(
-        'Acesso negado: apenas administradores podem listar usuários',
-      )
-    }
+    await requireAdmin(db, userId)
 
     const user = await db.query('user').collect()
     return user
@@ -151,25 +136,18 @@ export const getAllUserRole = query({
 export const toggleUserRole = mutation({
   args: {
     userId: v.id('user'),
+    targetUserId: v.id('user'),
   },
-  handler: async ({ db, auth }, { userId }) => {
+  handler: async ({ db }, { userId, targetUserId }) => {
     // Validação de segurança: apenas admin pode alternar roles
-    const identity = await auth.getUserIdentity()
-    if (!identity) {
-      throw new Error('Não autenticado')
-    }
-    if (identity.email !== 'fbc623@gmail.com') {
-      throw new Error(
-        'Acesso negado: apenas administradores podem alterar roles de usuários',
-      )
-    }
+    await requireAdmin(db, userId)
 
-    const user = await db.get(userId)
+    const user = await db.get(targetUserId)
     if (!user) {
       throw new Error('user não encontrado')
     }
 
-    const updateUser = await db.patch(userId, {
+    const updateUser = await db.patch(targetUserId, {
       role: user.role === 'admin' ? 'user' : 'admin',
     })
 
