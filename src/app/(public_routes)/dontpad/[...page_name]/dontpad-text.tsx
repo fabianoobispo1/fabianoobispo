@@ -1,10 +1,10 @@
 'use client'
 import { api } from '@/../convex/_generated/api'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { useQuery, useMutation } from 'convex/react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Loader2, Pencil } from 'lucide-react'
 
 import { useToast } from '@/hooks/use-toast'
 import { Spinner } from '@/components/ui/spinner'
@@ -21,16 +21,46 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 // disparar uma mutation a cada tecla.
 const SAVE_DEBOUNCE_MS = 400
 
+// Intervalo minimo entre "pings" de digitacao (throttle) e por quanto
+// tempo um ping recente ainda conta como "esta editando agora".
+const EDITING_PING_INTERVAL_MS = 1500
+const EDITING_STALE_MS = 3000
+
 export default function DontpadText({ page_name }: DontpadTextProps) {
   const { toast } = useToast()
   const [conteudo, setConteudo] = useState('')
   const [ultimoConteudo, setUltimoConteudo] = useState<string | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [clientId] = useState(() => crypto.randomUUID())
+  const lastPingAtRef = useRef(0)
+  const [, setTick] = useState(0)
 
   // Query para buscar dados da página
   const pageData = useQuery(api.dontPad.getByPageName, { page_name })
   const updatePage = useMutation(api.dontPad.update)
+  const pingEditing = useMutation(api.dontPad.ping)
+
+  // Re-renderiza periodicamente pra "alguém está editando" desaparecer
+  // sozinho quando o outro cliente parar de digitar (sem isso, o estado só
+  // reavaliaria quando pageData mudasse de novo).
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const isSomeoneElseEditing =
+    !!pageData?.editing_client_id &&
+    pageData.editing_client_id !== clientId &&
+    !!pageData.editing_at &&
+    Date.now() - pageData.editing_at < EDITING_STALE_MS
+
+  const notifyEditing = () => {
+    const now = Date.now()
+    if (now - lastPingAtRef.current < EDITING_PING_INTERVAL_MS) return
+    lastPingAtRef.current = now
+    pingEditing({ page_name, client_id: clientId }).catch(() => {})
+  }
 
   // Inicializa o conteúdo quando os dados são carregados
   useEffect(() => {
@@ -112,7 +142,15 @@ export default function DontpadText({ page_name }: DontpadTextProps) {
       <div className="flex items-center justify-center h-full w-full">
         <Card className="w-[350px] md:w-[600px] lg:w-[800px] xl:w-[1000px] 2xl:w-[1200px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <span>Seu Texto</span>
+            <span className="flex items-center gap-2">
+              Seu Texto
+              {isSomeoneElseEditing && (
+                <span className="flex items-center gap-1 text-xs font-normal text-amber-500">
+                  <Pencil className="h-3 w-3 animate-pulse" />
+                  Alguém mais está editando...
+                </span>
+              )}
+            </span>
             <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
               {saveStatus === 'saving' && (
                 <>
@@ -135,9 +173,10 @@ export default function DontpadText({ page_name }: DontpadTextProps) {
             <Textarea
               className="w-full h-[500px] resize-none"
               value={conteudo}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setConteudo(e.target.value)
-              }
+                notifyEditing()
+              }}
             ></Textarea>
           </CardContent>
         </Card>

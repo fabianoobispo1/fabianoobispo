@@ -68,6 +68,11 @@ export const dontPadSchema = {
   ads: v.boolean(),
   created_at: v.number(),
   updated_at: v.number(),
+  // Presenca leve: quem digitou por ultimo e quando, pra mostrar um
+  // indicador de "alguem mais esta editando" sem precisar de uma tabela
+  // de presenca separada.
+  editing_client_id: v.optional(v.string()),
+  editing_at: v.optional(v.number()),
 }
 
 export const workoutPlanSchema = {
