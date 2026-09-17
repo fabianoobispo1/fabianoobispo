@@ -11,6 +11,7 @@ import {
   ExternalLink,
   MessageSquare,
   Mail,
+  Puzzle,
 } from 'lucide-react'
 
 export function ProjectsSection() {
@@ -85,6 +86,15 @@ export function ProjectsSection() {
       icon: Mail,
       tags: ['Fastify', 'PostgreSQL', 'Redis', 'Docker', 'Node.js'],
       link: 'https://sendcloud.dev.br',
+      external: true,
+    },
+    {
+      title: 'Miolim',
+      description:
+        'Hub de jogos de puzzle multiplataforma (iOS e Android) com Arrow, 2048 e Sudoku. Sem anúncio, sem coleta de dados — conta é opcional, só pra sincronizar progresso entre aparelhos.',
+      icon: Puzzle,
+      tags: ['SwiftUI', 'Kotlin', 'Firebase', 'iOS', 'Android'],
+      link: 'https://miolim.com.br',
       external: true,
     },
   ]
