@@ -158,12 +158,7 @@ export const labSchema = {
   userId: v.id('user'),
   name: v.string(),
   containerId: v.string(),
-  status: v.union(
-    v.literal('creating'),
-    v.literal('running'),
-    v.literal('stopped'),
-    v.literal('error'),
-  ),
+  status: v.union(v.literal('creating'), v.literal('running'), v.literal('stopped'), v.literal('error')),
   ip: v.optional(v.string()),
   port: v.optional(v.number()), // SSH port
   lastActivity: v.number(), // timestamp - para auto-cleanup
@@ -196,32 +191,6 @@ export const sshConnectionSchema = {
   // Auditoria e segurança
   created_at: v.number(),
   updated_at: v.number(),
-}
-
-// Usinas solares do usuário (proof of concept: gestão de geração e limpeza)
-export const solarPlantSchema = {
-  userId: v.id('user'),
-  name: v.string(),
-  capacityKwp: v.number(), // potência instalada, em kWp
-  location: v.optional(v.string()),
-  created_at: v.number(),
-  updated_at: v.number(),
-}
-
-// Registro de limpeza das placas de uma usina
-export const solarCleaningSchema = {
-  plantId: v.id('solarPlant'),
-  date: v.number(), // timestamp do dia em que a limpeza foi feita
-  note: v.optional(v.string()),
-  created_at: v.number(),
-}
-
-// Registro de geração de energia de uma usina
-export const solarGenerationSchema = {
-  plantId: v.id('solarPlant'),
-  date: v.number(), // timestamp do dia de referência da geração
-  kwhGenerated: v.number(),
-  created_at: v.number(),
 }
 
 // Definição do Schema completo
@@ -260,11 +229,4 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_user_default', ['userId', 'isDefault'])
     .index('by_user_name', ['userId', 'name']),
-  solarPlant: defineTable(solarPlantSchema).index('by_user', ['userId']),
-  solarCleaning: defineTable(solarCleaningSchema)
-    .index('by_plant', ['plantId'])
-    .index('by_plant_date', ['plantId', 'date']),
-  solarGeneration: defineTable(solarGenerationSchema)
-    .index('by_plant', ['plantId'])
-    .index('by_plant_date', ['plantId', 'date']),
 })

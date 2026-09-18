@@ -10,7 +10,6 @@ import {
   Dumbbell,
   Dices,
   SquareTerminal,
-  Sun,
 } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 
@@ -69,11 +68,6 @@ const items = [
     title: 'Ficha de Exercícios',
     url: '/dashboard/fichaexercicios',
     icon: Dumbbell,
-  },
-  {
-    title: 'Usinas Solares',
-    url: '/dashboard/solar',
-    icon: Sun,
   } /* ,
   {
     title: 'Atletas',
