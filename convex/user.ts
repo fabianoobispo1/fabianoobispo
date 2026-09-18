@@ -9,7 +9,6 @@ export const create = mutation({
   handler: async ({ db }, args) => {
     const user = await db.insert('user', {
       ...args,
-      created_at: Date.now(),
       last_login_at: Date.now(),
     })
     return user

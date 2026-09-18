@@ -12,8 +12,9 @@ export const userSchema = {
   password: v.string(),
   data_nascimento: v.optional(v.number()),
   cpf: v.optional(v.string()),
-  // Ausente em usuarios criados antes dessa coluna existir.
-  created_at: v.optional(v.number()),
+  // Data de cadastro usa o campo automatico _creationTime do Convex, que
+  // ja existe pra todo documento (inclusive os antigos) - nao precisa de
+  // uma coluna propria pra isso.
   last_login_at: v.optional(v.number()),
 }
 

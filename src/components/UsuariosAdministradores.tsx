@@ -20,10 +20,10 @@ import type { Id } from '../../convex/_generated/dataModel'
 
 interface User {
   _id: Id<'user'>
+  _creationTime: number
   nome: string
   email: string
   role: 'user' | 'admin'
-  created_at?: number
   last_login_at?: number
 }
 
@@ -97,7 +97,7 @@ export function UsuariosAdministradores() {
                   <TableCell className="text-center">{usuario.nome}</TableCell>
                   <TableCell className="text-center">{usuario.email}</TableCell>
                   <TableCell className="text-center">
-                    {formatDate(usuario.created_at)}
+                    {formatDate(usuario._creationTime)}
                   </TableCell>
                   <TableCell className="text-center">
                     {formatDate(usuario.last_login_at)}
