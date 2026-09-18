@@ -7,7 +7,11 @@ import { requireAdmin } from './authz'
 export const create = mutation({
   args: userSchema,
   handler: async ({ db }, args) => {
-    const user = await db.insert('user', args)
+    const user = await db.insert('user', {
+      ...args,
+      created_at: Date.now(),
+      last_login_at: Date.now(),
+    })
     return user
   },
 })
@@ -120,6 +124,15 @@ export const UpdateUserLoginPassword = mutation({
     })
     const usuario = await db.get(userId)
     return usuario
+  },
+})
+
+export const updateLastLogin = mutation({
+  args: {
+    userId: v.id('user'),
+  },
+  handler: async ({ db }, { userId }) => {
+    await db.patch(userId, { last_login_at: Date.now() })
   },
 })
 

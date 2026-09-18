@@ -165,6 +165,12 @@ const authConfig = {
         }
       }
 
+      if (user?.id) {
+        await fetchMutation(api.user.updateLastLogin, {
+          userId: user.id as Id<'user'>,
+        })
+      }
+
       return true
     },
     async jwt({ token, user }) {

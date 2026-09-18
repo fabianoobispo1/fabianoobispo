@@ -12,6 +12,9 @@ export const userSchema = {
   password: v.string(),
   data_nascimento: v.optional(v.number()),
   cpf: v.optional(v.string()),
+  // Ausente em usuarios criados antes dessa coluna existir.
+  created_at: v.optional(v.number()),
+  last_login_at: v.optional(v.number()),
 }
 
 export const recuperaSenhaSchema = {

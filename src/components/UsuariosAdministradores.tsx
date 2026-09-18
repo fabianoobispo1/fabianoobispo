@@ -23,7 +23,12 @@ interface User {
   nome: string
   email: string
   role: 'user' | 'admin'
+  created_at?: number
+  last_login_at?: number
 }
+
+const formatDate = (timestamp?: number) =>
+  timestamp ? new Date(timestamp).toLocaleString('pt-BR') : '-'
 
 export function UsuariosAdministradores() {
   const [usuarios, setusuarios] = useState<User[]>([])
@@ -72,6 +77,8 @@ export function UsuariosAdministradores() {
               <TableHead className="text-center">Admin</TableHead>
               <TableHead className="text-center">Nome</TableHead>
               <TableHead className="text-center">email</TableHead>
+              <TableHead className="text-center">Cadastrado em</TableHead>
+              <TableHead className="text-center">Último login</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -89,6 +96,12 @@ export function UsuariosAdministradores() {
 
                   <TableCell className="text-center">{usuario.nome}</TableCell>
                   <TableCell className="text-center">{usuario.email}</TableCell>
+                  <TableCell className="text-center">
+                    {formatDate(usuario.created_at)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {formatDate(usuario.last_login_at)}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
