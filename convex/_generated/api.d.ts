@@ -19,6 +19,7 @@ import type * as megaSena from "../megaSena.js";
 import type * as megaSenaJogo from "../megaSenaJogo.js";
 import type * as recuperaSenha from "../recuperaSenha.js";
 import type * as seed from "../seed.js";
+import type * as solar from "../solar.js";
 import type * as sshConnection from "../sshConnection.js";
 import type * as todo from "../todo.js";
 import type * as transaction from "../transaction.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   megaSenaJogo: typeof megaSenaJogo;
   recuperaSenha: typeof recuperaSenha;
   seed: typeof seed;
+  solar: typeof solar;
   sshConnection: typeof sshConnection;
   todo: typeof todo;
   transaction: typeof transaction;
