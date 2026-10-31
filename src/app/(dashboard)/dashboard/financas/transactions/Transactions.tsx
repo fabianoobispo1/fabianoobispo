@@ -3,7 +3,7 @@ import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { useQuery } from 'convex/react'
+import { useConvexAuth, useQuery } from 'convex/react'
 
 import { DataTable } from '@/components/ui/data-table'
 import { api } from '@/convex/_generated/api'
@@ -17,11 +17,12 @@ export function TransactionsPage() {
   const { data: session } = useSession()
   const router = useRouter()
   const userId = session?.user?.id as Id<'user'>
+  const { isAuthenticated } = useConvexAuth()
 
   // useQuery atualiza automaticamente quando há mudanças
   const transactions = useQuery(
     api.transaction.getAllTransactionsByUser,
-    userId ? { userId } : 'skip',
+    isAuthenticated ? {} : 'skip',
   )
 
   return (

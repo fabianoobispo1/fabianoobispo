@@ -5,7 +5,7 @@ import { api } from '@/../convex/_generated/api'
 
 import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useQuery, useMutation } from 'convex/react'
+import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 import { Pencil, Save, X, Video, Plus, Search, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -98,9 +98,10 @@ export function AdministracaoExercicios() {
     videoUrl: '',
   })
 
+  const { isAuthenticated } = useConvexAuth()
   const plans = useQuery(
     api.workout.getPlansByUser,
-    session?.user?.id ? { userId: session.user.id as Id<'user'> } : 'skip',
+    isAuthenticated ? {} : 'skip',
   )
 
   const fullPlan = useQuery(
@@ -163,7 +164,6 @@ export function AdministracaoExercicios() {
       note: editData.note,
       carga: editData.carga || undefined,
       videoUrl: editData.videoUrl || undefined,
-      userId: session.user.id as Id<'user'>,
     })
     handleCancel()
   }
@@ -180,7 +180,6 @@ export function AdministracaoExercicios() {
       dayId,
       catalogId,
       order: nextOrder,
-      userId: session.user.id as Id<'user'>,
     })
     setIsAddingToDayId(null)
     setFilterGroup('all')
@@ -201,7 +200,6 @@ export function AdministracaoExercicios() {
         planId: fullPlan._id,
         name: planName,
         description: planDescription,
-        userId: session.user.id as Id<'user'>,
       })
       setEditingPlan(false)
     }
@@ -216,7 +214,6 @@ export function AdministracaoExercicios() {
         focus: newDayData.focus,
         dayOfWeek: newDayData.dayOfWeek || '',
         order: nextOrder,
-        userId: session.user.id as Id<'user'>,
       })
       setIsAddingDay(false)
       setNewDayData({ title: '', focus: '', dayOfWeek: '' })
@@ -230,7 +227,7 @@ export function AdministracaoExercicios() {
         'Tem certeza que deseja excluir este dia? Todos os exercícios serão removidos.',
       )
     ) {
-      await deleteDay({ dayId, userId: session.user.id as Id<'user'> })
+      await deleteDay({ dayId })
     }
   }
 

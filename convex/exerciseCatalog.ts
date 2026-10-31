@@ -15,11 +15,10 @@ export const createCatalogExercise = mutation({
     videoUrl: v.optional(v.string()),
     defaultSets: v.optional(v.string()),
     defaultReps: v.optional(v.string()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
-    const { userId, ...data } = args
+    await requireAdmin(ctx)
+    const data = args
     const catalogId = await ctx.db.insert('exerciseCatalog', {
       ...data,
       created_at: Date.now(),
@@ -69,11 +68,10 @@ export const updateCatalogExercise = mutation({
     videoUrl: v.optional(v.string()),
     defaultSets: v.optional(v.string()),
     defaultReps: v.optional(v.string()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
-    const { catalogId, userId, ...updates } = args
+    await requireAdmin(ctx)
+    const { catalogId, ...updates } = args
     await ctx.db.patch(catalogId, {
       ...updates,
       updated_at: Date.now(),
@@ -82,17 +80,17 @@ export const updateCatalogExercise = mutation({
 })
 
 export const deleteCatalogExercise = mutation({
-  args: { catalogId: v.id('exerciseCatalog'), userId: v.id('user') },
+  args: { catalogId: v.id('exerciseCatalog') },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
+    await requireAdmin(ctx)
     await ctx.db.delete(args.catalogId)
   },
 })
 
 export const seedCatalog = mutation({
-  args: { userId: v.id('user') },
-  handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx)
     const exercises = [
       // PEITO
       {

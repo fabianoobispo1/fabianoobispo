@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useQuery, useAction } from 'convex/react'
+import { useAction, useConvexAuth, useQuery } from 'convex/react'
 import { Copy, Check, Trash2, Play, Loader } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -35,8 +35,10 @@ export default function LabsPage() {
 
   const userId = session?.user?.id
 
+  const { isAuthenticated } = useConvexAuth()
+
   // Queries e Mutations
-  const userLabs = useQuery(api.lab.getUserLabs, userId ? { userId } : 'skip')
+  const userLabs = useQuery(api.lab.getUserLabs, isAuthenticated ? {} : 'skip')
   const createLab = useAction(api.lab.createLab)
   const deleteLab = useAction(api.lab.deleteLab)
   const updateActivity = useAction(api.lab.updateLastActivity)
@@ -50,7 +52,7 @@ export default function LabsPage() {
 
     try {
       setCreating(true)
-      await createLab({ userId })
+      await createLab({})
     } catch (error) {
       alert(`Erro: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
@@ -63,7 +65,7 @@ export default function LabsPage() {
 
     try {
       setDeleting(labId)
-      await deleteLab({ labId: labId as Id<'lab'>, userId })
+      await deleteLab({ labId: labId as Id<'lab'> })
       setShowDeleteDialog(null)
     } catch (error) {
       alert(`Erro: ${error instanceof Error ? error.message : String(error)}`)

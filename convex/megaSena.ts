@@ -2,11 +2,15 @@ import { v } from 'convex/values'
 
 import {
   action,
+  internalAction,
+  internalMutation,
   mutation,
   query,
+  type ActionCtx,
   type DatabaseReader,
 } from './_generated/server'
-import { api } from './_generated/api'
+import { internal } from './_generated/api'
+import { requireAdmin, requireAdminAction } from './authz'
 import { megaSenaResultSchema } from './schema'
 import type { Doc } from './_generated/dataModel'
 
@@ -47,7 +51,8 @@ async function buscarPorConcurso(
     .unique()
 }
 
-export const bulkImport = mutation({
+// Interna: importação do histórico via `npx convex run megaSena:bulkImport`
+export const bulkImport = internalMutation({
   args: {
     results: v.array(v.object(megaSenaResultSchema)),
   },
@@ -69,7 +74,7 @@ export const bulkImport = mutation({
 // sorteio seguinte) chega até ficar atualizado dia a dia. Preserva
 // `created_at` (data da 1ª importação) e não deixa um campo proximo*
 // ausente na resposta da API apagar um valor já salvo.
-export const upsertLatest = mutation({
+export const upsertLatest = internalMutation({
   args: megaSenaResultSchema,
   handler: async ({ db }, args) => {
     const existing = await buscarPorConcurso(db, args.concurso)
@@ -97,7 +102,9 @@ export const upsertLatest = mutation({
 
 export const create = mutation({
   args: megaSenaResultSchema,
-  handler: async ({ db }, args) => {
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx)
+    const db = ctx.db
     const existing = await buscarPorConcurso(db, args.concurso)
     if (existing) throw new Error(`Concurso ${args.concurso} já cadastrado`)
     return await db.insert('megaSenaResult', args)
@@ -255,78 +262,92 @@ export const conferirAposta = query({
   },
 })
 
+type FetchResult = { inserted: number; recebidos: number }
+
+// Chamada pela UI (botão "atualizar") — só admin
 export const fetchLatestFromCaixa = action({
   args: {},
-  handler: async (ctx): Promise<{ inserted: number; recebidos: number }> => {
-    const response = await fetch(MEGASENA_API_URL)
-    if (!response.ok) {
-      throw new Error(
-        `Falha ao consultar loteriascaixa-api: ${response.status}`,
-      )
-    }
-    const data = await response.json()
-
-    const dezenas = (data.dezenas as string[]).map(Number).sort((a, b) => a - b)
-
-    type Faixa = {
-      faixa: number
-      ganhadores: number
-      valorPremio: number
-    }
-    const premiacoes = data.premiacoes as Faixa[]
-    const faixa6 = premiacoes.find((f) => f.faixa === 1)
-    const faixa5 = premiacoes.find((f) => f.faixa === 2)
-    const faixa4 = premiacoes.find((f) => f.faixa === 3)
-
-    const valorEstimadoProximoConcurso =
-      (data.valorEstimadoProximoConcurso as number) ?? 0
-
-    const resultado = {
-      concurso: data.concurso as number,
-      data: parseDataBr(data.data as string),
-      dezenas,
-      ganhadores6: faixa6?.ganhadores ?? 0,
-      rateio6: faixa6?.valorPremio ?? 0,
-      ganhadores5: faixa5?.ganhadores ?? 0,
-      rateio5: faixa5?.valorPremio ?? 0,
-      ganhadores4: faixa4?.ganhadores ?? 0,
-      rateio4: faixa4?.valorPremio ?? 0,
-      acumulado6: (data.valorAcumuladoProximoConcurso as number) ?? 0,
-      created_at: Date.now(),
-      proximoConcurso: data.proximoConcurso as number | undefined,
-      dataProximoConcurso: data.dataProximoConcurso
-        ? parseDataBr(data.dataProximoConcurso as string)
-        : undefined,
-      valorEstimadoProximoConcurso,
-    }
-
-    const resultadoDoImport = await ctx.runMutation(
-      api.megaSena.upsertLatest,
-      resultado,
-    )
-
-    // Dispara o alerta só no momento em que a estimativa CRUZA o limiar (e não
-    // a cada corrida do cron enquanto ela permanece acima) — funciona tanto
-    // quando um concurso novo já nasce acima do limiar quanto quando a
-    // estimativa de um concurso ainda em aberto sobe até ultrapassá-lo.
-    const limiar = limiarAlertaAcumulado()
-    const jaEstavaAcimaDoLimiar = resultadoDoImport.estimativaAnterior >= limiar
-    const cruzouLimiar =
-      valorEstimadoProximoConcurso >= limiar && !jaEstavaAcimaDoLimiar
-
-    if (cruzouLimiar) {
-      await enviarAlertaAcumulado(
-        resultado.proximoConcurso,
-        valorEstimadoProximoConcurso,
-      )
-    }
-
-    return {
-      inserted: resultadoDoImport.inserted,
-      recebidos: resultadoDoImport.recebidos,
-    }
+  handler: async (ctx): Promise<FetchResult> => {
+    await requireAdminAction(ctx)
+    return await buscarEImportarUltimo(ctx)
   },
 })
+
+// Chamada pelo cron (crons.ts)
+export const fetchLatestFromCaixaInternal = internalAction({
+  args: {},
+  handler: async (ctx): Promise<FetchResult> => {
+    return await buscarEImportarUltimo(ctx)
+  },
+})
+
+async function buscarEImportarUltimo(ctx: ActionCtx): Promise<FetchResult> {
+  const response = await fetch(MEGASENA_API_URL)
+  if (!response.ok) {
+    throw new Error(`Falha ao consultar loteriascaixa-api: ${response.status}`)
+  }
+  const data = await response.json()
+
+  const dezenas = (data.dezenas as string[]).map(Number).sort((a, b) => a - b)
+
+  type Faixa = {
+    faixa: number
+    ganhadores: number
+    valorPremio: number
+  }
+  const premiacoes = data.premiacoes as Faixa[]
+  const faixa6 = premiacoes.find((f) => f.faixa === 1)
+  const faixa5 = premiacoes.find((f) => f.faixa === 2)
+  const faixa4 = premiacoes.find((f) => f.faixa === 3)
+
+  const valorEstimadoProximoConcurso =
+    (data.valorEstimadoProximoConcurso as number) ?? 0
+
+  const resultado = {
+    concurso: data.concurso as number,
+    data: parseDataBr(data.data as string),
+    dezenas,
+    ganhadores6: faixa6?.ganhadores ?? 0,
+    rateio6: faixa6?.valorPremio ?? 0,
+    ganhadores5: faixa5?.ganhadores ?? 0,
+    rateio5: faixa5?.valorPremio ?? 0,
+    ganhadores4: faixa4?.ganhadores ?? 0,
+    rateio4: faixa4?.valorPremio ?? 0,
+    acumulado6: (data.valorAcumuladoProximoConcurso as number) ?? 0,
+    created_at: Date.now(),
+    proximoConcurso: data.proximoConcurso as number | undefined,
+    dataProximoConcurso: data.dataProximoConcurso
+      ? parseDataBr(data.dataProximoConcurso as string)
+      : undefined,
+    valorEstimadoProximoConcurso,
+  }
+
+  const resultadoDoImport = await ctx.runMutation(
+    internal.megaSena.upsertLatest,
+    resultado,
+  )
+
+  // Dispara o alerta só no momento em que a estimativa CRUZA o limiar (e não
+  // a cada corrida do cron enquanto ela permanece acima) — funciona tanto
+  // quando um concurso novo já nasce acima do limiar quanto quando a
+  // estimativa de um concurso ainda em aberto sobe até ultrapassá-lo.
+  const limiar = limiarAlertaAcumulado()
+  const jaEstavaAcimaDoLimiar = resultadoDoImport.estimativaAnterior >= limiar
+  const cruzouLimiar =
+    valorEstimadoProximoConcurso >= limiar && !jaEstavaAcimaDoLimiar
+
+  if (cruzouLimiar) {
+    await enviarAlertaAcumulado(
+      resultado.proximoConcurso,
+      valorEstimadoProximoConcurso,
+    )
+  }
+
+  return {
+    inserted: resultadoDoImport.inserted,
+    recebidos: resultadoDoImport.recebidos,
+  }
+}
 
 // Envia via SendCloud (plataforma própria de e-mail transacional,
 // https://sendcloud.dev.br) em vez de Resend. `from` precisa ser um domínio

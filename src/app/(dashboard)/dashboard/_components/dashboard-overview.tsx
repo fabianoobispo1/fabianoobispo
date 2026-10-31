@@ -1,7 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import { useQuery } from 'convex/react'
+import { useConvexAuth, useQuery } from 'convex/react'
 import {
   Calendar,
   TrendingUp,
@@ -18,22 +17,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import { formatCurrency } from '@/lib/utils'
 
 export function DashboardOverview() {
-  const { data: session } = useSession()
-  const userId = session?.user?.id as Id<'user'>
+  const { isAuthenticated } = useConvexAuth()
 
   // Buscar dados do mês atual
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0')
   const dashboard = useQuery(
     api.transaction.getDashboard,
-    userId ? { month: currentMonth, userId } : 'skip',
+    isAuthenticated ? { month: currentMonth } : 'skip',
   )
 
   // Buscar todos
-  const todos = useQuery(api.todo.getTodoByUser, userId ? { userId } : 'skip')
+  const todos = useQuery(api.todo.listMine, isAuthenticated ? {} : 'skip')
 
   const pendingTodos = todos?.filter((t) => !t.isCompleted).length || 0
   const completedTodos = todos?.filter((t) => t.isCompleted).length || 0

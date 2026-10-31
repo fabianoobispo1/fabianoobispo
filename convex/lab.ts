@@ -1,17 +1,34 @@
 import { v } from 'convex/values'
-import { query, mutation, action, internalMutation, internalQuery } from './_generated/server'
-import { Id } from './_generated/dataModel'
+import {
+  query,
+  action,
+  internalAction,
+  internalMutation,
+  internalQuery,
+} from './_generated/server'
 import { internal } from './_generated/api'
+import { getCurrentUser, requireUserAction } from './authz'
 
-const VPS_API_URL = process.env.VPS_API_URL || 'http://localhost:3001'
-const VPS_API_KEY = process.env.VPS_API_KEY || 'your-secret-key'
+// Sem fallback: sem VPS_API_URL/VPS_API_KEY configurados no Convex, os labs
+// ficam indisponíveis em vez de usar uma chave conhecida
+function vpsConfig() {
+  const url = process.env.VPS_API_URL
+  const key = process.env.VPS_API_KEY
+  if (!url || !key) {
+    throw new Error('Labs não configurados (VPS_API_URL / VPS_API_KEY)')
+  }
+  return { VPS_API_URL: url, VPS_API_KEY: key }
+}
 
 export const createLab = action({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireUserAction(ctx)
+    const { VPS_API_URL, VPS_API_KEY } = vpsConfig()
+
     // Valida limite de labs por usuário (max 3)
     const userLabs = await ctx.runQuery(internal.lab.getUserLabsCount, {
-      userId: args.userId,
+      userId: user._id,
     })
 
     if (userLabs >= 3) {
@@ -22,11 +39,11 @@ export const createLab = action({
     const response = await fetch(`${VPS_API_URL}/api/lab/create`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${VPS_API_KEY}`,
+        Authorization: `Bearer ${VPS_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        userId: args.userId,
+        userId: user._id,
         name: `lab-${Date.now()}`,
       }),
     })
@@ -39,8 +56,8 @@ export const createLab = action({
     const vmData = await response.json()
 
     // Salva no Convex
-    const labId = await ctx.runMutation(internal.lab.insertLab, {
-      userId: args.userId as Id<'user'>,
+    await ctx.runMutation(internal.lab.insertLab, {
+      userId: user._id,
       name: vmData.name,
       containerId: vmData.id,
       status: 'running',
@@ -53,33 +70,43 @@ export const createLab = action({
 })
 
 export const getUserLabs = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) return []
     return await ctx.db
       .query('lab')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId as Id<'user'>))
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
       .order('desc')
       .collect()
   },
 })
 
 export const deleteLab = action({
-  args: { labId: v.id('lab'), userId: v.string() },
+  args: { labId: v.id('lab') },
   handler: async (ctx, args) => {
-    // Valida que o lab pertence ao usuário
-    const lab = await ctx.runQuery(internal.lab.getLabById, { labId: args.labId })
+    const user = await requireUserAction(ctx)
+    const { VPS_API_URL, VPS_API_KEY } = vpsConfig()
 
-    if (!lab || lab.userId !== (args.userId as Id<'user'>)) {
-      throw new Error('Acesso negado')
+    // Valida que o lab pertence ao usuário
+    const lab = await ctx.runQuery(internal.lab.getLabById, {
+      labId: args.labId,
+    })
+
+    if (!lab || lab.userId !== user._id) {
+      throw new Error('Lab não encontrado')
     }
 
     // Deleta no VPS
-    const response = await fetch(`${VPS_API_URL}/api/lab/${lab.containerId}/delete`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${VPS_API_KEY}`,
+    const response = await fetch(
+      `${VPS_API_URL}/api/lab/${lab.containerId}/delete`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${VPS_API_KEY}`,
+        },
       },
-    })
+    )
 
     if (!response.ok) {
       const error = await response.text()
@@ -94,6 +121,11 @@ export const deleteLab = action({
 export const updateLastActivity = action({
   args: { labId: v.id('lab') },
   handler: async (ctx, args) => {
+    const user = await requireUserAction(ctx)
+    const lab = await ctx.runQuery(internal.lab.getLabById, {
+      labId: args.labId,
+    })
+    if (!lab || lab.userId !== user._id) throw new Error('Lab não encontrado')
     await ctx.runMutation(internal.lab.updateLastActivityInternal, {
       labId: args.labId,
     })
@@ -101,8 +133,9 @@ export const updateLastActivity = action({
 })
 
 // Cron job para auto-cleanup (rodar diariamente)
-export const cleanupInactiveLabs = action({
+export const cleanupInactiveLabs = internalAction({
   handler: async (ctx) => {
+    const { VPS_API_URL, VPS_API_KEY } = vpsConfig()
     const TWO_HOURS = 2 * 60 * 60 * 1000
     const now = Date.now()
 
@@ -115,12 +148,14 @@ export const cleanupInactiveLabs = action({
           await fetch(`${VPS_API_URL}/api/lab/${lab.containerId}/delete`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${VPS_API_KEY}`,
+              Authorization: `Bearer ${VPS_API_KEY}`,
             },
           })
 
           // Deleta do Convex
-          await ctx.runMutation(internal.lab.deleteLabInternal, { labId: lab._id })
+          await ctx.runMutation(internal.lab.deleteLabInternal, {
+            labId: lab._id,
+          })
         } catch (err) {
           console.error(`Erro ao cleanup lab ${lab._id}:`, err)
         }
@@ -180,11 +215,11 @@ export const getLabById = internalQuery({
 })
 
 export const getUserLabsCount = internalQuery({
-  args: { userId: v.string() },
+  args: { userId: v.id('user') },
   handler: async (ctx, args) => {
     const labs = await ctx.db
       .query('lab')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId as Id<'user'>))
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
       .collect()
     return labs.length
   },

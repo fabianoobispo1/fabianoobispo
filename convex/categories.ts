@@ -36,10 +36,9 @@ export const create = mutation({
     active: v.boolean(),
     created_at: v.number(),
     updated_at: v.number(),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
+    await requireAdmin(ctx)
     const category = await ctx.db.insert('categories', {
       name: args.name,
       type: args.type,
@@ -60,11 +59,10 @@ export const update = mutation({
     description: v.optional(v.string()),
     active: v.boolean(),
     updated_at: v.number(),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
-    const { categoryId, userId, ...updates } = args
+    await requireAdmin(ctx)
+    const { categoryId, ...updates } = args
     const category = await ctx.db.patch(categoryId, updates)
     return category
   },
@@ -73,10 +71,9 @@ export const update = mutation({
 export const remove = mutation({
   args: {
     categoryId: v.id('categories'),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
+    await requireAdmin(ctx)
     await ctx.db.delete(args.categoryId)
   },
 })

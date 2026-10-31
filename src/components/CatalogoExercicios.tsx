@@ -140,7 +140,6 @@ export function CatalogoExercicios() {
 
   const handleSave = async () => {
     if (!session?.user?.id) return
-    const userId = session.user.id as Id<'user'>
     if (isCreating) {
       await createExercise({
         name: editData.name,
@@ -150,7 +149,6 @@ export function CatalogoExercicios() {
         videoUrl: editData.videoUrl || undefined,
         defaultSets: editData.defaultSets || undefined,
         defaultReps: editData.defaultReps || undefined,
-        userId,
       })
     } else if (editingId) {
       await updateExercise({
@@ -162,7 +160,6 @@ export function CatalogoExercicios() {
         videoUrl: editData.videoUrl || undefined,
         defaultSets: editData.defaultSets || undefined,
         defaultReps: editData.defaultReps || undefined,
-        userId,
       })
     }
     handleCancel()
@@ -172,7 +169,6 @@ export function CatalogoExercicios() {
     if (deleteId && session?.user?.id) {
       await deleteExercise({
         catalogId: deleteId,
-        userId: session.user.id as Id<'user'>,
       })
       setDeleteId(null)
     }
@@ -180,7 +176,7 @@ export function CatalogoExercicios() {
 
   const handleSeedCatalog = async () => {
     if (!session?.user?.id) return
-    await seedCatalog({ userId: session.user.id as Id<'user'> })
+    await seedCatalog({})
   }
 
   if (!catalogExercises) {

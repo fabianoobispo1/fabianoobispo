@@ -1,9 +1,7 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Trash } from 'lucide-react'
-import { fetchMutation, fetchQuery } from 'convex/nextjs'
-import { useSession } from 'next-auth/react'
-import { useMutation } from 'convex/react'
+import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 
 import { Input } from '@/components/ui/input'
 import {
@@ -32,7 +30,12 @@ interface Todo {
   userId: Id<'user'>
 }
 export function TodoList() {
-  const [todos, setTodos] = useState<Todo[]>([])
+  const { isAuthenticated } = useConvexAuth()
+  // Reativo: atualiza sozinho após create/toggle/remove
+  const todos: Todo[] | undefined = useQuery(
+    api.todo.listMine,
+    isAuthenticated ? {} : 'skip',
+  )
 
   const [newTodo, setNewTodo] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
@@ -40,24 +43,8 @@ export function TodoList() {
   const [loadingTodo, setLoadingTodo] = useState<boolean>(false)
 
   const registerTodo = useMutation(api.todo.create)
-
-  const { data: session } = useSession()
-
-  const loadTodos = useCallback(async () => {
-    if (session) {
-      fetchQuery(api.todo.getTodoByUser, {
-        userId: session.user.id as Id<'user'>,
-      }).then((result) => {
-        setTodos(result)
-      })
-    }
-  }, [session])
-
-  useEffect(() => {
-    if (session) {
-      loadTodos()
-    }
-  }, [loadTodos, session])
+  const toggleTodoCompletion = useMutation(api.todo.toggleTodoCompletion)
+  const removeTodoMutation = useMutation(api.todo.remove)
 
   const addTodo = async () => {
     setLoading(true)
@@ -66,39 +53,23 @@ export function TodoList() {
       return
     }
 
-    if (session) {
-      await registerTodo({
-        userId: session.user.id as Id<'user'>,
-        text: newTodo,
-        isCompleted: false,
-        created_at: new Date().getTime(),
-        updated_at: new Date().getTime(),
-      })
-
+    if (isAuthenticated) {
+      await registerTodo({ text: newTodo })
       setNewTodo('')
-      setLoading(false)
-      loadTodos()
     }
+    setLoading(false)
   }
 
   const toggleTodo = async (id: Id<'todo'>) => {
     setLoadingTodo(true)
-    console.log(id)
-
-    await fetchMutation(api.todo.toggleTodoCompletion, {
-      todoId: id,
-    })
-
-    loadTodos()
+    await toggleTodoCompletion({ todoId: id })
     setLoadingTodo(false)
   }
 
   const removeTodo = async (id: Id<'todo'>) => {
     setLoadingTodo(true)
 
-    await fetchMutation(api.todo.remove, { todoId: id })
-
-    loadTodos()
+    await removeTodoMutation({ todoId: id })
     setLoadingTodo(false)
   }
 

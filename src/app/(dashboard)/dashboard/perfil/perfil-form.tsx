@@ -3,9 +3,8 @@ import * as z from 'zod'
 import { useCallback, useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { fetchMutation, fetchQuery } from 'convex/nextjs'
+import { useConvex, useConvexAuth } from 'convex/react'
 import { useSession } from 'next-auth/react'
-import { compare, hash } from 'bcryptjs'
 
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -26,7 +25,6 @@ import { useUploadFile } from '@/hooks/use-upload-file'
 import { FileUploaderButton } from '@/components/file-uploader-button'
 
 import { api } from '../../../../../convex/_generated/api'
-import type { Id } from '../../../../../convex/_generated/dataModel'
 
 const formSchema = z
   .object({
@@ -85,13 +83,13 @@ export const PerfilForm: React.FC = () => {
   const [loadingData, setLoadingData] = useState(true)
   const [bloqueioProvider, setBloqueioProvider] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [sessionId, setSessionId] = useState('')
   const [img, setImg] = useState('')
   const [imgKey, setImgKey] = useState('')
-  const [passwordHash, setPasswordHash] = useState('1')
   const [emailAtual, setEmailAtual] = useState('')
   const [carregou, setiscarregou] = useState(false)
   const { toast } = useToast()
+  const convex = useConvex()
+  const { isAuthenticated } = useConvexAuth()
 
   const defaultValues = {
     id: '',
@@ -111,15 +109,9 @@ export const PerfilForm: React.FC = () => {
 
   const loadUser = useCallback(async () => {
     setLoadingData(true)
-    console.log('entrou no loadUser')
-    console.log(sessionId)
     if (session) {
-      console.log(session.user.id)
       try {
-        const response = await fetchQuery(api.user.getById, {
-          userId: session.user.id as Id<'user'>,
-        })
-        console.log(response)
+        const response = await convex.query(api.user.me, {})
         if (!response) {
           console.error('Erro ao buscar os dados do usuário:')
           return
@@ -131,7 +123,6 @@ export const PerfilForm: React.FC = () => {
         // Atualiza os valores do formulário com os dados da API
         setImg(response.image ?? '')
         setImgKey(response.image_key ?? '')
-        setPasswordHash(response.password)
         setEmailAtual(response.email)
         form.reset({
           id: response._id,
@@ -152,17 +143,17 @@ export const PerfilForm: React.FC = () => {
         setLoadingData(false) // Define o carregamento como concluído
       }
     }
-  }, [sessionId, session, form])
+  }, [session, form, convex])
 
   useEffect(() => {
-    if (session) {
+    // Espera o Convex receber o token (senão a query roda sem sessão)
+    if (session && isAuthenticated) {
       if (!carregou) {
-        setSessionId(session.user.id)
         loadUser()
         setiscarregou(true)
       }
     }
-  }, [setSessionId, session, setiscarregou, carregou, loadUser])
+  }, [session, isAuthenticated, setiscarregou, carregou, loadUser])
 
   useEffect(() => {
     if (uploadedFiles.length > 0) {
@@ -175,36 +166,23 @@ export const PerfilForm: React.FC = () => {
   const onSubmit = async (data: ProductFormValues) => {
     setLoading(true)
 
-    let password = ''
-    if (data.oldPassword) {
-      const isMatch = await compare(data.oldPassword, passwordHash)
-
-      if (!isMatch) {
-        toast({
-          title: 'Erro',
-          variant: 'destructive',
-          description: 'Senha antiga incorreta.',
-        })
-        setLoading(false)
-        return
-      }
-      const newPassword = data.password
-      if (newPassword) {
-        password = await hash(newPassword, 6)
-      }
-    }
-    // verifica email
-    if (emailAtual !== data.email) {
-      // se for alterado, precisa verificar se ja exsite o cadastro
-      const emailExists = await fetchQuery(api.user.getByEmail, {
-        email: data.email,
+    // Troca de senha: validada e feita no servidor (a senha atual nunca é
+    // comparada no navegador)
+    if (data.oldPassword && data.password) {
+      const res = await fetch('/api/account/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          oldPassword: data.oldPassword,
+          newPassword: data.password,
+        }),
       })
-
-      if (emailExists) {
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
         toast({
           title: 'Erro',
           variant: 'destructive',
-          description: 'Email já cadastrado.',
+          description: body.error ?? 'Não foi possível alterar a senha.',
         })
         setLoading(false)
         return
@@ -215,16 +193,28 @@ export const PerfilForm: React.FC = () => {
       ? new Date(data.data_nascimento).getTime()
       : 0
 
-    await fetchMutation(api.user.UpdateUser, {
-      userId: data.id as Id<'user'>,
-      email: data.email,
-      image: data.image,
-      nome: data.nome,
-      data_nascimento: timestamp,
-      provider: data.provider,
-      image_key: imgKey,
-      password,
-    })
+    try {
+      // A unicidade do e-mail é validada na mutation
+      await convex.mutation(api.user.updateMe, {
+        email: data.email !== emailAtual ? data.email : undefined,
+        image: data.image,
+        nome: data.nome,
+        data_nascimento: timestamp,
+        image_key: imgKey,
+      })
+      setEmailAtual(data.email)
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        variant: 'destructive',
+        description:
+          error instanceof Error && error.message.includes('Email já')
+            ? 'Email já cadastrado.'
+            : 'Não foi possível salvar o perfil.',
+      })
+      setLoading(false)
+      return
+    }
 
     toast({
       title: 'ok',

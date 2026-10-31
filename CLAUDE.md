@@ -37,12 +37,14 @@ Convex is **not a REST API**. All backend logic lives in `convex/*.ts` files, no
 import { v } from 'convex/values'
 import { query, mutation } from './_generated/server'
 
-export const getByUser = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+export const listMine = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx) // convex/authz.ts
+    if (!user) return []
     return await ctx.db
       .query('tableName')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId as Id<'user'>))
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
       .collect()
   },
 })
@@ -54,12 +56,12 @@ Using Convex in components (requires `'use client'`):
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/../convex/_generated/api' // note the path alias
 
-const data = useQuery(api.transaction.getDashboard, { month: '01', userId })
-const create = useMutation(api.transaction.create)
-await create({ name: 'Test', amount: 100 })
+const { isAuthenticated } = useConvexAuth()
+const data = useQuery(api.transaction.getDashboard, isAuthenticated ? { month: '01' } : 'skip')
+const create = useMutation(api.transaction.create) // dono = identidade, sem userId
 ```
 
-Use `fetchQuery`/`fetchMutation` from `convex/nextjs` inside `useEffect` or event callbacks instead of `useQuery`/`useMutation`.
+Inside `useEffect` or event callbacks, use `const convex = useConvex()` and `convex.query(...)` / `convex.mutation(...)` (authenticated). `fetchQuery`/`fetchMutation` from `convex/nextjs` are server-side only and need `{ token }`.
 
 **⚠️ Convex has two separate deployments — `npx convex dev` does NOT reach production.** The project `fabianoobispo-com-br` has a dev deployment (`abundant-ant-397`, what `npx convex dev` / `npx convex dev --once` push to) and a distinct production deployment (`intent-cow-40`, what the live site's `NEXT_PUBLIC_CONVEX_URL` on Vercel points to). Schema/function changes only reach the dev deployment until you run **`npx convex deploy`**. Env vars (`npx convex env set KEY value`) also default to dev — add `--prod` to set them on production. This bit the project once already: a whole feature (Mega-Sena BI) shipped to Vercel and looked fine in `next build`, but the live page threw `Application error` because the Convex functions/schema/data simply didn't exist on the production deployment. Before considering a Convex-backed feature "done" and telling the user it's live, run `npx convex deploy` (and any needed `npx convex env set ... --prod`), then verify against the actual production URL — not just `npx convex dev`.
 
@@ -79,7 +81,13 @@ import { useSession } from 'next-auth/react'
 const { data: session } = useSession()
 ```
 
-Users have `role: 'admin' | 'user'` stored in Convex — check `session.user.role` for authorization.
+Users have `role: 'admin' | 'user'` stored in Convex — check `session.user.role` for UI gating only; the real authorization is in Convex.
+
+**Convex auth (NextAuth → Convex JWT):** `/api/convex/token` signs an ES256 JWT (`sub` = user `_id`) with `CONVEX_AUTH_PRIVATE_KEY`; Convex validates it via `convex/auth.config.ts` (inline JWKS in `CONVEX_AUTH_JWKS`). Generate keys with `node scripts/gen-convex-auth-keys.mjs`. Rules:
+- Never accept "who is calling" (`userId`) as a function arg. Use `requireUser(ctx)` / `getCurrentUser(ctx)` / `requireAdmin(ctx)` / `requireTerminalUser(ctx)` from `convex/authz.ts` (actions: `requireUserAction` / `requireAdminAction`). Role is read from the DB, not from claims.
+- Never return `user.password` to clients (`toSafeUser`). Functions only scripts/crons use are `internal*` (run with `npx convex run`).
+- Server-only flows without a session (credentials login, OAuth sign-in, register, password change) use the service token: `serviceQuery`/`serviceMutation` from `src/lib/server/convex-auth.ts`, and the Convex side checks `requireService(ctx)`.
+- In client components use `useQuery`/`useMutation`/`useConvex()` (they carry the token) — **not** `fetchQuery`/`fetchMutation` from `convex/nextjs`, which run without auth. Gate per-user queries with `useConvexAuth().isAuthenticated ? args : 'skip'`.
 
 ### Forms Pattern
 
@@ -110,9 +118,9 @@ const form = useForm<z.infer<typeof formSchema>>({
 ## Common Pitfalls
 
 1. All `useQuery`/`useMutation` hooks require `'use client'` directive
-2. Provider order in root layout: `ConvexClientProvider` → `AuthProvider`
+2. Provider order in root layout: `AuthProvider` (SessionProvider) → `ConvexClientProvider` (it reads the NextAuth session to fetch the Convex token)
 3. Path alias: `@/` maps to `src/`; Convex API import is `@/../convex/_generated/api`
-4. Cast userId strings to `Id<'user'>` when used as Convex table IDs
+4. Never pass the caller's `userId` to Convex; the identity comes from the auth token
 5. Store dates as Unix timestamps (`Date.now()`), not Date objects
 6. Add external image domains to `next.config.ts` `remotePatterns`
 

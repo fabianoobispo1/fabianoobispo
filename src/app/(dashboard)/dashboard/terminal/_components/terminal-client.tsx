@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
-import { fetchMutation, fetchQuery } from 'convex/nextjs'
+import { useMutation } from 'convex/react'
 import { Loader2, AlertCircle } from 'lucide-react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -16,15 +16,14 @@ import '@xterm/xterm/css/xterm.css'
 
 interface TerminalClientProps {
   authorizedEmail?: string
-  userId?: string
   connection?: SSHConnection | null
 }
 
 export function TerminalClient({
   authorizedEmail,
-  userId,
   connection,
 }: TerminalClientProps) {
+  const updateLastUsed = useMutation(api.sshConnection.updateLastUsed)
   const terminalRef = useRef<HTMLDivElement>(null)
   const terminalInstanceRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
@@ -96,38 +95,18 @@ export function TerminalClient({
     setServerStatus(null)
 
     try {
-      // 1. Busca as credenciais completas da conexão selecionada (a lista
-      //    exibida na UI vem sem senha/chave privada por segurança)
-      let credentials: {
-        host: string
-        port: number
-        username: string
-        authMethod: 'password' | 'privateKey'
-        password?: string
-        privateKey?: string
-        privateKeyPassphrase?: string
-      } | null = null
-
-      if (connection && userId) {
-        const full = await fetchQuery(api.sshConnection.getConnectionById, {
-          connectionId: connection._id as Id<'sshConnection'>,
-          userId: userId as Id<'user'>,
-        })
-
-        if (!full) {
-          throw new Error('Conexão selecionada não foi encontrada')
-        }
-
-        credentials = {
-          host: full.host,
-          port: full.port,
-          username: full.username,
-          authMethod: full.authMethod,
-          password: full.password,
-          privateKey: full.privateKey,
-          privateKeyPassphrase: full.privateKeyPassphrase,
-        }
-      }
+      // 1. A senha/chave de uma conexão salva não sai mais do Convex para o
+      //    navegador. Até a Fase 2 (credenciais seladas que só o Terminal
+      //    Server abre), conexões salvas recebem `config_required`; o modo
+      //    SSH_* do .env do servidor continua funcionando.
+      const credentials = connection
+        ? {
+            host: connection.host,
+            port: connection.port,
+            username: connection.username,
+            authMethod: connection.authMethod,
+          }
+        : null
 
       // 2. Pede ao backend um token de curta duração para abrir o WebSocket
       //    diretamente com o Terminal Server no VPS
@@ -165,10 +144,9 @@ export function TerminalClient({
           }),
         )
 
-        if (connection && userId) {
-          fetchMutation(api.sshConnection.updateLastUsed, {
+        if (connection) {
+          updateLastUsed({
             connectionId: connection._id as Id<'sshConnection'>,
-            userId: userId as Id<'user'>,
           }).catch(() => {
             // Não é crítico se essa atualização falhar
           })

@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useQuery } from 'convex/react'
+import { useConvexAuth, useQuery } from 'convex/react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import type { SSHConnection } from '@/types/terminal'
 
 import { ConnectionManager } from './connection-manager'
@@ -14,13 +13,13 @@ import { TerminalClient } from './terminal-client'
 
 export function TerminalPageClient() {
   const { data: session } = useSession()
-  const userId = session?.user?.id ?? ''
+  const { isAuthenticated } = useConvexAuth()
   const [selectedConnection, setSelectedConnection] =
     useState<SSHConnection | null>(null)
 
   const connections = useQuery(
     api.sshConnection.getConnectionsByUser,
-    userId ? { userId: userId as Id<'user'> } : 'skip',
+    isAuthenticated ? {} : 'skip',
   )
 
   // Pré-seleciona a conexão padrão (ou a única existente) pra evitar
@@ -62,7 +61,6 @@ export function TerminalPageClient() {
         <TabsContent value="terminal" className="flex-1 min-h-0">
           <TerminalClient
             authorizedEmail={session?.user?.email ?? undefined}
-            userId={userId || undefined}
             connection={selectedConnection}
           />
         </TabsContent>
@@ -73,7 +71,6 @@ export function TerminalPageClient() {
           className="flex-1 min-h-0 overflow-y-auto"
         >
           <ConnectionManager
-            userId={userId}
             onConnectionSelect={setSelectedConnection}
             selectedConnectionId={selectedConnection?._id}
           />

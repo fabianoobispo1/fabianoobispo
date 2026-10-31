@@ -1,7 +1,7 @@
 'use client'
 import { useSession } from 'next-auth/react'
 import { useState } from 'react'
-import { useQuery } from 'convex/react'
+import { useConvexAuth, useQuery } from 'convex/react'
 
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
@@ -29,6 +29,7 @@ export interface Dashboard {
 export function DashboardT() {
   const { data: session } = useSession()
   const userId = session?.user?.id as Id<'user'>
+  const { isAuthenticated } = useConvexAuth()
   const [selectedTime, setSelectedTime] = useState(
     (new Date().getMonth() + 1).toString().padStart(2, '0'),
   )
@@ -36,7 +37,7 @@ export function DashboardT() {
   // useQuery atualiza automaticamente quando há mudanças
   const dashboard = useQuery(
     api.transaction.getDashboard,
-    userId ? { month: selectedTime, userId } : 'skip',
+    isAuthenticated ? { month: selectedTime } : 'skip',
   )
 
   const isLoading = !dashboard

@@ -134,9 +134,8 @@ export interface SSHConnection {
   port: number
   username: string
   authMethod: 'password' | 'privateKey'
-  password?: string
-  privateKey?: string
-  privateKeyPassphrase?: string
+  /** Há senha/chave salva? A credencial em si nunca volta para a UI. */
+  hasCredential: boolean
   description?: string
   tags?: string[]
   isDefault: boolean

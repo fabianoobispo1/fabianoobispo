@@ -21,9 +21,17 @@ export async function GET() {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 
-  const authorizedEmail =
-    process.env.TERMINAL_AUTHORIZED_EMAIL || 'fbc623@gmail.com'
-  if (session.user.email !== authorizedEmail) {
+  // Sem TERMINAL_AUTHORIZED_EMAIL o terminal fica desabilitado
+  const authorizedEmail = process.env.TERMINAL_AUTHORIZED_EMAIL?.trim()
+  if (!authorizedEmail) {
+    return NextResponse.json(
+      { error: 'Terminal desabilitado' },
+      { status: 503 },
+    )
+  }
+  if (
+    session.user.email.trim().toLowerCase() !== authorizedEmail.toLowerCase()
+  ) {
     return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
   }
 

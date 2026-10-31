@@ -1,7 +1,6 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
-import { fetchMutation, fetchQuery } from 'convex/nextjs'
-import { useSession } from 'next-auth/react'
+import { useState } from 'react'
+import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 
 import {
   Table,
@@ -31,41 +30,19 @@ const formatDate = (timestamp?: number) =>
   timestamp ? new Date(timestamp).toLocaleString('pt-BR') : '-'
 
 export function UsuariosAdministradores() {
-  const [usuarios, setusuarios] = useState<User[]>([])
-  const [carregou, setiscarregou] = useState(false)
   const [loadingUsuario, setLoadingUsuario] = useState<boolean>(false)
-  const { data: session } = useSession()
-
-  const loadUsuarios = useCallback(async () => {
-    if (session?.user?.id) {
-      fetchQuery(api.user.getAllUserRole, {
-        userId: session.user.id as Id<'user'>,
-      }).then((result) => {
-        setusuarios(result)
-      })
-    }
-  }, [session])
-
-  useEffect(() => {
-    if (session) {
-      if (!carregou) {
-        loadUsuarios()
-        setiscarregou(true)
-      }
-    }
-  }, [loadUsuarios, session, carregou, setiscarregou])
+  const { isAuthenticated } = useConvexAuth()
+  const usuarios: User[] =
+    useQuery(api.user.getAllUserRole, isAuthenticated ? {} : 'skip') ?? []
+  const toggleUserRole = useMutation(api.user.toggleUserRole)
 
   const toggleAdmin = async (id: Id<'user'>) => {
-    if (!session?.user?.id) return
     setLoadingUsuario(true)
-
-    await fetchMutation(api.user.toggleUserRole, {
-      userId: session.user.id as Id<'user'>,
-      targetUserId: id,
-    })
-
-    loadUsuarios()
-    setLoadingUsuario(false)
+    try {
+      await toggleUserRole({ targetUserId: id })
+    } finally {
+      setLoadingUsuario(false)
+    }
   }
 
   return (

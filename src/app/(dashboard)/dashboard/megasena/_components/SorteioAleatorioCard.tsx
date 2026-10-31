@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import { formatCurrency } from '@/lib/utils'
 import { showErrorToast } from '@/lib/handle-error'
 
@@ -84,7 +83,6 @@ export const SorteioAleatorioCard = () => {
     if (!session?.user?.id || !dezenas.length) return
     try {
       await salvarJogo({
-        userId: session.user.id as Id<'user'>,
         dezenas,
       })
       toast.success('Jogo salvo')

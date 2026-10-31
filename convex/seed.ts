@@ -1,6 +1,7 @@
-import { mutation } from './_generated/server'
+import { internalMutation } from './_generated/server'
 
-export const seedCategories = mutation({
+// Interna: rode com `npx convex run seed:seedCategories`
+export const seedCategories = internalMutation({
   handler: async (ctx) => {
     // Verificar se já existem categorias
     const existingCategories = await ctx.db.query('categories').collect()

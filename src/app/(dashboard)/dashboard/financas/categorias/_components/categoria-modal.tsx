@@ -15,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import {
   Select,
   SelectContent,
@@ -62,14 +61,12 @@ export const CategoriaModal = ({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!session?.user?.id) return
-    const userId = session.user.id as Id<'user'>
     try {
       if (initialData) {
         await update({
           categoryId: initialData._id,
           ...values,
           updated_at: Date.now(),
-          userId,
         })
         form.reset()
       } else {
@@ -77,7 +74,6 @@ export const CategoriaModal = ({
           ...values,
           created_at: Date.now(),
           updated_at: Date.now(),
-          userId,
         })
       }
       form.reset()

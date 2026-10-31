@@ -1,19 +1,29 @@
 import { v } from 'convex/values'
 
-import { mutation, query, MutationCtx } from './_generated/server'
+import { mutation, query, MutationCtx, QueryCtx } from './_generated/server'
 import type { Id } from './_generated/dataModel'
-import { requireAdmin } from './authz'
+import { getCurrentUser, requireAdmin, requireUser } from './authz'
 
+/** Garante que o plano pertence ao usuário autenticado. */
 async function assertPlanOwner(
-  ctx: MutationCtx,
+  ctx: QueryCtx | MutationCtx,
   planId: Id<'workoutPlan'>,
-  userId: Id<'user'>,
 ) {
+  const user = await requireUser(ctx)
   const plan = await ctx.db.get(planId)
-  if (!plan) throw new Error('Plano não encontrado')
-  if (plan.userId !== userId) throw new Error('Acesso negado')
-
+  // Mesma mensagem para "não existe" e "é de outro usuário"
+  if (!plan || plan.userId !== user._id) {
+    throw new Error('Plano não encontrado')
+  }
   return plan
+}
+
+/** Versão para queries: null em vez de erro (sem sessão / não é dono). */
+async function getOwnPlan(ctx: QueryCtx, planId: Id<'workoutPlan'>) {
+  const user = await getCurrentUser(ctx)
+  if (!user) return null
+  const plan = await ctx.db.get(planId)
+  return plan && plan.userId === user._id ? plan : null
 }
 
 // ==================== WORKOUT PLAN ====================
@@ -22,14 +32,14 @@ export const createPlan = mutation({
   args: {
     name: v.string(),
     description: v.optional(v.string()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
+    const user = await requireUser(ctx)
     const planId = await ctx.db.insert('workoutPlan', {
       name: args.name,
       description: args.description,
       active: true,
-      userId: args.userId,
+      userId: user._id,
       created_at: Date.now(),
       updated_at: Date.now(),
     })
@@ -38,11 +48,13 @@ export const createPlan = mutation({
 })
 
 export const getPlansByUser = query({
-  args: { userId: v.id('user') },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) return []
     return await ctx.db
       .query('workoutPlan')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
       .collect()
   },
 })
@@ -50,7 +62,7 @@ export const getPlansByUser = query({
 export const getPlanById = query({
   args: { planId: v.id('workoutPlan') },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.planId)
+    return await getOwnPlan(ctx, args.planId)
   },
 })
 
@@ -60,19 +72,18 @@ export const updatePlan = mutation({
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     active: v.optional(v.boolean()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertPlanOwner(ctx, args.planId, args.userId)
-    const { planId, userId, ...updates } = args
+    await assertPlanOwner(ctx, args.planId)
+    const { planId, ...updates } = args
     await ctx.db.patch(planId, { ...updates, updated_at: Date.now() })
   },
 })
 
 export const deletePlan = mutation({
-  args: { planId: v.id('workoutPlan'), userId: v.id('user') },
+  args: { planId: v.id('workoutPlan') },
   handler: async (ctx, args) => {
-    await assertPlanOwner(ctx, args.planId, args.userId)
+    await assertPlanOwner(ctx, args.planId)
 
     const days = await ctx.db
       .query('workoutDay')
@@ -103,11 +114,10 @@ export const createDay = mutation({
     focus: v.string(),
     dayOfWeek: v.string(),
     order: v.number(),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
-    await assertPlanOwner(ctx, args.planId, args.userId)
-    const { userId, ...data } = args
+    await assertPlanOwner(ctx, args.planId)
+    const data = args
 
     const dayId = await ctx.db.insert('workoutDay', {
       ...data,
@@ -121,6 +131,7 @@ export const createDay = mutation({
 export const getDaysByPlan = query({
   args: { planId: v.id('workoutPlan') },
   handler: async (ctx, args) => {
+    if (!(await getOwnPlan(ctx, args.planId))) return []
     return await ctx.db
       .query('workoutDay')
       .withIndex('by_plan', (q) => q.eq('planId', args.planId))
@@ -135,24 +146,23 @@ export const updateDay = mutation({
     focus: v.optional(v.string()),
     dayOfWeek: v.optional(v.string()),
     order: v.optional(v.number()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
     const day = await ctx.db.get(args.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
-    const { dayId, userId, ...updates } = args
+    const { dayId, ...updates } = args
     await ctx.db.patch(dayId, { ...updates, updated_at: Date.now() })
   },
 })
 
 export const deleteDay = mutation({
-  args: { dayId: v.id('workoutDay'), userId: v.id('user') },
+  args: { dayId: v.id('workoutDay') },
   handler: async (ctx, args) => {
     const day = await ctx.db.get(args.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
     const exercises = await ctx.db
       .query('exercise')
@@ -173,12 +183,11 @@ export const createExerciseFromCatalog = mutation({
     catalogId: v.id('exerciseCatalog'),
     order: v.number(),
     carga: v.optional(v.string()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
     const day = await ctx.db.get(args.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
     const catalog = await ctx.db.get(args.catalogId)
     if (!catalog) throw new Error('Exercício não encontrado no catálogo')
@@ -210,14 +219,13 @@ export const createExercise = mutation({
     order: v.number(),
     carga: v.optional(v.string()),
     videoUrl: v.optional(v.string()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
     const day = await ctx.db.get(args.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
-    const { userId, ...data } = args
+    const data = args
     const exerciseId = await ctx.db.insert('exercise', {
       ...data,
       created_at: Date.now(),
@@ -230,6 +238,8 @@ export const createExercise = mutation({
 export const getExercisesByDay = query({
   args: { dayId: v.id('workoutDay') },
   handler: async (ctx, args) => {
+    const day = await ctx.db.get(args.dayId)
+    if (!day || !(await getOwnPlan(ctx, day.planId))) return []
     return await ctx.db
       .query('exercise')
       .withIndex('by_day', (q) => q.eq('dayId', args.dayId))
@@ -247,16 +257,15 @@ export const updateExercise = mutation({
     carga: v.optional(v.string()),
     videoUrl: v.optional(v.string()),
     order: v.optional(v.number()),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
     const exercise = await ctx.db.get(args.exerciseId)
     if (!exercise) throw new Error('Exercício não encontrado')
     const day = await ctx.db.get(exercise.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
-    const { exerciseId, userId, ...updates } = args
+    const { exerciseId, ...updates } = args
     await ctx.db.patch(exerciseId, { ...updates, updated_at: Date.now() })
   },
 })
@@ -265,14 +274,13 @@ export const updateExerciseCarga = mutation({
   args: {
     exerciseId: v.id('exercise'),
     carga: v.string(),
-    userId: v.id('user'),
   },
   handler: async (ctx, args) => {
     const exercise = await ctx.db.get(args.exerciseId)
     if (!exercise) throw new Error('Exercício não encontrado')
     const day = await ctx.db.get(exercise.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
     await ctx.db.patch(args.exerciseId, {
       carga: args.carga,
@@ -282,13 +290,13 @@ export const updateExerciseCarga = mutation({
 })
 
 export const deleteExercise = mutation({
-  args: { exerciseId: v.id('exercise'), userId: v.id('user') },
+  args: { exerciseId: v.id('exercise') },
   handler: async (ctx, args) => {
     const exercise = await ctx.db.get(args.exerciseId)
     if (!exercise) throw new Error('Exercício não encontrado')
     const day = await ctx.db.get(exercise.dayId)
     if (!day) throw new Error('Dia não encontrado')
-    await assertPlanOwner(ctx, day.planId, args.userId)
+    await assertPlanOwner(ctx, day.planId)
 
     await ctx.db.delete(args.exerciseId)
   },
@@ -299,7 +307,7 @@ export const deleteExercise = mutation({
 export const getFullWorkoutPlan = query({
   args: { planId: v.id('workoutPlan') },
   handler: async (ctx, args) => {
-    const plan = await ctx.db.get(args.planId)
+    const plan = await getOwnPlan(ctx, args.planId)
     if (!plan) return null
 
     const days = await ctx.db
@@ -331,15 +339,15 @@ export const getFullWorkoutPlan = query({
 // ==================== SEED DATA ====================
 
 export const seedDefaultPlan = mutation({
-  args: { userId: v.id('user') },
-  handler: async (ctx, args) => {
-    await requireAdmin(ctx.db, args.userId)
+  args: {},
+  handler: async (ctx) => {
+    const admin = await requireAdmin(ctx)
 
     const planId = await ctx.db.insert('workoutPlan', {
       name: 'Left Tackle Protocol',
       description: 'Ficha de retorno: Força, Estabilidade e Proteção Articular',
       active: true,
-      userId: args.userId,
+      userId: admin._id,
       created_at: Date.now(),
       updated_at: Date.now(),
     })

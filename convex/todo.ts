@@ -1,64 +1,61 @@
 import { v } from 'convex/values'
 
 import { query, mutation } from './_generated/server'
-import { todoSchema } from './schema'
+import type { Id } from './_generated/dataModel'
+import type { MutationCtx } from './_generated/server'
+import { getCurrentUser, requireUser } from './authz'
+
+async function getOwnTodo(ctx: MutationCtx, todoId: Id<'todo'>) {
+  const user = await requireUser(ctx)
+  const todo = await ctx.db.get(todoId)
+  // Mesma mensagem para "não existe" e "é de outro usuário"
+  if (!todo || todo.userId !== user._id) throw new Error('Todo não encontrado')
+  return todo
+}
 
 export const create = mutation({
-  args: todoSchema,
-  handler: async ({ db }, args) => {
-    const todo = await db.insert('todo', args)
-    return todo
+  args: { text: v.string() },
+  handler: async (ctx, { text }) => {
+    const user = await requireUser(ctx)
+    const now = Date.now()
+    return await ctx.db.insert('todo', {
+      text,
+      isCompleted: false,
+      created_at: now,
+      updated_at: now,
+      userId: user._id,
+    })
   },
 })
-export const getTodoByUser = query({
-  args: {
-    userId: v.id('user'), // Define o argumento como ID da tabela 'user'
-  },
-  handler: async ({ db }, { userId }) => {
-    const todos = await db
-      .query('todo')
-      .withIndex('by_user', (q) => q.eq('userId', userId)) // Passa o userId corretamente
-      .collect() // Retorna todos os todos associados ao userId
 
-    return todos
+export const listMine = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx)
+    if (!user) return []
+    return await ctx.db
+      .query('todo')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .collect()
   },
 })
 
 export const toggleTodoCompletion = mutation({
-  args: {
-    todoId: v.id('todo'), // ID do todo a ser atualizado
-  },
-  handler: async ({ db }, { todoId }) => {
-    // Buscar o todo atual
-    const todo = await db.get(todoId)
-    if (!todo) {
-      throw new Error('Todo não encontrado')
-    }
-
-    // Alternar o valor de isCompleted
-    const updatedTodo = await db.patch(todoId, {
-      isCompleted: !todo.isCompleted, // Inverte o valor de isCompleted
-      updated_at: Date.now(), // Atualiza o timestamp do updated_at
+  args: { todoId: v.id('todo') },
+  handler: async (ctx, { todoId }) => {
+    const todo = await getOwnTodo(ctx, todoId)
+    await ctx.db.patch(todoId, {
+      isCompleted: !todo.isCompleted,
+      updated_at: Date.now(),
     })
-
-    return updatedTodo // Retorna o todo atualizado
   },
 })
 
 export const remove = mutation({
-  args: {
-    todoId: v.id('todo'), // ID do todo a ser removido
-  },
-  handler: async ({ db }, { todoId }) => {
-    // Buscar o todo para garantir que ele existe antes de remover
-    const todo = await db.get(todoId)
-    if (!todo) {
-      throw new Error('Todo não encontrado')
-    }
-
-    // Remover o todo do banco de dados
-    await db.delete(todoId)
-
-    return { success: true, message: 'Todo removido com sucesso' } // Resposta de confirmação
+  args: { todoId: v.id('todo') },
+  handler: async (ctx, { todoId }) => {
+    await getOwnTodo(ctx, todoId)
+    await ctx.db.delete(todoId)
+    return { success: true, message: 'Todo removido com sucesso' }
   },
 })

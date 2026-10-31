@@ -6,7 +6,7 @@ import { api } from '@/../convex/_generated/api'
 import React, { useState, useEffect, useCallback } from 'react'
 import { Dumbbell, Shield, Activity, Video } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { useQuery, useMutation } from 'convex/react'
+import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 
 import { Spinner } from '@/components/ui/spinner'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -51,9 +51,10 @@ export function WorkoutDisplay() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
 
   // Buscar planos do usuário
+  const { isAuthenticated } = useConvexAuth()
   const plans = useQuery(
     api.workout.getPlansByUser,
-    session?.user?.id ? { userId: session.user.id as Id<'user'> } : 'skip',
+    isAuthenticated ? {} : 'skip',
   )
 
   // Buscar plano completo
@@ -71,11 +72,10 @@ export function WorkoutDisplay() {
       setEditingCarga((prev) => ({ ...prev, [exerciseId]: value }))
 
       if (!session?.user?.id) return
-      const userId = session.user.id as Id<'user'>
 
       // Salvar após 1 segundo sem digitar
       const timeoutId = setTimeout(() => {
-        updateCarga({ exerciseId, carga: value, userId })
+        updateCarga({ exerciseId, carga: value })
       }, 1000)
 
       return () => clearTimeout(timeoutId)
@@ -86,7 +86,7 @@ export function WorkoutDisplay() {
   // Criar plano padrão se não existir
   const initializePlan = useCallback(async () => {
     if (session?.user?.id && plans?.length === 0) {
-      const planId = await seedPlan({ userId: session.user.id as Id<'user'> })
+      const planId = await seedPlan({})
       setCurrentPlanId(planId)
     } else if (plans && plans.length > 0) {
       setCurrentPlanId(plans[0]._id)

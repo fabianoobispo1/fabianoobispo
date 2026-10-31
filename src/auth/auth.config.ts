@@ -2,19 +2,18 @@ import { NextAuthConfig } from 'next-auth'
 import CredentialProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import GithubProvider from 'next-auth/providers/github'
-import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { z } from 'zod'
 import { compare } from 'bcryptjs'
+
+import { serviceMutation, serviceQuery } from '@/lib/server/convex-auth'
 
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 
-async function getUser(identifier: { key: string; value: string }) {
-  let user
-  if (identifier.key === 'email')
-    user = fetchQuery(api.user.getByEmail, { email: identifier.value })
-
-  return user
+// Chamadas ao Convex feitas aqui usam o token de serviço (ainda não existe
+// sessão durante o login). São as únicas que veem o hash da senha.
+async function getUserByEmail(email: string) {
+  return await serviceQuery(api.user.getAuthByEmailService, { email })
 }
 
 const authConfig = {
@@ -91,10 +90,7 @@ const authConfig = {
 
         const { email, password } = parsedCredentials.data
 
-        const user = await getUser({
-          key: email ? 'email' : 'username',
-          value: email,
-        })
+        const user = await getUserByEmail(email)
         if (!user) {
           throw new Error('Usuário não encontrado')
         }
@@ -122,51 +118,31 @@ const authConfig = {
   callbacks: {
     async signIn({ account, profile, user }) {
       if (account?.provider === 'github' || account?.provider === 'google') {
-        console.log('account ✔')
-        console.log(account)
-        console.log('profile ✔')
-        console.log(profile)
-        const provider = account?.provider
+        // Não logar `account`/`profile`: contêm access_token/id_token
+        const provider = account.provider
         const email = profile?.email
+        if (!email) return false
 
-        let image = ''
-        if (provider === 'google') {
-          image = profile?.picture
-        }
+        const image =
+          provider === 'google'
+            ? (profile?.picture as string | undefined)
+            : (profile?.avatar_url as string | undefined)
 
-        if (email) {
-          const usuario = await getUser({ key: 'email', value: email })
-
-          if (!usuario) {
-            const createUser = await fetchMutation(api.user.create, {
-              password: '',
-              provider,
-              email,
-              role: 'user',
-              image,
-              nome: String(profile.name),
-            })
-            user.image = String(profile?.image)
-            user.nome = String(profile?.name)
-            user.id = String(createUser)
-            user.role = 'user'
-          } else {
-            const updateeUser = await fetchMutation(api.user.UpdateUserLogin, {
-              userId: usuario._id as Id<'user'>,
-              image,
-              provider,
-              password: '',
-            })
-            user.image = String(updateeUser?.image)
-            user.nome = String(updateeUser?.nome)
-            user.id = String(updateeUser?._id)
-            user.role = String(updateeUser?.role)
-          }
-        }
+        const usuario = await serviceMutation(api.user.upsertOAuthService, {
+          email,
+          nome: String(profile?.name ?? email),
+          provider,
+          image: image || undefined,
+        })
+        user.image = usuario.image ?? ''
+        user.nome = usuario.nome
+        user.id = String(usuario._id)
+        user.role = usuario.role
+        return true
       }
 
       if (user?.id) {
-        await fetchMutation(api.user.updateLastLogin, {
+        await serviceMutation(api.user.touchLoginService, {
           userId: user.id as Id<'user'>,
         })
       }

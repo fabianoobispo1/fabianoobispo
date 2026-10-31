@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
+import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 import { Plus, Trash2, Edit2, CheckCircle, Lock } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -28,19 +28,18 @@ import type { Id } from '@/convex/_generated/dataModel'
 import type { SSHConnection } from '@/types/terminal'
 
 interface ConnectionManagerProps {
-  userId: string
   onConnectionSelect: (connection: SSHConnection) => void
   selectedConnectionId?: string
 }
 
 export function ConnectionManager({
-  userId,
   onConnectionSelect,
   selectedConnectionId,
 }: ConnectionManagerProps) {
+  const { isAuthenticated } = useConvexAuth()
   const connections = useQuery(
     api.sshConnection.getConnectionsByUser,
-    userId ? { userId: userId as Id<'user'> } : 'skip',
+    isAuthenticated ? {} : 'skip',
   )
 
   const createConnection = useMutation(api.sshConnection.createConnection)
@@ -69,7 +68,6 @@ export function ConnectionManager({
       }
 
       const commonData = {
-        userId: userId as Id<'user'>,
         name: formData.name,
         host: formData.host,
         port: parseInt(formData.port) || 22,
@@ -114,7 +112,6 @@ export function ConnectionManager({
       try {
         await deleteConnection({
           connectionId: id as Id<'sshConnection'>,
-          userId: userId as Id<'user'>,
         })
       } catch (error) {
         alert('Erro ao deletar: ' + String(error))
@@ -144,8 +141,9 @@ export function ConnectionManager({
       port: String(conn.port),
       username: conn.username,
       authMethod: conn.authMethod,
-      password: conn.password || '',
-      privateKey: conn.privateKey || '',
+      // A credencial salva nunca volta para a UI: em branco = manter a atual
+      password: '',
+      privateKey: '',
       description: conn.description || '',
       isDefault: conn.isDefault,
     })

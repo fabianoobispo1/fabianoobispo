@@ -1,10 +1,25 @@
 import { v } from 'convex/values'
 
-import { query, mutation } from './_generated/server'
+import { query, mutation, internalMutation } from './_generated/server'
 import { dontPadSchema } from './schema'
 import { requireAdmin } from './authz'
 
-export const create = mutation({
+// DontPad é público e anônimo por design; os limites evitam que alguém use
+// as páginas como armazenamento arbitrário (o doc do Convex aceita até 1 MiB)
+const MAX_PAGE_NAME = 200
+const MAX_PAGE_CONTENT = 200_000
+
+function validatePage(page_name: string, page_content?: string) {
+  if (!page_name || page_name.length > MAX_PAGE_NAME) {
+    throw new Error('Nome de página inválido')
+  }
+  if (page_content !== undefined && page_content.length > MAX_PAGE_CONTENT) {
+    throw new Error('Conteúdo muito grande (máx. 200 mil caracteres)')
+  }
+}
+
+// Não usada pelo app (o `update` já faz upsert); só via `npx convex run`
+export const create = internalMutation({
   args: dontPadSchema,
   handler: async ({ db }, args) => {
     const dontPad = await db.insert('dontPad', args)
@@ -29,6 +44,7 @@ export const update = mutation({
     page_content: v.string(),
   },
   handler: async ({ db }, args) => {
+    validatePage(args.page_name, args.page_content)
     const existing = await db
       .query('dontPad')
       .withIndex('by_page_name', (q) => q.eq('page_name', args.page_name))
@@ -63,6 +79,8 @@ export const ping = mutation({
     client_id: v.string(),
   },
   handler: async ({ db }, { page_name, client_id }) => {
+    validatePage(page_name)
+    if (client_id.length > 100) throw new Error('client_id inválido')
     const existing = await db
       .query('dontPad')
       .withIndex('by_page_name', (q) => q.eq('page_name', page_name))
@@ -88,18 +106,18 @@ export const ping = mutation({
 })
 
 export const listAll = query({
-  args: { userId: v.id('user') },
-  handler: async ({ db }, { userId }) => {
-    await requireAdmin(db, userId)
-    const dontPads = await db.query('dontPad').collect()
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx)
+    const dontPads = await ctx.db.query('dontPad').collect()
     return dontPads
   },
 })
 
 export const remove = mutation({
-  args: { _id: v.id('dontPad'), userId: v.id('user') },
-  handler: async ({ db }, args) => {
-    await requireAdmin(db, args.userId)
-    await db.delete(args._id)
+  args: { _id: v.id('dontPad') },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx)
+    await ctx.db.delete(args._id)
   },
 })

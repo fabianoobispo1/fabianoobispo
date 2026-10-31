@@ -2,8 +2,7 @@
 
 import { TrashIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import { fetchMutation } from 'convex/nextjs'
-import { useSession } from 'next-auth/react'
+import { useMutation } from 'convex/react'
 
 import {
   AlertDialog,
@@ -27,14 +26,12 @@ interface DeleteTransactionButtonProps {
 export const DeleteTransactionButton = ({
   transactionId,
 }: DeleteTransactionButtonProps) => {
-  const { data: session } = useSession()
+  const removeTransaction = useMutation(api.transaction.remove)
 
   const handleConfirmDeleteClick = async () => {
-    if (!session?.user?.id) return
     try {
-      await fetchMutation(api.transaction.remove, {
+      await removeTransaction({
         transactionsId: transactionId as Id<'transactions'>,
-        userId: session.user.id as Id<'user'>,
       })
       toast.success('Transação deletada com sucesso!')
     } catch (error) {

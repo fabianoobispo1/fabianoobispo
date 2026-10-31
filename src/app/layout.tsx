@@ -73,8 +73,9 @@ export default async function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextTopLoader showSpinner={false} />
-          <ConvexClientProvider>
-            <AuthProvider>
+          {/* AuthProvider por fora: o Convex usa a sessão do NextAuth */}
+          <AuthProvider>
+            <ConvexClientProvider>
               <Toaster />
               <main className="">
                 {children}
@@ -82,8 +83,8 @@ export default async function RootLayout({
                 <Analytics />
                 <SpeedInsights />
               </main>
-            </AuthProvider>
-          </ConvexClientProvider>
+            </ConvexClientProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

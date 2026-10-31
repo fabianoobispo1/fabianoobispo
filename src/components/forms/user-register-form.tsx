@@ -3,8 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { fetchMutation, fetchQuery } from 'convex/nextjs'
-import { hash } from 'bcryptjs'
 
 import { Input } from '@/components/ui/input'
 import {
@@ -18,7 +16,6 @@ import {
 import { useToast } from '@/hooks/use-toast'
 
 import { LoadingButton } from '../ui/loading-button'
-import { api } from '../../../convex/_generated/api'
 
 const formSchema = z
   .object({
@@ -55,35 +52,24 @@ export default function UserRegisterForm({ setButton }: UserRegisterFormProps) {
   const onSubmit = async (data: UserFormValue) => {
     setLoading(true)
 
-    const existingUserByEmail = await fetchQuery(api.user.getByEmail, {
-      email: data.email,
-    })
-
-    if (existingUserByEmail) {
-      toast({
-        title: 'Erro',
-        variant: 'destructive',
-        description: 'Email já cadastrado.',
-      })
-      setLoading(false)
-      return
-    }
     try {
-      const hashedPassword = await hash(data.password, 6)
-      const user = await fetchMutation(api.user.create, {
-        password: hashedPassword,
-        provider: 'credentials',
-        email: data.email,
-        role: 'user',
-        image: 'empty',
-        nome: data.nome,
+      // Cadastro no servidor: hash bcrypt e papel 'user' definidos lá
+      const res = await fetch('/api/account/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: data.nome,
+          email: data.email,
+          password: data.password,
+        }),
       })
 
-      if (!user) {
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
         toast({
           title: 'Erro',
           variant: 'destructive',
-          description: 'Usuario nao criado.',
+          description: body.error ?? 'Usuario nao criado.',
         })
         setLoading(false)
         return

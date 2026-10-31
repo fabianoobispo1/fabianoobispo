@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import { showErrorToast } from '@/lib/handle-error'
 
 interface GeradorJogosProps {
@@ -84,7 +83,6 @@ export const GeradorJogos = ({
     if (!session?.user?.id) return
     try {
       await salvarJogo({
-        userId: session.user.id as Id<'user'>,
         dezenas: jogo,
       })
       toast.success('Jogo salvo')

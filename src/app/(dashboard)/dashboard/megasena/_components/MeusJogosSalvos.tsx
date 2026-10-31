@@ -1,7 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
-import { useMutation, useQuery } from 'convex/react'
+import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -23,12 +22,11 @@ interface MeusJogosSalvosProps {
 }
 
 export const MeusJogosSalvos = ({ ultimoResultado }: MeusJogosSalvosProps) => {
-  const { data: session } = useSession()
-  const userId = session?.user?.id as Id<'user'> | undefined
+  const { isAuthenticated } = useConvexAuth()
 
   const jogos = useQuery(
     api.megaSenaJogo.listarPorUsuario,
-    userId ? { userId } : 'skip',
+    isAuthenticated ? {} : 'skip',
   )
   const remover = useMutation(api.megaSenaJogo.remover)
 

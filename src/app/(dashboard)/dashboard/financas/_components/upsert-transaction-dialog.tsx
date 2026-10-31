@@ -145,9 +145,6 @@ export const UpsertTransactionDialog = ({
         category: data.category,
         paymentMethod: data.paymentMethod,
         date: data.date.getTime(),
-        userId,
-        created_at: Date.now(),
-        updated_at: Date.now(),
       })
 
       setIsOpen(false)
