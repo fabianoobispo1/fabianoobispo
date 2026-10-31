@@ -158,7 +158,12 @@ export const labSchema = {
   userId: v.id('user'),
   name: v.string(),
   containerId: v.string(),
-  status: v.union(v.literal('creating'), v.literal('running'), v.literal('stopped'), v.literal('error')),
+  status: v.union(
+    v.literal('creating'),
+    v.literal('running'),
+    v.literal('stopped'),
+    v.literal('error'),
+  ),
   ip: v.optional(v.string()),
   port: v.optional(v.number()), // SSH port
   lastActivity: v.number(), // timestamp - para auto-cleanup
@@ -175,12 +180,20 @@ export const sshConnectionSchema = {
   username: v.string(), // Usuário SSH
   authMethod: v.union(v.literal('password'), v.literal('privateKey')), // Método de autenticação
 
-  // Para autenticação por senha (criptografado no banco)
-  password: v.optional(v.string()),
+  // Credencial selada (libsodium crypto_box_seal, base64) com a CHAVE
+  // PÚBLICA do Terminal Server. Só o Terminal Server (TERMINAL_PRIVATE_KEY)
+  // consegue abrir: nem o Convex nem o Next.js leem a senha/chave.
+  // Conteúdo selado: { v, owner, host, port, username, authMethod,
+  // password? | privateKey?, passphrase? }
+  sealedCredential: v.optional(v.string()),
 
-  // Para autenticação por chave privada (criptografado no banco)
-  privateKey: v.optional(v.string()), // Conteúdo da chave privada
-  privateKeyPassphrase: v.optional(v.string()), // Senha da chave (se houver)
+  // DEPRECATED — credenciais em texto puro do modelo antigo. Nenhum código
+  // lê ou grava estes campos; ficam no schema só até a limpeza
+  // (sshConnection:purgePlaintextSecretsInternal) rodar em todos os
+  // deployments. Depois, remova-os daqui.
+  password: v.optional(v.string()),
+  privateKey: v.optional(v.string()),
+  privateKeyPassphrase: v.optional(v.string()),
 
   // Metadados
   description: v.optional(v.string()),

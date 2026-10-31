@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useConvexAuth, useMutation, useQuery } from 'convex/react'
+import { useSession } from 'next-auth/react'
 import { Plus, Trash2, Edit2, CheckCircle, Lock } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -26,6 +27,7 @@ import {
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import type { SSHConnection } from '@/types/terminal'
+import { sealCredential, terminalPublicKey } from '@/lib/terminal-crypto'
 
 interface ConnectionManagerProps {
   onConnectionSelect: (connection: SSHConnection) => void
@@ -37,6 +39,7 @@ export function ConnectionManager({
   selectedConnectionId,
 }: ConnectionManagerProps) {
   const { isAuthenticated } = useConvexAuth()
+  const { data: session } = useSession()
   const connections = useQuery(
     api.sshConnection.getConnectionsByUser,
     isAuthenticated ? {} : 'skip',
@@ -48,6 +51,9 @@ export function ConnectionManager({
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  // Host/porta/usuário/método da conexão em edição: estão dentro da
+  // credencial selada, então mudar qualquer um exige redigitar a credencial
+  const [editingBinding, setEditingBinding] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     host: '',
@@ -56,9 +62,24 @@ export function ConnectionManager({
     authMethod: 'password' as 'password' | 'privateKey',
     password: '',
     privateKey: '',
+    privateKeyPassphrase: '',
     description: '',
     isDefault: false,
   })
+
+  const bindingOf = (d: {
+    host: string
+    port: string | number
+    username: string
+    authMethod: string
+  }) => `${d.authMethod}|${d.username}@${d.host}:${Number(d.port) || 22}`
+  const credentialTyped =
+    formData.authMethod === 'password'
+      ? Boolean(formData.password)
+      : Boolean(formData.privateKey)
+  // Na edição, credencial em branco = manter a atual (se o binding não mudou)
+  const credentialRequired =
+    !editingId || bindingOf(formData) !== editingBinding
 
   const handleSave = async () => {
     try {
@@ -67,36 +88,54 @@ export function ConnectionManager({
         return
       }
 
+      if (credentialRequired && !credentialTyped) {
+        alert(
+          editingId
+            ? 'Host, porta, usuário ou método mudou: digite a credencial novamente.'
+            : 'Informe a senha ou a chave privada.',
+        )
+        return
+      }
+      if (!session?.user?.id) {
+        alert('Sessão expirada: entre novamente.')
+        return
+      }
+
       const commonData = {
         name: formData.name,
-        host: formData.host,
+        host: formData.host.trim(),
         port: parseInt(formData.port) || 22,
-        username: formData.username,
+        username: formData.username.trim(),
         authMethod: formData.authMethod,
         description: formData.description,
         isDefault: formData.isDefault,
       }
 
+      // A credencial é selada AQUI, com a chave pública do Terminal Server;
+      // o texto puro nunca sai do navegador
+      const sealedCredential = credentialTyped
+        ? await sealCredential({
+            owner: session.user.id,
+            host: commonData.host,
+            port: commonData.port,
+            username: commonData.username,
+            authMethod: commonData.authMethod,
+            password: formData.password,
+            privateKey: formData.privateKey,
+            passphrase: formData.privateKeyPassphrase,
+          })
+        : undefined
+
       if (editingId) {
         await updateConnection({
           connectionId: editingId as Id<'sshConnection'>,
           ...commonData,
-          password:
-            formData.authMethod === 'password' ? formData.password : undefined,
-          privateKey:
-            formData.authMethod === 'privateKey'
-              ? formData.privateKey
-              : undefined,
+          sealedCredential,
         })
       } else {
         await createConnection({
           ...commonData,
-          password:
-            formData.authMethod === 'password' ? formData.password : undefined,
-          privateKey:
-            formData.authMethod === 'privateKey'
-              ? formData.privateKey
-              : undefined,
+          sealedCredential: sealedCredential!,
         })
       }
 
@@ -128,10 +167,12 @@ export function ConnectionManager({
       authMethod: 'password',
       password: '',
       privateKey: '',
+      privateKeyPassphrase: '',
       description: '',
       isDefault: false,
     })
     setEditingId(null)
+    setEditingBinding(null)
   }
 
   const handleEdit = (conn: NonNullable<typeof connections>[number]) => {
@@ -144,16 +185,20 @@ export function ConnectionManager({
       // A credencial salva nunca volta para a UI: em branco = manter a atual
       password: '',
       privateKey: '',
+      privateKeyPassphrase: '',
       description: conn.description || '',
       isDefault: conn.isDefault,
     })
     setEditingId(conn._id)
+    setEditingBinding(bindingOf(conn))
     setIsDialogOpen(true)
   }
 
   if (!connections) {
     return <div>Carregando conexões...</div>
   }
+
+  const publicKeyMissing = !terminalPublicKey()
 
   return (
     <div className="space-y-4">
@@ -256,19 +301,25 @@ export function ConnectionManager({
                 <div>
                   <Label htmlFor="password" className="flex gap-2 items-center">
                     <Lock className="w-4 h-4" />
-                    Senha SSH *
+                    Senha SSH {credentialRequired ? '*' : ''}
                   </Label>
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Sua senha SSH"
+                    autoComplete="new-password"
+                    placeholder={
+                      credentialRequired
+                        ? 'Sua senha SSH'
+                        : 'Em branco = manter a senha atual'
+                    }
                     value={formData.password}
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    🔐 Armazenada de forma segura
+                    🔐 Cifrada no navegador com a chave do Terminal Server; nem
+                    o banco nem o site conseguem lê-la
                   </p>
                 </div>
               ) : (
@@ -282,15 +333,34 @@ export function ConnectionManager({
                   </Label>
                   <textarea
                     id="privateKey"
-                    placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----"
+                    placeholder={
+                      credentialRequired
+                        ? '-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----'
+                        : 'Em branco = manter a chave atual'
+                    }
                     value={formData.privateKey}
                     onChange={(e) =>
                       setFormData({ ...formData, privateKey: e.target.value })
                     }
-                    className="w-full h-32 p-2 border rounded font-mono text-xs"
+                    className="w-full h-32 p-2 border rounded font-mono text-xs bg-background"
+                  />
+                  <Input
+                    id="privateKeyPassphrase"
+                    type="password"
+                    autoComplete="new-password"
+                    className="mt-2"
+                    placeholder="Senha da chave (opcional)"
+                    value={formData.privateKeyPassphrase}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        privateKeyPassphrase: e.target.value,
+                      })
+                    }
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    🔐 Cole o conteúdo completo da sua chave privada
+                    🔐 Cifrada no navegador com a chave do Terminal Server; nem
+                    o banco nem o site conseguem lê-la
                   </p>
                 </div>
               )}
@@ -339,6 +409,13 @@ export function ConnectionManager({
         </Dialog>
       </div>
 
+      {publicKeyMissing && (
+        <p className="text-sm text-red-600">
+          NEXT_PUBLIC_TERMINAL_PUBLIC_KEY não configurada: não é possível salvar
+          credenciais.
+        </p>
+      )}
+
       {/* Lista de Conexões */}
       {connections.length === 0 ? (
         <div className="text-center py-8 text-slate-500 border rounded-lg border-dashed">
@@ -363,6 +440,9 @@ export function ConnectionManager({
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium">{conn.name}</h3>
+                    {!conn.hasCredential && (
+                      <Badge variant="destructive">Sem credencial</Badge>
+                    )}
                     {conn.isDefault && (
                       <Badge variant="default" className="gap-1">
                         <CheckCircle className="w-3 h-3" />

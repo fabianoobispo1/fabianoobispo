@@ -1,7 +1,12 @@
 import { v } from 'convex/values'
 
-import { query, mutation, internalMutation } from './_generated/server'
-import type { MutationCtx } from './_generated/server'
+import {
+  query,
+  mutation,
+  internalMutation,
+  internalQuery,
+} from './_generated/server'
+import type { MutationCtx, QueryCtx } from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
 import {
   getCurrentUser,
@@ -12,20 +17,37 @@ import {
 /**
  * Conexões SSH salvas do usuário do terminal.
  *
- * Só o usuário com e-mail TERMINAL_AUTHORIZED_EMAIL (env do Convex) acessa.
- * Nenhuma função devolve senha/chave privada: a UI recebe só os metadados
- * e `hasCredential`. (A criptografia das credenciais entra na Fase 2.)
+ * - Só o usuário com e-mail TERMINAL_AUTHORIZED_EMAIL (env do Convex) acessa.
+ * - A credencial chega aqui JÁ SELADA pelo navegador com a chave pública do
+ *   Terminal Server (`sealedCredential`). O Convex guarda só o ciphertext e
+ *   não consegue lê-lo; quem abre é o Terminal Server na VPS.
+ * - O conteúdo selado inclui host/porta/usuário e o dono: o Terminal Server
+ *   conecta no host de DENTRO do blob e confere o dono com o token, então
+ *   um ciphertext não pode ser redirecionado para outro host nem reutilizado
+ *   por outro usuário. Por isso, mudar host/porta/usuário/método exige
+ *   selar a credencial de novo.
  */
+
+// Sealed box = 48 bytes de overhead; uma chave RSA 4096 em PEM tem ~3.3 KB.
+const MAX_SEALED_LENGTH = 32_000
 
 type SafeConnection = Omit<
   Doc<'sshConnection'>,
-  'password' | 'privateKey' | 'privateKeyPassphrase'
+  'password' | 'privateKey' | 'privateKeyPassphrase' | 'sealedCredential'
 > & { hasCredential: boolean }
 
 function toSafeConnection(conn: Doc<'sshConnection'>): SafeConnection {
-  const { password, privateKey, privateKeyPassphrase, ...rest } = conn
+  const {
+    password,
+    privateKey,
+    privateKeyPassphrase,
+    sealedCredential,
+    ...rest
+  } = conn
+  void password
+  void privateKey
   void privateKeyPassphrase
-  return { ...rest, hasCredential: Boolean(password || privateKey) }
+  return { ...rest, hasCredential: Boolean(sealedCredential) }
 }
 
 async function getOwnConnection(
@@ -52,10 +74,8 @@ async function clearOtherDefaults(ctx: MutationCtx, userId: Id<'user'>) {
   }
 }
 
-/** Usuário logado é o usuário autorizado do terminal? */
-async function getTerminalUserOrNull(
-  ctx: Parameters<typeof getCurrentUser>[0],
-) {
+/** Usuário logado é o usuário autorizado do terminal? (null se não) */
+async function getTerminalUserOrNull(ctx: QueryCtx) {
   const user = await getCurrentUser(ctx)
   const allowed = terminalAuthorizedEmail()
   if (!user || !allowed || user.email.trim().toLowerCase() !== allowed) {
@@ -64,7 +84,11 @@ async function getTerminalUserOrNull(
   return user
 }
 
-function validateEndpoint(args: { host?: string; port?: number }) {
+function validateEndpoint(args: {
+  host?: string
+  port?: number
+  username?: string
+}) {
   if (args.host !== undefined && !/^[a-zA-Z0-9.:_-]{1,253}$/.test(args.host)) {
     throw new Error('Host inválido')
   }
@@ -73,6 +97,22 @@ function validateEndpoint(args: { host?: string; port?: number }) {
     (!Number.isInteger(args.port) || args.port < 1 || args.port > 65535)
   ) {
     throw new Error('Porta inválida')
+  }
+  if (
+    args.username !== undefined &&
+    !/^[a-zA-Z0-9._-]{1,64}$/.test(args.username)
+  ) {
+    throw new Error('Usuário inválido')
+  }
+}
+
+function validateSealed(sealed: string) {
+  if (
+    sealed.length < 64 ||
+    sealed.length > MAX_SEALED_LENGTH ||
+    !/^[A-Za-z0-9+/=_-]+$/.test(sealed)
+  ) {
+    throw new Error('Credencial selada inválida')
   }
 }
 
@@ -100,6 +140,22 @@ export const getConnectionById = query({
   },
 })
 
+/**
+ * Ciphertext para o navegador repassar ao Terminal Server no `start`.
+ * Não é segredo utilizável: só a TERMINAL_PRIVATE_KEY abre, e o servidor
+ * exige que o dono selado seja o mesmo do token.
+ */
+export const getSealedCredential = query({
+  args: { connectionId: v.id('sshConnection') },
+  handler: async (ctx, args) => {
+    const user = await getTerminalUserOrNull(ctx)
+    if (!user) return null
+    const connection = await ctx.db.get(args.connectionId)
+    if (!connection || connection.userId !== user._id) return null
+    return connection.sealedCredential ?? null
+  },
+})
+
 export const getDefaultConnection = query({
   args: {},
   handler: async (ctx) => {
@@ -122,9 +178,7 @@ export const createConnection = mutation({
     port: v.number(),
     username: v.string(),
     authMethod: v.union(v.literal('password'), v.literal('privateKey')),
-    password: v.optional(v.string()),
-    privateKey: v.optional(v.string()),
-    privateKeyPassphrase: v.optional(v.string()),
+    sealedCredential: v.string(),
     description: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     isDefault: v.boolean(),
@@ -132,13 +186,7 @@ export const createConnection = mutation({
   handler: async (ctx, args) => {
     const user = await requireTerminalUser(ctx)
     validateEndpoint(args)
-
-    if (args.authMethod === 'password' && !args.password) {
-      throw new Error('Senha é obrigatória para autenticação por senha')
-    }
-    if (args.authMethod === 'privateKey' && !args.privateKey) {
-      throw new Error('Chave privada é obrigatória para autenticação por chave')
-    }
+    validateSealed(args.sealedCredential)
 
     if (args.isDefault) await clearOtherDefaults(ctx, user._id)
 
@@ -162,10 +210,8 @@ export const updateConnection = mutation({
     authMethod: v.optional(
       v.union(v.literal('password'), v.literal('privateKey')),
     ),
-    // Vazio/ausente = manter a credencial atual
-    password: v.optional(v.string()),
-    privateKey: v.optional(v.string()),
-    privateKeyPassphrase: v.optional(v.string()),
+    // Ausente = manter a credencial atual
+    sealedCredential: v.optional(v.string()),
     description: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     isDefault: v.optional(v.boolean()),
@@ -173,28 +219,30 @@ export const updateConnection = mutation({
   handler: async (ctx, args) => {
     const { user, connection } = await getOwnConnection(ctx, args.connectionId)
     validateEndpoint(args)
+    if (args.sealedCredential !== undefined) {
+      validateSealed(args.sealedCredential)
+    }
+
+    // host/porta/usuário/método estão DENTRO do blob selado: mudá-los sem
+    // selar de novo deixaria metadados e credencial divergentes
+    const bindingChanged =
+      (args.host !== undefined && args.host !== connection.host) ||
+      (args.port !== undefined && args.port !== connection.port) ||
+      (args.username !== undefined && args.username !== connection.username) ||
+      (args.authMethod !== undefined &&
+        args.authMethod !== connection.authMethod)
+    if (bindingChanged && args.sealedCredential === undefined) {
+      throw new Error(
+        'Ao alterar host, porta, usuário ou método, digite a credencial novamente',
+      )
+    }
 
     if (args.isDefault === true && !connection.isDefault) {
       await clearOtherDefaults(ctx, user._id)
     }
 
-    const {
-      connectionId,
-      password,
-      privateKey,
-      privateKeyPassphrase,
-      ...rest
-    } = args
-    const updates: Partial<Doc<'sshConnection'>> = {
-      ...rest,
-      updated_at: Date.now(),
-    }
-    if (password) updates.password = password
-    if (privateKey) updates.privateKey = privateKey
-    if (privateKeyPassphrase)
-      updates.privateKeyPassphrase = privateKeyPassphrase
-
-    await ctx.db.patch(connectionId, updates)
+    const { connectionId, ...rest } = args
+    await ctx.db.patch(connectionId, { ...rest, updated_at: Date.now() })
     return connectionId
   },
 })
@@ -226,5 +274,56 @@ export const deleteAllConnections = internalMutation({
       .collect()
     for (const conn of connections) await ctx.db.delete(conn._id)
     return { deleted: connections.length }
+  },
+})
+
+// ============================================== migração: texto puro → selado
+
+/** Quantas conexões ainda têm segredo em texto puro (sem expor valores). */
+export const countPlaintextSecretsInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query('sshConnection').collect()
+    const withPlaintext = all.filter(
+      (c) =>
+        c.password !== undefined ||
+        c.privateKey !== undefined ||
+        c.privateKeyPassphrase !== undefined,
+    )
+    return {
+      total: all.length,
+      withPlaintext: withPlaintext.length,
+      sealed: all.filter((c) => c.sealedCredential).length,
+      names: withPlaintext.map((c) => `${c.name} (${c.username}@${c.host})`),
+    }
+  },
+})
+
+/**
+ * Apaga password/privateKey/privateKeyPassphrase em texto puro de todas as
+ * conexões. Metadados (nome, host, porta, usuário) ficam; a credencial deve
+ * ser digitada de novo na UI, que já a sela.
+ *   npx convex run sshConnection:purgePlaintextSecretsInternal [--prod]
+ */
+export const purgePlaintextSecretsInternal = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query('sshConnection').collect()
+    let purged = 0
+    for (const c of all) {
+      if (
+        c.password !== undefined ||
+        c.privateKey !== undefined ||
+        c.privateKeyPassphrase !== undefined
+      ) {
+        await ctx.db.patch(c._id, {
+          password: undefined,
+          privateKey: undefined,
+          privateKeyPassphrase: undefined,
+        })
+        purged++
+      }
+    }
+    return { purged }
   },
 })

@@ -160,7 +160,7 @@ docker logs terminal-server -f
 Geralmente é autenticação SSH inválida (senha/chave errada) ou o host
 alvo não aceita conexões na porta usada.
 
-### Reconstruir/atualizar depois de mudar `scripts/vps-terminal-server.js`
+### Reconstruir/atualizar depois de mudar `scripts/terminal-server/`
 
 ```bash
 bash scripts/deploy-terminal-docker.sh usuario@seu-vps

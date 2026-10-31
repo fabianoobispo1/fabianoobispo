@@ -10,7 +10,7 @@ O terminal roda em duas partes:
 1. **Next.js** (`/dashboard/terminal`) — UI, autenticação (`protectByEmail`),
    gerenciamento de conexões salvas (Convex) e emissão de um token de
    acesso de curta duração.
-2. **Terminal Server** (`scripts/vps-terminal-server.js`) — processo Node
+2. **Terminal Server** (`scripts/terminal-server/`) — processo Node
    separado rodando **no seu VPS**, que abre a sessão SSH de verdade
    (via `ssh2`) e transmite tudo por WebSocket. Roda fora da Vercel porque
    funções serverless não suportam WebSocket de longa duração.

@@ -7,17 +7,19 @@ import { auth } from '@/auth/auth'
 /**
  * GET /api/terminal/token
  *
- * Emite um token de curta duração (60s) usado pelo navegador para abrir o
- * WebSocket diretamente com o Terminal Server rodando no VPS. O token é um
- * HMAC assinado com TERMINAL_TOKEN_SECRET — o mesmo segredo precisa estar
- * configurado no .env do vps-terminal-server.js (veja
- * docs/TERMINAL_VPS_INSTALL.md). Isso evita expor esse segredo no bundle do
- * cliente.
+ * Emite um token de uso único e curta duração (60 s) para o navegador
+ * abrir o WebSocket com o Terminal Server na VPS. O navegador o envia na
+ * PRIMEIRA mensagem do WS (nunca na URL).
+ *
+ * Formato: `<base64url(JSON{ sub, email, jti, exp })>.<hmacSha256Hex>`,
+ * assinado com TERMINAL_TOKEN_SECRET (o mesmo do .env do Terminal Server).
+ * O servidor recusa `jti` repetido. Manter em sincronia com
+ * scripts/terminal-server/lib/token.js.
  */
 export async function GET() {
   const session = await auth()
 
-  if (!session?.user?.email) {
+  if (!session?.user?.email || !session.user.id) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 
@@ -49,14 +51,21 @@ export async function GET() {
   }
 
   const expiresAt = Date.now() + 60_000
+  const payload = Buffer.from(
+    JSON.stringify({
+      sub: session.user.id,
+      email: session.user.email,
+      jti: crypto.randomBytes(16).toString('hex'),
+      exp: expiresAt,
+    }),
+  ).toString('base64url')
   const signature = crypto
     .createHmac('sha256', secret)
-    .update(String(expiresAt))
+    .update(payload)
     .digest('hex')
 
-  return NextResponse.json({
-    token: `${expiresAt}.${signature}`,
-    expiresAt,
-    wsUrl,
-  })
+  return NextResponse.json(
+    { token: `${payload}.${signature}`, expiresAt, wsUrl },
+    { headers: { 'Cache-Control': 'no-store' } },
+  )
 }

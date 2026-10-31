@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
-import { useMutation } from 'convex/react'
+import { useConvex, useMutation } from 'convex/react'
 import { Loader2, AlertCircle } from 'lucide-react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -23,6 +23,7 @@ export function TerminalClient({
   authorizedEmail,
   connection,
 }: TerminalClientProps) {
+  const convex = useConvex()
   const updateLastUsed = useMutation(api.sshConnection.updateLastUsed)
   const terminalRef = useRef<HTMLDivElement>(null)
   const terminalInstanceRef = useRef<Terminal | null>(null)
@@ -95,18 +96,23 @@ export function TerminalClient({
     setServerStatus(null)
 
     try {
-      // 1. A senha/chave de uma conexão salva não sai mais do Convex para o
-      //    navegador. Até a Fase 2 (credenciais seladas que só o Terminal
-      //    Server abre), conexões salvas recebem `config_required`; o modo
-      //    SSH_* do .env do servidor continua funcionando.
-      const credentials = connection
-        ? {
-            host: connection.host,
-            port: connection.port,
-            username: connection.username,
-            authMethod: connection.authMethod,
-          }
-        : null
+      // 1. Conexão salva: busca só o ciphertext (selado com a chave pública
+      //    do Terminal Server). O navegador não consegue lê-lo; ele é
+      //    repassado como está e só o servidor na VPS o abre.
+      //    Sem conexão selecionada, o servidor usa SSH_* do próprio .env.
+      let sealedCredential: string | undefined
+      if (connection) {
+        const sealed = await convex.query(
+          api.sshConnection.getSealedCredential,
+          { connectionId: connection._id as Id<'sshConnection'> },
+        )
+        if (!sealed) {
+          throw new Error(
+            'Esta conexão não tem credencial salva: edite-a e digite a senha/chave novamente.',
+          )
+        }
+        sealedCredential = sealed
+      }
 
       // 2. Pede ao backend um token de curta duração para abrir o WebSocket
       //    diretamente com o Terminal Server no VPS
@@ -119,11 +125,15 @@ export function TerminalClient({
         )
       }
 
-      const ws = new WebSocket(
-        `${tokenData.wsUrl}?token=${encodeURIComponent(tokenData.token)}`,
-      )
+      // O token vai na 1ª mensagem (nunca na URL, que acaba em logs de
+      // proxy); o servidor fecha a conexão se ele não chegar em 5 s
+      const ws = new WebSocket(tokenData.wsUrl)
 
       ws.onopen = () => {
+        ws.send(JSON.stringify({ command: 'auth', token: tokenData.token }))
+      }
+
+      const startSession = () => {
         setIsConnected(true)
         setIsConnecting(false)
 
@@ -140,7 +150,7 @@ export function TerminalClient({
             command: 'start',
             cols: terminalInstanceRef.current?.cols ?? 120,
             rows: terminalInstanceRef.current?.rows ?? 30,
-            credentials,
+            sealedCredential,
           }),
         )
 
@@ -156,7 +166,9 @@ export function TerminalClient({
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data)
 
-        if (data.type === 'output') {
+        if (data.type === 'authenticated') {
+          startSession()
+        } else if (data.type === 'output') {
           terminalInstanceRef.current?.write(data.data)
         } else if (data.type === 'error') {
           setError(data.message)
@@ -188,9 +200,14 @@ export function TerminalClient({
         }
       }
 
-      ws.onclose = () => {
+      ws.onclose = (event) => {
         setIsConnected(false)
         setIsConnecting(false)
+        if (event.code === 4401 || event.code === 4403) {
+          setError('Terminal Server recusou a autenticação')
+        } else if (event.code === 4429) {
+          setError('Muitas conexões abertas no Terminal Server')
+        }
 
         if (terminalInstanceRef.current) {
           terminalInstanceRef.current.write(

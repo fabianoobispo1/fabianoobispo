@@ -1,11 +1,19 @@
 {
   "name": "terminal-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "main": "vps-terminal-server.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "ws": "^8.18.0",
+    "dotenv": "^16.4.5",
+    "libsodium-wrappers": "^0.8.4",
     "ssh2": "^1.16.0",
-    "dotenv": "^16.4.5"
+    "ws": "^8.18.0"
   }
 }
