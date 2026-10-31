@@ -1,6 +1,11 @@
 import { v } from 'convex/values'
 
-import { query, mutation, internalQuery } from './_generated/server'
+import {
+  query,
+  mutation,
+  internalMutation,
+  internalQuery,
+} from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
 import {
   getCurrentUser,
@@ -215,5 +220,27 @@ export const getAuthInfoInternal = internalQuery({
     if (!userId) return null
     const user = await ctx.db.get(userId)
     return user ? { _id: user._id, role: user.role } : null
+  },
+})
+
+/**
+ * Limpeza dos usuários criados por scripts/convex-authz-smoke.mjs (e-mails
+ * terminados em @smoke.invalid). Só via `npx convex run`.
+ */
+export const deleteSmokeUsersInternal = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query('user').collect()
+    let deleted = 0
+    for (const u of users.filter((u) => u.email.endsWith('@smoke.invalid'))) {
+      const todos = await ctx.db
+        .query('todo')
+        .withIndex('by_user', (q) => q.eq('userId', u._id))
+        .collect()
+      for (const t of todos) await ctx.db.delete(t._id)
+      await ctx.db.delete(u._id)
+      deleted++
+    }
+    return { deleted }
   },
 })
