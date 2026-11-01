@@ -152,6 +152,8 @@ This is a **personal portfolio + company management tool** for FABIANOOBISPO DES
 
 **File uploads**: `@uploadthing/react` + `@xixixao/uploadstuff` for Convex storage integration. Functions in `convex/files.ts`.
 
+**Terminal web** (`/dashboard/terminal`): SSH via a separate Terminal Server container on the VPS (`scripts/terminal-server/`, protocol v3, `npm test` there). Saved credentials are sealed in the browser with `NEXT_PUBLIC_TERMINAL_PUBLIC_KEY` and only the container opens them; sessions are persistent tmux (`tmux -L webdeck`, names `agent-N` only — never interpolate client input into remote commands). Site and container must be deployed together when the protocol changes. Docs: `TERMINAL_QUICK_START.md`, `TERMINAL_SSH_SETUP.md` (security model), `TERMINAL_MULTIPLE_CONNECTIONS.md`, `docs/TERMINAL_VPS_INSTALL.md`.
+
 **Exports**: `jspdf`/`jspdf-autotable` for PDF, `xlsx` for spreadsheets.
 
 **Debug**: Convex backend logs appear in the `npx convex dev` terminal. Dashboard at `https://dashboard.convex.dev`.

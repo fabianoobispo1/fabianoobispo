@@ -1,204 +1,74 @@
-# 🖥️ Terminal SSH - Setup e Uso
+# Terminal web — modelo de segurança
 
-> ⚠️ **Arquitetura atualizada**: o Terminal Server (SSH real) roda como
-> processo separado no VPS, não dentro do Next.js/Vercel — WebSocket de
-> longa duração não funciona em serverless. Guia completo e atualizado:
-> [`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md) e
-> [`TERMINAL_QUICK_START.md`](TERMINAL_QUICK_START.md). O restante deste
-> arquivo descreve o modelo de conexão única (via variáveis `SSH_*`), que
-> hoje serve como **fallback** quando nenhuma conexão salva é selecionada
-> — o app suporta múltiplas conexões salvas (aba "Conexões").
+O terminal dá shell em servidores reais, então cada camada assume que a
+anterior pode falhar. Instalação: [`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md).
+Uso: [`TERMINAL_QUICK_START.md`](TERMINAL_QUICK_START.md).
 
-Este guia explica como configurar e usar o terminal web SSH seguro.
+## Quem pode usar
 
-## 📋 Requisitos
+| Camada | Verificação |
+|---|---|
+| Página `/dashboard/terminal` | sessão NextAuth com o e-mail `TERMINAL_AUTHORIZED_EMAIL` (sem a variável, a página redireciona) |
+| `/api/terminal/token` | mesma checagem (comparação sem diferenciar maiúsculas); sem e-mail configurado → 503 |
+| Convex (`sshConnection`, `terminalSession`) | identidade do JWT (`requireTerminalUser`); o `userId` nunca vem do cliente, e cada registro é conferido contra o dono |
+| Terminal Server | token HMAC válido, não expirado, **de uso único** (`jti`), validade ≤ 2 min, e o e-mail do token igual a `TERMINAL_AUTHORIZED_EMAIL` do container |
 
-- Docker no VPS (o Terminal Server roda em container — não precisa Node.js no host)
-- Acesso SSH ao VPS
-- Credenciais SSH (usuário + senha OU chave privada)
+## Credenciais SSH
 
-## 🚀 Instalação
+- O navegador sela `{v, owner, host, port, username, authMethod, senha|chave,
+  passphrase}` com a **chave pública** do Terminal Server
+  (`crypto_box_seal`). O Convex guarda só o ciphertext (`sealedCredential`).
+- Nem o Convex nem o Next.js conseguem abrir; a UI nunca recebe a
+  credencial de volta (`hasCredential` diz só se existe).
+- O Terminal Server conecta no host **de dentro** do blob e exige
+  `owner == sub` do token: o ciphertext não serve para outro destino nem
+  para outro usuário.
+- Mudar host/porta/usuário/método exige digitar a credencial de novo; a
+  mutation recusa a troca sem um novo blob.
+- Campos antigos em texto puro (`password`, `privateKey`,
+  `privateKeyPassphrase`) não são mais lidos nem gravados. A limpeza é
+  `npx convex run sshConnection:purgePlaintextSecretsInternal` (`--prod`
+  em produção).
 
-### 1. Instalar Dependências
+## Host de destino
 
-As dependências do terminal (`ws`, `ssh2`) ficam **só no Terminal Server,
-no VPS** — não são instaladas no projeto Next.js principal. Veja
-[`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md).
+- **Host key fixada (TOFU):** a fingerprint SHA256 vista na 1ª conexão é
+  gravada (`pinHostKey`); uma chave diferente depois é recusada pelo
+  Terminal Server. Trocar só por ação explícita ("Confiar na nova chave"),
+  e trocar host/porta limpa a fixação.
+- `ALLOWED_SSH_HOSTS` (opcional) restringe os destinos no próprio container.
 
-O frontend (`xterm`) já está em `package.json` deste repo.
+## Comandos no host
 
-### 2. Configurar Variáveis de Ambiente
+- Nomes de sessão: só `^agent-\d{1,6}$`. Pasta: `~`, `~/…` ou `/…` com
+  letras, números, espaço e `._-/`.
+- Tudo que vem do navegador é validado **e** vai entre aspas simples
+  (`lib/tmux.js`); alvos tmux usam `=nome` (casamento exato).
+- Socket tmux dedicado (`tmux -L webdeck`).
 
-Copie o arquivo `.env.local.example` para `.env.local`:
+## Transporte e limites
 
-```bash
-cp .env.local.example .env.local
-```
+- `Origin` do upgrade validado contra `ALLOWED_ORIGINS` (403); o token vai
+  na 1ª mensagem, nunca na URL (que acabaria em logs de proxy).
+- TLS obrigatório em produção (no container ou no proxy).
+- Limites: conexões globais e por usuário, terminais por conexão, tamanho
+  de mensagem, colunas/linhas, saída de comandos de controle (2 MB) e
+  backpressure quando o navegador não consome a saída.
+- Container sem root, sistema de arquivos read-only, sem capabilities,
+  porta só em 127.0.0.1 atrás do proxy.
 
-Edite `.env.local` com suas credenciais SSH:
+## Auditoria
 
-```env
-# Email autorizado
-TERMINAL_AUTHORIZED_EMAIL=seu-email@example.com
+Logs JSON no stdout do container (`docker logs terminal-server`): quem
+conectou, de qual IP, em qual destino, por quanto tempo, sessões
+criadas/encerradas e toda recusa (origin, token, e-mail, host key). Teclas
+e credenciais **não** são registradas.
 
-# Credenciais SSH
-SSH_HOST=seu-vps.com
-SSH_PORT=22
-SSH_USER=root
+## Fora do escopo / riscos aceitos
 
-# Escolha UM dos métodos:
-# Opção A: Por senha
-SSH_PASSWORD=sua_senha
-
-# OU Opção B: Por chave privada (mais seguro)
-SSH_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
-...sua chave...
------END RSA PRIVATE KEY-----"
-```
-
-### 3. Gerar Chave SSH (Recomendado)
-
-Se não tem chave SSH, gere uma:
-
-```bash
-# Gerar chave de 4096 bits
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
-
-# Copiar chave pública para o VPS
-ssh-copy-id -i ~/.ssh/id_rsa user@seu-vps.com
-
-# Ler chave privada (para .env.local)
-cat ~/.ssh/id_rsa
-```
-
-## 🔒 Segurança
-
-### ⚠️ Importante
-
-1. **Nunca commite `.env.local`** no repositório
-2. **Use chave privada SSH** ao invés de senha
-3. **Proteja a chave privada** com senha
-4. **Restrinja acesso** usando `TERMINAL_AUTHORIZED_EMAIL`
-5. **Use HTTPS** em produção
-6. **Habilite logs** para auditoria
-
-### Checklist de Segurança
-
-- [ ] Arquivo `.env.local` está no `.gitignore`
-- [ ] Email autorizado é específico (não genérico)
-- [ ] SSH usa chave privada (não senha em texto plano)
-- [ ] Chave privada tem senha de proteção
-- [ ] Logs estão sendo registrados
-- [ ] HTTPS está ativado em produção
-
-## 📖 Como Usar
-
-### Acessar o Terminal
-
-1. Faça login no dashboard: `https://seu-site.com/entrar`
-2. Navegue para: `https://seu-site.com/dashboard/terminal`
-3. Clique em **"Conectar"**
-4. Digite seus comandos normalmente
-
-### Comandos Disponíveis
-
-Qualquer comando shell do servidor:
-
-```bash
-# Listar arquivos
-ls -la
-
-# Verificar espaço em disco
-df -h
-
-# Ver processos
-ps aux
-
-# Editar arquivo
-nano arquivo.txt
-
-# Reiniciar serviço
-systemctl restart nginx
-```
-
-### Atalhos do Terminal
-
-| Atalho | Ação |
-|--------|------|
-| `Ctrl + C` | Interromper processo |
-| `Ctrl + D` | Sair/Logout |
-| `Ctrl + L` | Limpar tela |
-| `↑` / `↓` | Histórico de comandos |
-| `Tab` | Auto-complete |
-
-## 🔧 Troubleshooting
-
-### "Não consegue conectar"
-
-1. Verifique se `SSH_HOST` e `SSH_PORT` estão corretos
-2. Teste a conexão localmente: `ssh -p 22 user@host`
-3. Verifique firewall/security groups
-
-### "Autenticação falhou"
-
-1. Confirme `SSH_USER` e `SSH_PASSWORD` (ou chave)
-2. Teste: `ssh -i chave.pem user@host`
-3. Verifique permissões da chave: `chmod 600 ~/.ssh/id_rsa`
-
-### "Timeout da conexão"
-
-1. Aumente `SSH_TIMEOUT` em `.env.local`
-2. Verifique latência: `ping seu-vps.com`
-3. Confira se o serviço SSH está rodando no VPS: `sudo service ssh status`
-
-### "Terminal não aparece"
-
-1. Abra DevTools (F12) e verifique erros no console
-2. Confirme que xterm.js foi instalado
-3. Verifique se a porta WebSocket está aberta
-
-## 📊 Logs e Auditoria
-
-Se `TERMINAL_LOG_CONNECTIONS=true`, os logs são salvos em:
-```
-logs/terminal-connections.log
-```
-
-Exemplo de log:
-```
-[2025-08-11 10:30:45] ✅ Conexão SSH estabelecida
-User: fbc623@gmail.com | Host: exemplo.com | Port: 22
-[2025-08-11 10:30:46] $ ls -la
-[2025-08-11 10:31:00] ❌ Desconexão
-```
-
-## 🚀 Deploy em Produção
-
-Este projeto é deployado na Vercel (não `npm start` num servidor próprio).
-Checklist real:
-
-1. **Terminal Server no VPS**: siga
-   [`docs/TERMINAL_VPS_INSTALL.md`](docs/TERMINAL_VPS_INSTALL.md) (systemd +
-   Nginx com TLS/WSS).
-2. **Variáveis de ambiente na Vercel**: `TERMINAL_AUTHORIZED_EMAIL`,
-   `TERMINAL_TOKEN_SECRET` (igual ao do VPS) e `TERMINAL_VPS_WS_URL`.
-3. **Deploy**: `git push` (Vercel) — não precisa de `npm start` manual.
-
-## 📚 Documentação Adicional
-
-- [xterm.js Documentation](https://xtermjs.org/)
-- [SSH2 Node Package](https://github.com/mscdex/ssh2)
-- [Next.js API Routes](https://nextjs.org/docs/api-routes/introduction)
-
-## 🆘 Suporte
-
-Se tiver problemas:
-
-1. Verifique os logs do terminal
-2. Consulte a seção Troubleshooting
-3. Abra uma issue no GitHub
-
----
-
-**Última atualização:** 2025-08-11
-**Versão:** 1.0.0
+- Quem tem a `TERMINAL_PRIVATE_KEY` (o VPS) abre todas as credenciais
+  salvas. Proteja o `.env` (`chmod 600`) e o acesso root do VPS.
+- Uma sessão NextAuth roubada do e-mail autorizado dá acesso ao terminal.
+  Use 2FA na conta Google/GitHub.
+- O TOFU não protege a **primeira** conexão; confira a fingerprint com
+  `ssh-keygen -lf` quando ela for registrada.
