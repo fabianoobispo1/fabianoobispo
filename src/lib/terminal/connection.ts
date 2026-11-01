@@ -69,6 +69,14 @@ export interface ConnectOptions {
   hostKey?: string
 }
 
+/** Eventos de um terminal (canal) específico. */
+export interface ChannelHandlers {
+  onOutput: (data: string) => void
+  onAttached?: (info: AttachedInfo) => void
+  onDetached?: (reason: string) => void
+  onError?: (message: string) => void
+}
+
 type Pending = {
   resolve: (data: unknown) => void
   reject: (err: Error) => void
@@ -85,6 +93,8 @@ export class TerminalConnection {
   private ws: WebSocket | null = null
   private nextId = 1
   private pending = new Map<number, Pending>()
+  private channelHandlers = new Map<string, ChannelHandlers>()
+  private sidCounter = 0
   private _status: ConnectionStatus = 'idle'
   ready: ReadyInfo | null = null
 
@@ -180,14 +190,24 @@ export class TerminalConnection {
             return
           }
           case 'output':
+            this.channelHandlers
+              .get(msg.sid as string)
+              ?.onOutput(msg.data as string)
             this.handlers.onOutput?.(msg.sid as string, msg.data as string)
             return
           case 'attached':
+            this.channelHandlers
+              .get(msg.sid as string)
+              ?.onAttached?.(msg as unknown as AttachedInfo)
             this.handlers.onAttached?.(msg as unknown as AttachedInfo)
             return
-          case 'detached':
+          case 'detached': {
+            const ch = this.channelHandlers.get(msg.sid as string)
+            this.channelHandlers.delete(msg.sid as string)
+            ch?.onDetached?.(msg.reason as string)
             this.handlers.onDetached?.(msg.sid as string, msg.reason as string)
             return
+          }
           case 'result': {
             const p = this.pending.get(msg.id as number)
             if (!p) return
@@ -208,6 +228,11 @@ export class TerminalConnection {
             if (msg.type === 'config_required') fail(String(msg.message))
             return
           case 'error':
+            if (msg.sid) {
+              this.channelHandlers
+                .get(msg.sid as string)
+                ?.onError?.(String(msg.message))
+            }
             this.handlers.onError?.(
               String(msg.message),
               msg.sid as string | undefined,
@@ -226,6 +251,10 @@ export class TerminalConnection {
           p.reject(new Error('Conexão encerrada'))
         }
         this.pending.clear()
+        for (const ch of this.channelHandlers.values()) {
+          ch.onDetached?.('connection_closed')
+        }
+        this.channelHandlers.clear()
         const message = CLOSE_MESSAGES[event.code]
         fail(message ?? 'Conexão encerrada')
         if (this._status !== 'error') this.setStatus('closed')
@@ -237,6 +266,33 @@ export class TerminalConnection {
   private raw(obj: Record<string, unknown>) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(obj))
+    }
+  }
+
+  /**
+   * Abre um terminal e roteia os eventos dele para `handlers`. Devolve o
+   * sid e funções já ligadas a ele; `close()` desanexa (a sessão tmux
+   * continua no host).
+   */
+  openChannel(
+    opts: { session?: string | null; cols: number; rows: number },
+    handlers: ChannelHandlers,
+  ) {
+    const sid = `c${++this.sidCounter}`
+    this.channelHandlers.set(sid, handlers)
+    this.attach(sid, {
+      session: opts.session ?? undefined,
+      cols: opts.cols,
+      rows: opts.rows,
+    })
+    return {
+      sid,
+      send: (data: string) => this.send(sid, data),
+      resize: (cols: number, rows: number) => this.resize(sid, cols, rows),
+      close: () => {
+        this.channelHandlers.delete(sid)
+        this.detach(sid)
+      },
     }
   }
 

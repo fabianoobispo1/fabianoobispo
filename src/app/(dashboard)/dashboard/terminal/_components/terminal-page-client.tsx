@@ -32,21 +32,11 @@ export function TerminalPageClient() {
   }, [connections, selectedConnection])
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      {/* Header */}
-      <div className="border-b pb-4">
-        <h1 className="text-3xl font-bold">🖥️ Terminal SSH</h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Acesso remoto seguro ao servidor VPS com múltiplas conexões salvas
-        </p>
-      </div>
-
-      {/* Info Box */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <p className="text-sm text-blue-900 dark:text-blue-100">
-          <strong>ℹ️ Novo:</strong> Você pode salvar múltiplas conexões SSH e
-          conectar em qualquer host! Suas credenciais são armazenadas com
-          segurança no banco de dados.
+    <div className="flex h-full flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h1 className="text-xl font-bold">Terminal</h1>
+        <p className="hidden text-xs text-muted-foreground sm:block">
+          Sessões tmux persistentes · credenciais seladas para o Terminal Server
         </p>
       </div>
 
@@ -76,13 +66,6 @@ export function TerminalPageClient() {
           />
         </TabsContent>
       </Tabs>
-
-      {/* Footer Info */}
-      <div className="text-xs text-slate-500 dark:text-slate-400 text-center py-2">
-        <p>
-          🔐 Todas as conexões são criptografadas e registradas para segurança
-        </p>
-      </div>
     </div>
   )
 }

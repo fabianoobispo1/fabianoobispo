@@ -1,10 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Terminal } from '@xterm/xterm'
-import { FitAddon } from '@xterm/addon-fit'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useConvex, useConvexAuth, useMutation, useQuery } from 'convex/react'
-import { Loader2, AlertCircle, ShieldAlert, TriangleAlert } from 'lucide-react'
+import {
+  AlertCircle,
+  Loader2,
+  ShieldAlert,
+  TerminalSquare,
+  TriangleAlert,
+} from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -15,22 +19,21 @@ import {
   TerminalConnection,
   type ConnectionStatus,
   type HostKeyMismatch,
-  type TmuxSessionInfo,
 } from '@/lib/terminal/connection'
 import { connectionKeyOf, type SessionMeta } from '@/lib/terminal/sessions'
 import type { SSHConnection } from '@/types/terminal'
 
-import { SessionPanel } from './session-panel'
-
-import '@xterm/xterm/css/xterm.css'
+import { TerminalDesktop } from './desktop/terminal-desktop'
 
 interface TerminalClientProps {
   authorizedEmail?: string
   connection?: SSHConnection | null
 }
 
-const LIST_REFRESH_MS = 5000
-
+/**
+ * Conexão com o Terminal Server (token, credencial selada, host key) e,
+ * conectado, a área de trabalho com as janelas.
+ */
 export function TerminalClient({
   authorizedEmail,
   connection,
@@ -40,8 +43,6 @@ export function TerminalClient({
   const updateLastUsed = useMutation(api.sshConnection.updateLastUsed)
   const pinHostKey = useMutation(api.sshConnection.pinHostKey)
   const resetHostKey = useMutation(api.sshConnection.resetHostKey)
-  const upsertMeta = useMutation(api.terminalSession.upsert)
-  const removeMeta = useMutation(api.terminalSession.remove)
 
   const connectionKey = connectionKeyOf(connection)
   const metaRows = useQuery(
@@ -54,118 +55,25 @@ export function TerminalClient({
     [metaRows],
   )
 
-  const terminalRef = useRef<HTMLDivElement>(null)
-  const termRef = useRef<Terminal | null>(null)
-  const fitRef = useRef<FitAddon | null>(null)
   const connRef = useRef<TerminalConnection | null>(null)
-  // Canal pty atual; cada troca de sessão usa um sid novo para ignorar
-  // saída atrasada do canal anterior
-  const sidRef = useRef<string | null>(null)
-  const sidCounter = useRef(0)
-
+  const [conn, setConn] = useState<TerminalConnection | null>(null)
   const [status, setStatus] = useState<ConnectionStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [tmuxAvailable, setTmuxAvailable] = useState<boolean | null>(null)
-  const [sessions, setSessions] = useState<TmuxSessionInfo[]>([])
-  const [activeSession, setActiveSession] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [tmuxAvailable, setTmuxAvailable] = useState(false)
   const [mismatch, setMismatch] = useState<HostKeyMismatch | null>(null)
 
-  const isConnected = status === 'ready'
+  const isConnected = status === 'ready' && conn !== null
   const isConnecting = status === 'connecting'
 
-  const writeLine = (text: string) => termRef.current?.writeln(text)
+  // Fecha ao sair da página
+  useEffect(() => () => connRef.current?.close(), [])
 
-  // ------------------------------------------------------------- xterm
+  // Trocar de conexão salva com uma aberta: desconecta a anterior
   useEffect(() => {
-    if (!terminalRef.current) return
-    const term = new Terminal({
-      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-      fontSize: 13,
-      theme: {
-        background: '#0d0d0d',
-        foreground: '#d4d4d4',
-        cursor: '#aeafad',
-        cursorAccent: '#000000',
-      },
-      cursorBlink: true,
-    })
-    const fit = new FitAddon()
-    term.loadAddon(fit)
-    term.open(terminalRef.current)
-    fit.fit()
-    termRef.current = term
-    fitRef.current = fit
+    connRef.current?.close()
+  }, [connectionKey])
 
-    term.writeln('🔐 Terminal SSH Seguro')
-    term.writeln('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    term.writeln('⏳ Aguardando conexão SSH...')
-
-    term.onData((data) => {
-      if (sidRef.current) connRef.current?.send(sidRef.current, data)
-    })
-
-    // Debounce: arrastar a borda da janela dispara dezenas de eventos
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const observer = new ResizeObserver(() => {
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        fit.fit()
-        if (sidRef.current) {
-          connRef.current?.resize(sidRef.current, term.cols, term.rows)
-        }
-      }, 100)
-    })
-    observer.observe(terminalRef.current)
-
-    return () => {
-      clearTimeout(timer)
-      observer.disconnect()
-      connRef.current?.close()
-      connRef.current = null
-      term.dispose()
-    }
-  }, [])
-
-  // ------------------------------------------------------------- sessões
-  const refreshSessions = useCallback(async () => {
-    const conn = connRef.current
-    if (!conn?.ready?.tmux.available) return []
-    try {
-      const list = await conn.listSessions()
-      setSessions(list)
-      return list
-    } catch {
-      return []
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!isConnected || !tmuxAvailable) return
-    const t = setInterval(refreshSessions, LIST_REFRESH_MS)
-    return () => clearInterval(t)
-  }, [isConnected, tmuxAvailable, refreshSessions])
-
-  const attachTo = useCallback((session: string | null) => {
-    const conn = connRef.current
-    const term = termRef.current
-    if (!conn || !term) return
-    if (sidRef.current) conn.detach(sidRef.current)
-    const sid = `t${++sidCounter.current}`
-    sidRef.current = sid
-    term.reset()
-    fitRef.current?.fit()
-    conn.attach(sid, {
-      session: session ?? undefined,
-      cols: term.cols,
-      rows: term.rows,
-    })
-    setActiveSession(session)
-    term.focus()
-  }, [])
-
-  // ------------------------------------------------------------- conexão
   const connect = async () => {
     if (connRef.current) return
     setError(null)
@@ -186,55 +94,31 @@ export function TerminalClient({
       sealedCredential = sealed
     }
 
-    const conn = new TerminalConnection({
+    const c = new TerminalConnection({
       onStatus: setStatus,
-      onOutput: (sid, data) => {
-        if (sid === sidRef.current) termRef.current?.write(data)
-      },
-      onAttached: (info) => {
-        if (info.sid !== sidRef.current) return
-        if (info.fallback) {
-          writeLine('\x1b[33m⚠️  tmux indisponível: shell comum\x1b[0m')
-        }
-      },
-      onDetached: (sid, reason) => {
-        if (sid !== sidRef.current) return
-        sidRef.current = null
-        setActiveSession(null)
-        writeLine(
-          `\r\n\x1b[33m⚠️  Terminal fechado (${
-            reason === 'remote_closed' ? 'sessão encerrada no host' : reason
-          })\x1b[0m`,
-        )
-        refreshSessions().catch(() => {})
-      },
       onError: (message, sid) => {
-        if (sid && sid !== sidRef.current) return
-        setError(message)
+        if (!sid) setError(message)
       },
       onNotice: (kind, message) => {
         if (kind === 'tmux_unavailable') setNotice(message)
-        else writeLine(`\x1b[33m⚠️  ${message}\x1b[0m`)
+        if (kind === 'closed') setError((e) => e ?? message)
       },
       onHostKeyMismatch: setMismatch,
       onClose: (_code, reason) => {
         connRef.current = null
-        sidRef.current = null
-        setActiveSession(null)
-        setSessions([])
-        setTmuxAvailable(null)
+        setConn(null)
         if (reason) setError((e) => e ?? reason)
-        writeLine('\r\n\x1b[33m⚠️  Desconectado do servidor\x1b[0m')
       },
     })
-    connRef.current = conn
+    connRef.current = c
 
     try {
-      const ready = await conn.connect({
+      const ready = await c.connect({
         sealedCredential,
         hostKey: connection?.hostKeyFingerprint,
       })
       setTmuxAvailable(ready.tmux.available)
+      setConn(c)
 
       // TOFU: 1ª conexão grava a fingerprint; as próximas exigem a mesma
       const fp = ready.hostKey.fingerprint
@@ -256,31 +140,18 @@ export function TerminalClient({
           connectionId: connection._id as Id<'sshConnection'>,
         }).catch(() => {})
       }
-
-      if (!ready.tmux.available) {
-        attachTo(null)
-        return
-      }
-      const list = await refreshSessions()
-      if (list.length === 0) {
-        const name = await conn.createSession({
-          cols: termRef.current?.cols,
-          rows: termRef.current?.rows,
-        })
-        await refreshSessions()
-        attachTo(name)
-      } else {
-        attachTo(list[0].name)
-      }
     } catch (err) {
-      connRef.current?.close()
+      c.close()
       connRef.current = null
+      setConn(null)
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
     }
   }
 
   const disconnect = () => {
     connRef.current?.close()
+    connRef.current = null
+    setConn(null)
   }
 
   const trustNewHostKey = async () => {
@@ -294,116 +165,51 @@ export function TerminalClient({
     })
   }
 
-  const createSession = async (opts: { cwd?: string; claude: boolean }) => {
-    const conn = connRef.current
-    if (!conn) return
-    setBusy(true)
-    try {
-      const name = await conn.createSession({
-        ...opts,
-        cols: termRef.current?.cols,
-        rows: termRef.current?.rows,
-      })
-      if (opts.cwd) {
-        await upsertMeta({ connectionKey, name, pasta: opts.cwd }).catch(
-          () => {},
-        )
-      }
-      await refreshSessions()
-      attachTo(name)
-    } catch (err) {
-      toast({
-        title: 'Não foi possível criar a sessão',
-        description: err instanceof Error ? err.message : undefined,
-        variant: 'destructive',
-      })
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const killSession = async (name: string) => {
-    const conn = connRef.current
-    if (!conn) return
-    setBusy(true)
-    try {
-      await conn.killSession(name)
-      await removeMeta({ connectionKey, name }).catch(() => {})
-      const list = await refreshSessions()
-      if (name === activeSession) {
-        if (list.length) attachTo(list[0].name)
-        else termRef.current?.reset()
-      }
-    } catch (err) {
-      toast({
-        title: 'Não foi possível encerrar',
-        description: err instanceof Error ? err.message : undefined,
-        variant: 'destructive',
-      })
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const statusText = isConnected
-    ? `Conectado${connection ? ` — ${connection.name}` : ''}`
-    : isConnecting
-      ? 'Conectando...'
-      : 'Desconectado'
-  const idleHint = connection
-    ? `Pronto para conectar em ${connection.username}@${connection.host}`
-    : 'Selecione uma conexão salva na aba "Conexões" (ou configure SSH_* no Terminal Server).'
+  const target = connection
+    ? `${connection.username}@${connection.host}`
+    : 'credencial do Terminal Server'
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      {/* Barra de Controle */}
-      <div className="flex flex-col gap-3 bg-slate-100 dark:bg-slate-900 p-4 rounded-lg border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full ${
-                isConnected
-                  ? 'bg-green-500'
-                  : isConnecting
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
-              }`}
-            />
-            <span className="font-medium text-sm">{statusText}</span>
-            {authorizedEmail && (
-              <span className="hidden sm:inline text-xs text-muted-foreground">
-                · {authorizedEmail}
-              </span>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            {!isConnected ? (
-              <Button onClick={connect} disabled={isConnecting} size="sm">
-                {isConnecting && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
-                Conectar
-              </Button>
-            ) : (
-              <Button onClick={disconnect} size="sm" variant="destructive">
-                Desconectar
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {isConnected && tmuxAvailable && (
-          <SessionPanel
-            connectionKey={connectionKey}
-            sessions={sessions}
-            meta={meta}
-            activeSession={activeSession}
-            busy={busy}
-            onAttach={attachTo}
-            onCreate={createSession}
-            onKill={killSession}
+    <div className="flex h-full flex-col gap-3">
+      {/* Barra de status */}
+      <div className="flex items-center justify-between gap-2 rounded-lg border bg-slate-100 px-3 py-2 dark:bg-slate-900">
+        <div className="flex min-w-0 items-center gap-2">
+          <div
+            className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+              isConnected
+                ? 'bg-green-500'
+                : isConnecting
+                  ? 'bg-yellow-500'
+                  : 'bg-red-500'
+            }`}
           />
+          <span className="truncate text-sm font-medium">
+            {isConnected
+              ? `Conectado — ${connection?.name ?? target}`
+              : isConnecting
+                ? 'Conectando...'
+                : 'Desconectado'}
+          </span>
+          {authorizedEmail && (
+            <span className="hidden truncate text-xs text-muted-foreground md:inline">
+              · {authorizedEmail}
+            </span>
+          )}
+          {isConnected && (
+            <span className="hidden text-xs text-muted-foreground lg:inline">
+              · Ctrl+Shift+K / ⌘K para comandos
+            </span>
+          )}
+        </div>
+        {isConnected ? (
+          <Button onClick={disconnect} size="sm" variant="destructive">
+            Desconectar
+          </Button>
+        ) : (
+          <Button onClick={connect} disabled={isConnecting} size="sm">
+            {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Conectar
+          </Button>
         )}
       </div>
 
@@ -413,7 +219,7 @@ export function TerminalClient({
           <AlertTitle>Host key diferente da registrada</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>{mismatch.message}</p>
-            <p className="font-mono text-xs break-all">
+            <p className="break-all font-mono text-xs">
               registrada: {mismatch.expected}
               <br />
               recebida: {mismatch.seen ?? '—'}
@@ -433,14 +239,14 @@ export function TerminalClient({
         </Alert>
       )}
 
-      {error && !mismatch && (
+      {error && !mismatch && !isConnected && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {notice && (
+      {notice && isConnected && (
         <Alert>
           <TriangleAlert className="h-4 w-4" />
           <AlertDescription>
@@ -450,27 +256,38 @@ export function TerminalClient({
         </Alert>
       )}
 
-      {!isConnected && !error && !mismatch && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{idleHint}</AlertDescription>
-        </Alert>
-      )}
-
       {/*
-        Altura fixa em viewport units: o layout do dashboard não limita a
-        altura de <main>, e o FitAddon cresce sem controle se o tamanho do
-        container depender do próprio conteúdo. Sem padding aqui (o
-        FitAddon calcularia linhas a mais).
+        Altura fixa pela viewport: o layout do dashboard não limita <main>,
+        e o FitAddon do xterm cresce sem controle se o container depender
+        do próprio conteúdo.
       */}
-      <div
-        ref={terminalRef}
-        className="bg-black rounded-lg overflow-hidden border border-slate-700 shadow-lg"
-        style={{
-          height: 'min(65vh, 700px)',
-          minHeight: '400px',
-        }}
-      />
+      <div className="h-[calc(100dvh-13rem)] min-h-[420px]">
+        {isConnected && conn ? (
+          <TerminalDesktop
+            key={connectionKey}
+            conn={conn}
+            tmuxAvailable={tmuxAvailable}
+            connectionKey={connectionKey}
+            meta={meta}
+            onDisconnect={disconnect}
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-950 text-slate-400">
+            <TerminalSquare className="h-10 w-10" />
+            <p className="px-4 text-center text-sm">
+              {connection
+                ? `Pronto para conectar em ${target}`
+                : 'Selecione uma conexão salva na aba "Conexões" (ou configure SSH_* no Terminal Server).'}
+            </p>
+            <Button onClick={connect} disabled={isConnecting} size="sm">
+              {isConnecting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Conectar
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
