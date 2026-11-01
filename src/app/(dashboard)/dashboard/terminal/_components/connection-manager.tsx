@@ -443,6 +443,15 @@ export function ConnectionManager({
                     {!conn.hasCredential && (
                       <Badge variant="destructive">Sem credencial</Badge>
                     )}
+                    {conn.hostKeyFingerprint && (
+                      <Badge
+                        variant="outline"
+                        className="font-mono text-[10px]"
+                        title={`Host key fixada: ${conn.hostKeyFingerprint}`}
+                      >
+                        🔒 {conn.hostKeyFingerprint.slice(7, 19)}…
+                      </Badge>
+                    )}
                     {conn.isDefault && (
                       <Badge variant="default" className="gap-1">
                         <CheckCircle className="w-3 h-3" />

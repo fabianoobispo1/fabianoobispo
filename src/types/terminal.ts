@@ -136,6 +136,8 @@ export interface SSHConnection {
   authMethod: 'password' | 'privateKey'
   /** Há senha/chave salva? A credencial em si nunca volta para a UI. */
   hasCredential: boolean
+  /** Host key fixada na 1ª conexão (SHA256:...), se houver */
+  hostKeyFingerprint?: string
   description?: string
   tags?: string[]
   isDefault: boolean

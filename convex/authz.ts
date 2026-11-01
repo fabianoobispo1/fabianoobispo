@@ -78,6 +78,16 @@ export async function requireTerminalUser(ctx: DbCtx): Promise<Doc<'user'>> {
   return user
 }
 
+/** Versão de query: o usuário do terminal, ou null (sem lançar). */
+export async function getTerminalUser(ctx: DbCtx): Promise<Doc<'user'> | null> {
+  const user = await getCurrentUser(ctx)
+  const allowed = terminalAuthorizedEmail()
+  if (!user || !allowed || user.email.trim().toLowerCase() !== allowed) {
+    return null
+  }
+  return user
+}
+
 // ---------------------------------------------------------------- actions
 
 /** Actions não têm `db`: resolve o usuário via internalQuery. */

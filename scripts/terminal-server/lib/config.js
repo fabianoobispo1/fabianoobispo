@@ -2,6 +2,7 @@
 
 const { parseAllowedOrigins } = require('./origin')
 const { clampInt } = require('./limits')
+const { isValidFingerprint } = require('./hostkey')
 
 /**
  * Lê e valida a configuração. Lança com a lista de problemas para o
@@ -52,8 +53,17 @@ function loadConfig(env = process.env) {
           password: env.SSH_PRIVATE_KEY ? undefined : env.SSH_PASSWORD,
           privateKey: env.SSH_PRIVATE_KEY?.replace(/\\n/g, '\n'),
           passphrase: env.SSH_PRIVATE_KEY_PASSPHRASE || undefined,
+          // Opcional: fixa a host key (ssh-keygen -lf ...pub → SHA256:...)
+          hostFingerprint: env.SSH_HOST_FINGERPRINT?.trim() || undefined,
         }
       : null
+
+  if (
+    defaultSsh?.hostFingerprint &&
+    !isValidFingerprint(defaultSsh.hostFingerprint)
+  ) {
+    errors.push('SSH_HOST_FINGERPRINT inválido (formato SHA256:...)')
+  }
 
   if (errors.length) {
     const e = new Error(`Configuração inválida:\n - ${errors.join('\n - ')}`)
@@ -81,6 +91,9 @@ function loadConfig(env = process.env) {
       4 * 1024 * 1024,
       256 * 1024,
     ),
+    // Terminais (canais pty) simultâneos por WebSocket; o sshd costuma
+    // limitar a 10 sessões por conexão (MaxSessions)
+    maxChannels: clampInt(env.MAX_CHANNELS_PER_CONNECTION, 1, 10, 8),
     authTimeoutMs: 5000,
     defaultSsh,
   }

@@ -187,6 +187,11 @@ export const sshConnectionSchema = {
   // password? | privateKey?, passphrase? }
   sealedCredential: v.optional(v.string()),
 
+  // Fingerprint da host key do destino (formato OpenSSH, SHA256:...),
+  // gravada na 1ª conexão (TOFU). O Terminal Server recusa conectar se a
+  // chave apresentada mudar. Não é segredo.
+  hostKeyFingerprint: v.optional(v.string()),
+
   // DEPRECATED — credenciais em texto puro do modelo antigo. Nenhum código
   // lê ou grava estes campos; ficam no schema só até a limpeza
   // (sshConnection:purgePlaintextSecretsInternal) rodar em todos os
@@ -202,6 +207,20 @@ export const sshConnectionSchema = {
   lastUsed: v.optional(v.number()), // timestamp do último uso
 
   // Auditoria e segurança
+  created_at: v.number(),
+  updated_at: v.number(),
+}
+
+// Metadados das sessões tmux (agent-N) do terminal web, por usuário e por
+// conexão. A sessão em si vive no host remoto; aqui fica só o que é da UI.
+export const terminalSessionSchema = {
+  userId: v.id('user'),
+  // _id da sshConnection, ou 'default' para a credencial SSH_* do servidor
+  connectionKey: v.string(),
+  name: v.string(), // agent-N
+  apelido: v.optional(v.string()),
+  cor: v.optional(v.string()),
+  pasta: v.optional(v.string()),
   created_at: v.number(),
   updated_at: v.number(),
 }
@@ -242,4 +261,7 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_user_default', ['userId', 'isDefault'])
     .index('by_user_name', ['userId', 'name']),
+  terminalSession: defineTable(terminalSessionSchema)
+    .index('by_user_connection', ['userId', 'connectionKey'])
+    .index('by_user_connection_name', ['userId', 'connectionKey', 'name']),
 })

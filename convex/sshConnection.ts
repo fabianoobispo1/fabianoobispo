@@ -6,13 +6,9 @@ import {
   internalMutation,
   internalQuery,
 } from './_generated/server'
-import type { MutationCtx, QueryCtx } from './_generated/server'
+import type { MutationCtx } from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
-import {
-  getCurrentUser,
-  requireTerminalUser,
-  terminalAuthorizedEmail,
-} from './authz'
+import { getTerminalUser, requireTerminalUser } from './authz'
 
 /**
  * Conexões SSH salvas do usuário do terminal.
@@ -30,6 +26,7 @@ import {
 
 // Sealed box = 48 bytes de overhead; uma chave RSA 4096 em PEM tem ~3.3 KB.
 const MAX_SEALED_LENGTH = 32_000
+const FINGERPRINT_RE = /^SHA256:[A-Za-z0-9+/]{43}$/
 
 type SafeConnection = Omit<
   Doc<'sshConnection'>,
@@ -74,16 +71,6 @@ async function clearOtherDefaults(ctx: MutationCtx, userId: Id<'user'>) {
   }
 }
 
-/** Usuário logado é o usuário autorizado do terminal? (null se não) */
-async function getTerminalUserOrNull(ctx: QueryCtx) {
-  const user = await getCurrentUser(ctx)
-  const allowed = terminalAuthorizedEmail()
-  if (!user || !allowed || user.email.trim().toLowerCase() !== allowed) {
-    return null
-  }
-  return user
-}
-
 function validateEndpoint(args: {
   host?: string
   port?: number
@@ -119,7 +106,7 @@ function validateSealed(sealed: string) {
 export const getConnectionsByUser = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getTerminalUserOrNull(ctx)
+    const user = await getTerminalUser(ctx)
     if (!user) return []
     const connections = await ctx.db
       .query('sshConnection')
@@ -132,7 +119,7 @@ export const getConnectionsByUser = query({
 export const getConnectionById = query({
   args: { connectionId: v.id('sshConnection') },
   handler: async (ctx, args) => {
-    const user = await getTerminalUserOrNull(ctx)
+    const user = await getTerminalUser(ctx)
     if (!user) return null
     const connection = await ctx.db.get(args.connectionId)
     if (!connection || connection.userId !== user._id) return null
@@ -148,7 +135,7 @@ export const getConnectionById = query({
 export const getSealedCredential = query({
   args: { connectionId: v.id('sshConnection') },
   handler: async (ctx, args) => {
-    const user = await getTerminalUserOrNull(ctx)
+    const user = await getTerminalUser(ctx)
     if (!user) return null
     const connection = await ctx.db.get(args.connectionId)
     if (!connection || connection.userId !== user._id) return null
@@ -159,7 +146,7 @@ export const getSealedCredential = query({
 export const getDefaultConnection = query({
   args: {},
   handler: async (ctx) => {
-    const user = await getTerminalUserOrNull(ctx)
+    const user = await getTerminalUser(ctx)
     if (!user) return null
     const defaultConn = await ctx.db
       .query('sshConnection')
@@ -242,7 +229,12 @@ export const updateConnection = mutation({
     }
 
     const { connectionId, ...rest } = args
-    await ctx.db.patch(connectionId, { ...rest, updated_at: Date.now() })
+    await ctx.db.patch(connectionId, {
+      ...rest,
+      // Outro host/porta: a host key fixada não vale mais
+      ...(bindingChanged ? { hostKeyFingerprint: undefined } : {}),
+      updated_at: Date.now(),
+    })
     return connectionId
   },
 })
@@ -255,10 +247,48 @@ export const updateLastUsed = mutation({
   },
 })
 
-export const deleteConnection = mutation({
+/**
+ * TOFU: grava a fingerprint vista na 1ª conexão. Se já houver outra
+ * gravada, recusa — trocar exige `resetHostKey` (ação explícita na UI).
+ */
+export const pinHostKey = mutation({
+  args: { connectionId: v.id('sshConnection'), fingerprint: v.string() },
+  handler: async (ctx, args) => {
+    const { connection } = await getOwnConnection(ctx, args.connectionId)
+    if (!FINGERPRINT_RE.test(args.fingerprint)) {
+      throw new Error('Fingerprint inválida')
+    }
+    if (connection.hostKeyFingerprint === args.fingerprint) return
+    if (connection.hostKeyFingerprint) {
+      throw new Error('Já existe outra host key fixada para esta conexão')
+    }
+    await ctx.db.patch(args.connectionId, {
+      hostKeyFingerprint: args.fingerprint,
+    })
+  },
+})
+
+/** Esquece a host key fixada (a próxima conexão grava a nova). */
+export const resetHostKey = mutation({
   args: { connectionId: v.id('sshConnection') },
   handler: async (ctx, args) => {
     await getOwnConnection(ctx, args.connectionId)
+    await ctx.db.patch(args.connectionId, { hostKeyFingerprint: undefined })
+  },
+})
+
+export const deleteConnection = mutation({
+  args: { connectionId: v.id('sshConnection') },
+  handler: async (ctx, args) => {
+    const { user } = await getOwnConnection(ctx, args.connectionId)
+    // Metadados das sessões tmux desta conexão vão junto
+    const sessions = await ctx.db
+      .query('terminalSession')
+      .withIndex('by_user_connection', (q) =>
+        q.eq('userId', user._id).eq('connectionKey', args.connectionId),
+      )
+      .collect()
+    for (const s of sessions) await ctx.db.delete(s._id)
     await ctx.db.delete(args.connectionId)
     return { success: true }
   },
