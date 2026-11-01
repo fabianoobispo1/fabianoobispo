@@ -14,7 +14,12 @@ export interface XtermPaneHandle {
   paste: (text: string) => void
   /** Envia bytes crus (teclas especiais da barra do celular) */
   sendRaw: (data: string) => void
-  scrollLines: (n: number) => void
+  /**
+   * Rolagem por toque: com o mouse do tmux ligado vira evento de roda (SGR)
+   * na célula tocada; sem ele, rola o buffer local do xterm.
+   * lines < 0 = para cima (histórico).
+   */
+  wheel: (lines: number, clientX: number, clientY: number) => void
 }
 
 interface XtermPaneProps {
@@ -61,7 +66,28 @@ export const XtermPane = forwardRef<XtermPaneHandle, XtermPaneProps>(
       focus: () => termRef.current?.focus(),
       paste: (text) => termRef.current?.paste(text),
       sendRaw: (data) => sendRef.current(data),
-      scrollLines: (n) => termRef.current?.scrollLines(n),
+      wheel: (lines, clientX, clientY) => {
+        const term = termRef.current
+        const el = elRef.current
+        if (!term || !el || lines === 0) return
+        if (term.modes.mouseTrackingMode === 'none') {
+          term.scrollLines(lines)
+          return
+        }
+        const r = el.getBoundingClientRect()
+        const clamp = (v: number, max: number) => Math.min(max, Math.max(1, v))
+        const col = clamp(
+          Math.floor(((clientX - r.left) / r.width) * term.cols) + 1,
+          term.cols,
+        )
+        const row = clamp(
+          Math.floor(((clientY - r.top) / r.height) * term.rows) + 1,
+          term.rows,
+        )
+        // SGR 1006: 64 = roda para cima, 65 = para baixo
+        const btn = lines < 0 ? 64 : 65
+        sendRef.current(`\x1b[<${btn};${col};${row}M`.repeat(Math.abs(lines)))
+      },
     }))
 
     useEffect(() => {

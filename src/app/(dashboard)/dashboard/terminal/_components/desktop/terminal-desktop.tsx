@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 
 import { api } from '@/convex/_generated/api'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from '@/hooks/use-toast'
 import type {
   TerminalConnection,
@@ -43,6 +44,7 @@ import {
   EditSessionDialog,
   KillSessionDialog,
 } from './session-dialogs'
+import { MobileTerminal } from './mobile-terminal'
 import { TerminalWindow } from './terminal-window'
 import { XtermPane, type XtermPaneHandle } from './xterm-pane'
 
@@ -75,6 +77,7 @@ export function TerminalDesktop({
   const upsertMeta = useMutation(api.terminalSession.upsert)
   const removeMeta = useMutation(api.terminalSession.remove)
 
+  const isMobile = useIsMobile()
   const desktopRef = useRef<HTMLDivElement>(null)
   const panes = useRef(new Map<string, XtermPaneHandle>())
   const shellCounter = useRef(0)
@@ -178,12 +181,20 @@ export function TerminalDesktop({
   /** Clique no dock: abre, restaura, foca ou minimiza (se já ativa). */
   const activate = useCallback(
     (id: string) => {
+      // Celular: uma sessão por vez, o dock só troca a ativa
+      if (isMobile) {
+        if (id.startsWith('shell-') || windows.some((w) => w.id === id)) {
+          setActiveId(id)
+          return
+        }
+        return openWindow(id)
+      }
       const w = windows.find((x) => x.id === id)
       if (!w) return openWindow(id.startsWith('shell-') ? null : id)
       if (w.minimized || activeId !== id) return focusWindow(id)
       minimizeWindow(id)
     },
-    [windows, activeId, openWindow, focusWindow, minimizeWindow],
+    [isMobile, windows, activeId, openWindow, focusWindow, minimizeWindow],
   )
 
   const arrange = useCallback((mode: 'tile' | 'cascade') => {
@@ -246,13 +257,14 @@ export function TerminalDesktop({
 
   // Persiste o layout (debounce: arrastar gera várias mudanças)
   useEffect(() => {
-    if (!initialized) return
+    // No celular não há janelas de verdade: não sobrescreve o layout do PC
+    if (!initialized || isMobile) return
     const t = setTimeout(
       () => saveLayout(connectionKey, windows),
       SAVE_DEBOUNCE_MS,
     )
     return () => clearTimeout(t)
-  }, [windows, connectionKey, initialized])
+  }, [windows, connectionKey, initialized, isMobile])
 
   // --------------------------------------------------------- ações tmux
   const createSession = async (opts: { cwd?: string; claude: boolean }) => {
@@ -514,6 +526,95 @@ export function TerminalDesktop({
   // ------------------------------------------------------------- render
   const snapRect = snap ? ZONE_RECTS[snap] : null
 
+  const dialogs = (
+    <>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        sessions={dockItems.map((d) => ({
+          id: d.id,
+          session: d.session,
+          label: d.label,
+          color: d.color,
+          command: d.command,
+          open: d.open,
+        }))}
+        actions={actions}
+        onGoTo={(id) => {
+          const item = dockItems.find((d) => d.id === id)
+          if (item?.open) focusWindow(id)
+          else activate(id)
+        }}
+        onKill={tmuxAvailable ? setKilling : undefined}
+      />
+
+      <CreateSessionDialog
+        open={createOpen !== null}
+        defaultClaude={createOpen?.claude ?? false}
+        onOpenChange={(o) => !o && setCreateOpen(null)}
+        onCreate={createSession}
+      />
+      <EditSessionDialog
+        connectionKey={connectionKey}
+        name={editing}
+        meta={editing ? meta.get(editing) : undefined}
+        onClose={() => setEditing(null)}
+      />
+      <KillSessionDialog
+        name={killing}
+        label={killing ? labelOf(killing, killing) : undefined}
+        onConfirm={(name) => {
+          killSession(name).catch(() => {})
+        }}
+        onCancel={() => setKilling(null)}
+      />
+      <CaptureDialog
+        conn={conn}
+        name={capturing}
+        onClose={() => setCapturing(null)}
+      />
+    </>
+  )
+
+  if (isMobile) {
+    const mobileId = activeId ?? dockItems[0]?.id ?? null
+    const mobileItem = dockItems.find((d) => d.id === mobileId)
+    const mobileSession =
+      mobileId && !mobileId.startsWith('shell-') ? mobileId : null
+    return (
+      <>
+        <MobileTerminal
+          conn={conn}
+          activeId={mobileId}
+          session={mobileSession}
+          title={mobileItem?.label ?? 'Terminal'}
+          color={mobileItem?.color}
+          onDetached={(id, reason) => onPaneDetached(id)(reason)}
+          onCapture={setCapturing}
+          onDisconnect={onDisconnect}
+          dock={
+            <Dock
+              conn={conn}
+              compact
+              items={dockItems.map((d) => ({
+                ...d,
+                active: d.id === mobileId,
+              }))}
+              tmuxAvailable={tmuxAvailable}
+              onActivate={activate}
+              onNew={newSession}
+              onPalette={() => setPaletteOpen(true)}
+              onEdit={setEditing}
+              onCapture={setCapturing}
+              onKill={setKilling}
+            />
+          }
+        />
+        {dialogs}
+      </>
+    )
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
       <div ref={desktopRef} className="relative min-h-0 flex-1 overflow-hidden">
@@ -593,51 +694,7 @@ export function TerminalDesktop({
         onKill={setKilling}
       />
 
-      <CommandPalette
-        open={paletteOpen}
-        onOpenChange={setPaletteOpen}
-        sessions={dockItems.map((d) => ({
-          id: d.id,
-          session: d.session,
-          label: d.label,
-          color: d.color,
-          command: d.command,
-          open: d.open,
-        }))}
-        actions={actions}
-        onGoTo={(id) => {
-          const item = dockItems.find((d) => d.id === id)
-          if (item?.open) focusWindow(id)
-          else activate(id)
-        }}
-        onKill={tmuxAvailable ? setKilling : undefined}
-      />
-
-      <CreateSessionDialog
-        open={createOpen !== null}
-        defaultClaude={createOpen?.claude ?? false}
-        onOpenChange={(o) => !o && setCreateOpen(null)}
-        onCreate={createSession}
-      />
-      <EditSessionDialog
-        connectionKey={connectionKey}
-        name={editing}
-        meta={editing ? meta.get(editing) : undefined}
-        onClose={() => setEditing(null)}
-      />
-      <KillSessionDialog
-        name={killing}
-        label={killing ? labelOf(killing, killing) : undefined}
-        onConfirm={(name) => {
-          killSession(name).catch(() => {})
-        }}
-        onCancel={() => setKilling(null)}
-      />
-      <CaptureDialog
-        conn={conn}
-        name={capturing}
-        onClose={() => setCapturing(null)}
-      />
+      {dialogs}
     </div>
   )
 }

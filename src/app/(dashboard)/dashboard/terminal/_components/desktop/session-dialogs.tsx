@@ -340,9 +340,9 @@ export function CaptureDialog({
             readOnly
             value={text}
             className="h-[60vh] font-mono text-xs"
-            onFocus={(e) => {
-              // Rola para o fim (o mais recente) ao abrir
-              e.currentTarget.scrollTop = e.currentTarget.scrollHeight
+            ref={(el) => {
+              // Abre no fim (o mais recente)
+              if (el) el.scrollTop = el.scrollHeight
             }}
           />
         )}
