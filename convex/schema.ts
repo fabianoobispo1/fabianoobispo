@@ -171,60 +171,6 @@ export const labSchema = {
   error: v.optional(v.string()),
 }
 
-// SSH Connections - Permite guardar múltiplas conexões SSH
-export const sshConnectionSchema = {
-  userId: v.id('user'),
-  name: v.string(), // Nome da conexão (ex: "Servidor Principal", "VPS Backup")
-  host: v.string(), // IP ou hostname do servidor
-  port: v.number(), // Porta SSH (padrão: 22)
-  username: v.string(), // Usuário SSH
-  authMethod: v.union(v.literal('password'), v.literal('privateKey')), // Método de autenticação
-
-  // Credencial selada (libsodium crypto_box_seal, base64) com a CHAVE
-  // PÚBLICA do Terminal Server. Só o Terminal Server (TERMINAL_PRIVATE_KEY)
-  // consegue abrir: nem o Convex nem o Next.js leem a senha/chave.
-  // Conteúdo selado: { v, owner, host, port, username, authMethod,
-  // password? | privateKey?, passphrase? }
-  sealedCredential: v.optional(v.string()),
-
-  // Fingerprint da host key do destino (formato OpenSSH, SHA256:...),
-  // gravada na 1ª conexão (TOFU). O Terminal Server recusa conectar se a
-  // chave apresentada mudar. Não é segredo.
-  hostKeyFingerprint: v.optional(v.string()),
-
-  // DEPRECATED — credenciais em texto puro do modelo antigo. Nenhum código
-  // lê ou grava estes campos; ficam no schema só até a limpeza
-  // (sshConnection:purgePlaintextSecretsInternal) rodar em todos os
-  // deployments. Depois, remova-os daqui.
-  password: v.optional(v.string()),
-  privateKey: v.optional(v.string()),
-  privateKeyPassphrase: v.optional(v.string()),
-
-  // Metadados
-  description: v.optional(v.string()),
-  tags: v.optional(v.array(v.string())), // Tags para organizar (ex: ["produção", "crítico"])
-  isDefault: v.boolean(), // Conexão padrão?
-  lastUsed: v.optional(v.number()), // timestamp do último uso
-
-  // Auditoria e segurança
-  created_at: v.number(),
-  updated_at: v.number(),
-}
-
-// Metadados das sessões tmux (agent-N) do terminal web, por usuário e por
-// conexão. A sessão em si vive no host remoto; aqui fica só o que é da UI.
-export const terminalSessionSchema = {
-  userId: v.id('user'),
-  // _id da sshConnection, ou 'default' para a credencial SSH_* do servidor
-  connectionKey: v.string(),
-  name: v.string(), // agent-N
-  apelido: v.optional(v.string()),
-  cor: v.optional(v.string()),
-  pasta: v.optional(v.string()),
-  created_at: v.number(),
-  updated_at: v.number(),
-}
-
 // Definição do Schema completo
 export default defineSchema({
   user: defineTable(userSchema)
@@ -257,11 +203,4 @@ export default defineSchema({
   lab: defineTable(labSchema)
     .index('by_user', ['userId'])
     .index('by_container_id', ['containerId']),
-  sshConnection: defineTable(sshConnectionSchema)
-    .index('by_user', ['userId'])
-    .index('by_user_default', ['userId', 'isDefault'])
-    .index('by_user_name', ['userId', 'name']),
-  terminalSession: defineTable(terminalSessionSchema)
-    .index('by_user_connection', ['userId', 'connectionKey'])
-    .index('by_user_connection_name', ['userId', 'connectionKey', 'name']),
 })

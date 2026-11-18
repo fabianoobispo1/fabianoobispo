@@ -110,9 +110,6 @@ await expectFail('transaction.create', () =>
     date: Date.now(),
   }),
 )
-await expectEmpty('sshConnection.getConnectionsByUser', () =>
-  anon.query(api.sshConnection.getConnectionsByUser, {}),
-)
 await expectFail('dontPad.listAll', () => anon.query(api.dontPad.listAll, {}))
 await expectFail('megaSena.create', () =>
   anon.mutation(api.megaSena.create, {
@@ -190,9 +187,6 @@ await expectFail('usuário comum não chama função de serviço', () =>
   A.query(api.user.getAuthByEmailService, {
     email: `a-${stamp}@smoke.invalid`,
   }),
-)
-await expectEmpty('não-autorizado não vê conexões SSH', () =>
-  A.query(api.sshConnection.getConnectionsByUser, {}),
 )
 
 // ------------------------------------------------- token forjado

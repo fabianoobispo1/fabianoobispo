@@ -84,7 +84,7 @@ const { data: session } = useSession()
 Users have `role: 'admin' | 'user'` stored in Convex — check `session.user.role` for UI gating only; the real authorization is in Convex.
 
 **Convex auth (NextAuth → Convex JWT):** `/api/convex/token` signs an ES256 JWT (`sub` = user `_id`) with `CONVEX_AUTH_PRIVATE_KEY`; Convex validates it via `convex/auth.config.ts` (inline JWKS in `CONVEX_AUTH_JWKS`). Generate keys with `node scripts/gen-convex-auth-keys.mjs`. Rules:
-- Never accept "who is calling" (`userId`) as a function arg. Use `requireUser(ctx)` / `getCurrentUser(ctx)` / `requireAdmin(ctx)` / `requireTerminalUser(ctx)` from `convex/authz.ts` (actions: `requireUserAction` / `requireAdminAction`). Role is read from the DB, not from claims.
+- Never accept "who is calling" (`userId`) as a function arg. Use `requireUser(ctx)` / `getCurrentUser(ctx)` / `requireAdmin(ctx)` from `convex/authz.ts` (actions: `requireUserAction` / `requireAdminAction`). Role is read from the DB, not from claims.
 - Never return `user.password` to clients (`toSafeUser`). Functions only scripts/crons use are `internal*` (run with `npx convex run`).
 - Server-only flows without a session (credentials login, OAuth sign-in, register, password change) use the service token: `serviceQuery`/`serviceMutation` from `src/lib/server/convex-auth.ts`, and the Convex side checks `requireService(ctx)`.
 - In client components use `useQuery`/`useMutation`/`useConvex()` (they carry the token) — **not** `fetchQuery`/`fetchMutation` from `convex/nextjs`, which run without auth. Gate per-user queries with `useConvexAuth().isAuthenticated ? args : 'skip'`.
@@ -152,7 +152,6 @@ This is a **personal portfolio + company management tool** for FABIANOOBISPO DES
 
 **File uploads**: `@uploadthing/react` + `@xixixao/uploadstuff` for Convex storage integration. Functions in `convex/files.ts`.
 
-**Terminal web** (`/dashboard/terminal`): SSH via a separate Terminal Server container on the VPS (`scripts/terminal-server/`, protocol v3, `npm test` there). Saved credentials are sealed in the browser with `NEXT_PUBLIC_TERMINAL_PUBLIC_KEY` and only the container opens them; sessions are persistent tmux (`tmux -L webdeck`, names `agent-N` only — never interpolate client input into remote commands). Site and container must be deployed together when the protocol changes. Docs: `TERMINAL_QUICK_START.md`, `TERMINAL_SSH_SETUP.md` (security model), `TERMINAL_MULTIPLE_CONNECTIONS.md`, `docs/TERMINAL_VPS_INSTALL.md`.
 
 **Exports**: `jspdf`/`jspdf-autotable` for PDF, `xlsx` for spreadsheets.
 

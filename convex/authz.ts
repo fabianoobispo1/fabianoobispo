@@ -59,35 +59,6 @@ export async function requireService(ctx: {
   }
 }
 
-/**
- * E-mail autorizado a usar o terminal (env do Convex). Sem ele, o terminal
- * fica desabilitado — não existe fallback no código.
- */
-export function terminalAuthorizedEmail(): string | null {
-  const email = process.env.TERMINAL_AUTHORIZED_EMAIL?.trim().toLowerCase()
-  return email || null
-}
-
-export async function requireTerminalUser(ctx: DbCtx): Promise<Doc<'user'>> {
-  const user = await requireUser(ctx)
-  const allowed = terminalAuthorizedEmail()
-  if (!allowed) throw new Error('Terminal desabilitado')
-  if (user.email.trim().toLowerCase() !== allowed) {
-    throw new Error('Acesso negado')
-  }
-  return user
-}
-
-/** Versão de query: o usuário do terminal, ou null (sem lançar). */
-export async function getTerminalUser(ctx: DbCtx): Promise<Doc<'user'> | null> {
-  const user = await getCurrentUser(ctx)
-  const allowed = terminalAuthorizedEmail()
-  if (!user || !allowed || user.email.trim().toLowerCase() !== allowed) {
-    return null
-  }
-  return user
-}
-
 // ---------------------------------------------------------------- actions
 
 /** Actions não têm `db`: resolve o usuário via internalQuery. */
