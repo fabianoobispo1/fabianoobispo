@@ -1,6 +1,7 @@
 'use client'
 
 import { api } from '@/../convex/_generated/api'
+import { fixMojibake, formatPhoneBR } from '@/../convex/lib/fixText'
 
 import { useMemo, useState } from 'react'
 import {
@@ -19,7 +20,7 @@ import {
   YAxis,
 } from 'recharts'
 import { toast } from 'sonner'
-import { RefreshCw } from 'lucide-react'
+import { Download, RefreshCw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -46,8 +47,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-import { fixMojibake, formatPhoneBR } from './fix-text'
 
 type Stats = {
   total: number
@@ -148,30 +147,40 @@ export function ContatosDashboard() {
             <TabsTrigger value="mensagens">Mensagens</TabsTrigger>
             <TabsTrigger value="qualidade">Qualidade</TabsTrigger>
             <TabsTrigger value="tabela">Tabela</TabsTrigger>
+            <TabsTrigger value="exportar">Exportar p/ campanha</TabsTrigger>
           </TabsList>
         </div>
 
-        {(['geral', 'geo', 'atividade', 'mensagens', 'qualidade'] as const).map(
-          (tab) => (
-            <TabsContent key={tab} value={tab} className="space-y-4">
-              {snapshot === undefined ? (
-                <Skeleton className="h-64 w-full" />
-              ) : !stats ? (
-                <EmptyState onRefresh={handleRefresh} refreshing={refreshing} />
-              ) : tab === 'geral' ? (
-                <VisaoGeral s={stats} />
-              ) : tab === 'geo' ? (
-                <Geografia s={stats} />
-              ) : tab === 'atividade' ? (
-                <Atividade s={stats} />
-              ) : tab === 'mensagens' ? (
-                <Mensagens s={stats} />
-              ) : (
-                <Qualidade s={stats} />
-              )}
-            </TabsContent>
-          ),
-        )}
+        {(
+          [
+            'geral',
+            'geo',
+            'atividade',
+            'mensagens',
+            'qualidade',
+            'exportar',
+          ] as const
+        ).map((tab) => (
+          <TabsContent key={tab} value={tab} className="space-y-4">
+            {snapshot === undefined ? (
+              <Skeleton className="h-64 w-full" />
+            ) : !stats ? (
+              <EmptyState onRefresh={handleRefresh} refreshing={refreshing} />
+            ) : tab === 'geral' ? (
+              <VisaoGeral s={stats} />
+            ) : tab === 'geo' ? (
+              <Geografia s={stats} />
+            ) : tab === 'atividade' ? (
+              <Atividade s={stats} />
+            ) : tab === 'mensagens' ? (
+              <Mensagens s={stats} />
+            ) : tab === 'qualidade' ? (
+              <Qualidade s={stats} />
+            ) : (
+              <ExportarCampanha s={stats} />
+            )}
+          </TabsContent>
+        ))}
 
         <TabsContent value="tabela">
           <TabelaContatos enabled={isAuthenticated} />
@@ -702,5 +711,169 @@ function HBar<T extends { count: number }>({
         <Bar dataKey="count" fill="var(--color-count)" radius={4} />
       </BarChart>
     </ChartContainer>
+  )
+}
+
+// ------------------------------------------------- exportar p/ campanha
+
+type ExportResult = {
+  total: number
+  inRegion: number
+  excluded: {
+    optOut: number
+    hostil: number
+    invalid: number
+    duplicate: number
+  }
+  partSize: number
+  parts: { label: string; group: string; count: number; csv: string }[]
+}
+
+function downloadCsv(filename: string, csv: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function ExportarCampanha({ s }: { s: Stats }) {
+  const exportar = useAction(api.contacts.exportForCampaign)
+  const ufs = s.byUF.filter((u) => u.uf !== '??')
+  const [selected, setSelected] = useState<string[]>([])
+  const [groupBy, setGroupBy] = useState<'uf' | 'ddd'>('uf')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<ExportResult | null>(null)
+
+  const toggle = (uf: string) =>
+    setSelected((cur) =>
+      cur.includes(uf) ? cur.filter((x) => x !== uf) : [...cur, uf],
+    )
+
+  const gerar = async () => {
+    setLoading(true)
+    setResult(null)
+    try {
+      setResult(await exportar({ ufs: selected, groupBy }))
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Falha ao exportar')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const slug = (l: string) =>
+    `bispotv-${l.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`
+
+  return (
+    <div className="grid gap-4">
+      <ChartCard
+        title="Lista para campanha no Zapeio"
+        description="Gera CSVs (telefone;nome) por região, já sem quem pediu para sair, quem chamou de golpe/spam, números inválidos e duplicados. Cada parte tem no máximo 2.000 contatos: importe cada uma numa etiqueta própria e crie uma campanha por etiqueta."
+      >
+        <div className="space-y-4">
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-sm font-medium">
+                Estados{' '}
+                <span className="text-muted-foreground">
+                  (
+                  {selected.length
+                    ? `${selected.length} selecionados`
+                    : 'nenhum = todos'}
+                  )
+                </span>
+              </span>
+              {selected.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelected([])}
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ufs.map((u) => (
+                <button
+                  key={u.uf}
+                  type="button"
+                  onClick={() => toggle(u.uf)}
+                  className={`rounded-md border px-2 py-1 text-xs tabular-nums transition-colors ${
+                    selected.includes(u.uf)
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <b>{u.uf}</b> · {fmtN(u.count)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium">Separar por</span>
+            {(['uf', 'ddd'] as const).map((g) => (
+              <Button
+                key={g}
+                size="sm"
+                variant={groupBy === g ? 'default' : 'outline'}
+                onClick={() => setGroupBy(g)}
+              >
+                {g === 'uf' ? 'Estado' : 'DDD'}
+              </Button>
+            ))}
+            <Button onClick={gerar} disabled={loading} className="ml-auto">
+              {loading ? 'Gerando…' : 'Gerar lista'}
+            </Button>
+          </div>
+        </div>
+      </ChartCard>
+
+      {result && (
+        <>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            <Kpi label="Prontos para envio" value={fmtN(result.total)} />
+            <Kpi
+              label="Pediram para sair"
+              value={fmtN(result.excluded.optOut)}
+            />
+            <Kpi label="Golpe/spam" value={fmtN(result.excluded.hostil)} />
+            <Kpi label="Duplicados" value={fmtN(result.excluded.duplicate)} />
+            <Kpi
+              label="Inválidos/fora do BR"
+              value={fmtN(result.excluded.invalid)}
+              hint="na base toda"
+            />
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                {result.parts.length} arquivo(s)
+              </CardTitle>
+              <CardDescription>
+                Ao ritmo conservador (até 400/dia), cada parte de 2.000 leva
+                cerca de 5 dias.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              {result.parts.map((p) => (
+                <Button
+                  key={p.label}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => downloadCsv(slug(p.label), p.csv)}
+                >
+                  <Download className="mr-2 h-3.5 w-3.5" />
+                  {p.label} · {fmtN(p.count)}
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
   )
 }

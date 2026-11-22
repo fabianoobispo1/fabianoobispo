@@ -14,6 +14,7 @@ import {
 } from './_generated/server'
 import { internal } from './_generated/api'
 import { requireAdmin, requireAdminAction } from './authz'
+import { fixMojibake } from './lib/fixText'
 
 /**
  * Leitura da tabela `contacts` (importada de fora, ~69K docs, NAO declarada no
@@ -373,5 +374,115 @@ export const refreshStats = action({
       data,
     })
     return { total, durationMs }
+  },
+})
+
+// ------------------------------------------------- export p/ campanha (Zapeio)
+
+// So olha a ULTIMA mensagem de cada contato (e o que a tabela guarda).
+const OPT_OUT_RE =
+  /\b(sair|parar|pare|cancelar|cancela|stop|remover|remova|descadastr\w*|n[aã]o quero mais|me tira)\b/i
+const HOSTIL_RE = /golpe|spam|denunc|fraude|bloque|pol[ií]cia|procon|processar/i
+
+const EXPORT_PART_SIZE = 2000
+
+/**
+ * Lista limpa de contatos por regiao, pronta pra importar no Zapeio
+ * (`telefone;nome`, ate EXPORT_PART_SIZE por parte). Exclui: quem pediu pra
+ * sair, quem chamou de golpe/spam, numeros invalidos/fora do BR e duplicados
+ * (chave 55+DDD+8 ultimos digitos, cobre com/sem o 9o digito).
+ */
+export const exportForCampaign = action({
+  args: {
+    ufs: v.array(v.string()),
+    groupBy: v.union(v.literal('uf'), v.literal('ddd')),
+  },
+  handler: async (ctx, { ufs, groupBy }) => {
+    await requireAdminAction(ctx)
+    const wanted = new Set(ufs)
+    const seen = new Set<string>()
+    const groups: Record<string, { phone: string; name: string }[]> = {}
+    const excluded = { optOut: 0, hostil: 0, invalid: 0, duplicate: 0 }
+    let inRegion = 0
+
+    let cursor: string | null = null
+    for (;;) {
+      const res: {
+        rows: ContactRow[]
+        continueCursor: string
+        isDone: boolean
+      } = await ctx.runQuery(internal.contacts.scanPage, {
+        cursor,
+        numItems: 4000,
+      })
+      for (const c of res.rows) {
+        const digits = c.number.replace(/\D/g, '')
+        const valid =
+          digits.startsWith('55') &&
+          (digits.length === 12 || digits.length === 13)
+        const ddd = valid ? digits.slice(2, 4) : ''
+        const uf = DDD_UF[ddd]
+        if (!valid || !uf) {
+          excluded.invalid++ // sem regiao: fica fora de qualquer export
+          continue
+        }
+        if (wanted.size > 0 && !wanted.has(uf)) continue
+        inRegion++
+
+        const text = fixMojibake(c.lastMessageText)
+        if (OPT_OUT_RE.test(text)) {
+          excluded.optOut++
+          continue
+        }
+        if (HOSTIL_RE.test(text)) {
+          excluded.hostil++
+          continue
+        }
+        const key = `${ddd}${digits.slice(-8)}`
+        if (seen.has(key)) {
+          excluded.duplicate++
+          continue
+        }
+        seen.add(key)
+
+        const name = fixMojibake(c.name)
+          .replace(/[;,\t\r\n"]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 60)
+        const g = groupBy === 'uf' ? uf : `${uf}-${ddd}`
+        ;(groups[g] ??= []).push({ phone: digits, name })
+      }
+      if (res.isDone) break
+      cursor = res.continueCursor
+    }
+
+    const parts: {
+      label: string
+      group: string
+      count: number
+      csv: string
+    }[] = []
+    for (const g of Object.keys(groups).sort()) {
+      const rows = groups[g]
+      const n = Math.ceil(rows.length / EXPORT_PART_SIZE)
+      for (let i = 0; i < n; i++) {
+        const slice = rows.slice(
+          i * EXPORT_PART_SIZE,
+          (i + 1) * EXPORT_PART_SIZE,
+        )
+        parts.push({
+          group: g,
+          label: n > 1 ? `${g} ${i + 1}/${n}` : g,
+          count: slice.length,
+          csv: [
+            'telefone;nome',
+            ...slice.map((r) => `${r.phone};${r.name}`),
+          ].join('\n'),
+        })
+      }
+    }
+    const total = parts.reduce((s, p) => s + p.count, 0)
+    return { total, inRegion, excluded, partSize: EXPORT_PART_SIZE, parts }
   },
 })
