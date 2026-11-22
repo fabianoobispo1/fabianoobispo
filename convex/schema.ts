@@ -200,6 +200,13 @@ export default defineSchema({
   megaSenaJogoGerado: defineTable(megaSenaJogoGeradoSchema).index('by_user', [
     'userId',
   ]),
+  // Snapshot das estatisticas da tabela `contacts` (que fica fora do schema).
+  // Recalculado sob demanda pelo admin em convex/contacts.ts.
+  contactsStats: defineTable({
+    computedAt: v.number(),
+    durationMs: v.number(),
+    data: v.any(),
+  }).index('by_computed_at', ['computedAt']),
   lab: defineTable(labSchema)
     .index('by_user', ['userId'])
     .index('by_container_id', ['containerId']),

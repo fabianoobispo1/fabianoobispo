@@ -10,6 +10,7 @@
 
 import type * as authz from "../authz.js";
 import type * as categories from "../categories.js";
+import type * as contacts from "../contacts.js";
 import type * as crons from "../crons.js";
 import type * as dontPad from "../dontPad.js";
 import type * as exerciseCatalog from "../exerciseCatalog.js";
@@ -33,6 +34,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   authz: typeof authz;
   categories: typeof categories;
+  contacts: typeof contacts;
   crons: typeof crons;
   dontPad: typeof dontPad;
   exerciseCatalog: typeof exerciseCatalog;

@@ -55,6 +55,14 @@ export default function Page() {
           </Button>
         </div>
         <div>
+          <Button
+            onClick={() => router.push('/dashboard/admin/contatos')}
+            disabled={!isAdmin}
+          >
+            Dashboard de Contatos
+          </Button>
+        </div>
+        <div>
           <Button onClick={handleNavigationCatalogoExercicios}>
             Catálogo de Exercícios
           </Button>
