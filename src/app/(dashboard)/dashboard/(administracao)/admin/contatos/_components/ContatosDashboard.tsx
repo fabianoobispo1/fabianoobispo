@@ -331,14 +331,16 @@ function Geografia({ s }: { s: Stats }) {
 
 function Atividade({ s }: { s: Stats }) {
   const [range, setRange] = useState<30 | 90 | 365 | 0>(90)
-  const days = range ? s.byDay.slice(-range) : s.byDay
+  const allDays = useMemo(() => fillDays(s.byDay), [s.byDay])
+  const days = range ? allDays.slice(-range) : allDays
+  const lastDay = allDays.at(-1)?.day
   const max = Math.max(1, ...s.heat.flat())
 
   return (
     <div className="grid gap-4">
       <ChartCard
         title="Contatos por dia da última mensagem"
-        description="Horário de Brasília"
+        description={`Horário de Brasília · períodos contados até a mensagem mais recente${lastDay ? ` (${fmtDay(lastDay)})` : ''}`}
       >
         <div className="mb-3 flex gap-1">
           {([30, 90, 365, 0] as const).map((r) => (
@@ -361,14 +363,22 @@ function Atividade({ s }: { s: Stats }) {
               axisLine={false}
               minTickGap={32}
               tickFormatter={(d: string) =>
-                `${d.slice(8, 10)}/${d.slice(5, 7)}`
+                `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(2, 4)}`
               }
             />
-            <YAxis tickLine={false} axisLine={false} width={40} />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <YAxis tickLine={false} axisLine={false} width={48} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(_, p) =>
+                    fmtDay(String(p?.[0]?.payload?.day ?? ''))
+                  }
+                />
+              }
+            />
             <Area
               dataKey="count"
-              type="monotone"
+              type="linear"
               fill="var(--color-count)"
               fillOpacity={0.25}
               stroke="var(--color-count)"
@@ -418,6 +428,22 @@ function Atividade({ s }: { s: Stats }) {
   )
 }
 
+const fmtDay = (d: string) =>
+  d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}` : ''
+
+/** Preenche com 0 os dias sem mensagem, para o eixo ser continuo. */
+function fillDays(byDay: { day: string; count: number }[]) {
+  if (!byDay.length) return []
+  const map = new Map(byDay.map((d) => [d.day, d.count]))
+  const out: { day: string; count: number }[] = []
+  const end = Date.parse(`${byDay[byDay.length - 1].day}T00:00:00Z`)
+  for (let t = Date.parse(`${byDay[0].day}T00:00:00Z`); t <= end; t += 864e5) {
+    const day = new Date(t).toISOString().slice(0, 10)
+    out.push({ day, count: map.get(day) ?? 0 })
+  }
+  return out
+}
+
 function HeatRow({
   label,
   row,
@@ -436,7 +462,8 @@ function HeatRow({
           title={`${label} ${h}h: ${fmtN(v)}`}
           className="aspect-square rounded-sm"
           style={{
-            background: `hsl(var(--chart-1) / ${v ? 0.08 + 0.92 * (v / max) : 0.04})`,
+            // escala raiz quadrada: um pico isolado nao apaga o resto do mapa
+            background: `hsl(var(--chart-1) / ${v ? 0.15 + 0.85 * Math.sqrt(v / max) : 0.04})`,
           }}
         />
       ))}
